@@ -184,6 +184,13 @@ export default function RecommendationPage() {
         const history = localStorage.getItem('history');
         if (history) {
             const historyArray = JSON.parse(history);
+            if (historyArray.some((item: any) => item.title === cardToSave.title)) {
+                setAlert("Already in history");
+                setTimeout(() => {
+                    setAlert(null);
+                }, 3000);
+                return;
+            }
             historyArray.push(cardToSave);
             localStorage.setItem('history', JSON.stringify(historyArray));
         } else {

@@ -60,7 +60,7 @@ export default function SearchComponent() {
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Search for a show..."
                                 aria-label="Search for shows or movies"
-                                className="w-full px-8 py-5 text-base md:text-lg rounded-full bg-zinc-900/40 backdrop-blur-xl border border-zinc-800/50 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-700/50 transition-all duration-300"
+                                className="w-full px-8 py-5 text-base md:text-lg rounded-full bg-zinc-900/40 backdrop-blur-xl border border-zinc-800/50 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-0 transition-all duration-300 ease-in-out"
                             />
                             {query && (
                                 <button
