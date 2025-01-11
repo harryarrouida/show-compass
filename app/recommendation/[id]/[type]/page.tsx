@@ -5,7 +5,6 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { showDetails, movieDetails, Show, Movie } from "@/types/types";
 import Image from 'next/image';
-import axios from "axios";
 import Groq from "groq-sdk";
 import { search } from "@/services/sharedServices";
 
