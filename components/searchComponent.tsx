@@ -104,7 +104,7 @@ export default function SearchComponent() {
                                                 <div className="flex items-center bg-zinc-800/40 backdrop-blur-sm rounded-full px-2 py-0.5">
                                                     <span className="text-amber-400/90 text-xs">★</span>
                                                     <span className="text-zinc-300 text-xs ml-1.5 font-light">
-                                                        {item.vote_average.toFixed(1)}
+                                                        {item.vote_average}
                                                     </span>
                                                 </div>
                                                 <span className="text-zinc-500 text-xs font-light">

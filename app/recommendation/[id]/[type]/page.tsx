@@ -127,101 +127,85 @@ export default function RecommendationPage() {
     }, [id, type]);
 
     return (
-        <div className="p-8 max-w-7xl mx-auto min-h-screen bg-gradient-to-b from-background to-background/80">
+        <div className="p-8 max-w-6xl mx-auto min-h-screen">
             {isLoading ? (
                 <div className="flex justify-center items-center min-h-[60vh]">
-                    <div className="animate-spin rounded-full h-14 w-14 border-4 border-primary/20 border-t-primary"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
                 </div>
             ) : (
                 <>
                     {details && (
-                        <div className="grid md:grid-cols-[350px_1fr] gap-12">
-                            {/* Left Column - Enhanced styling */}
-                            <div className="space-y-6">
-                                <div className="relative aspect-[2/3] w-full rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10">
+                        <div className="grid md:grid-cols-[300px_1fr] gap-12">
+                            {/* Poster Section */}
+                            <div>
+                                <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-zinc-900/40">
                                     <Image
                                         src={`https://image.tmdb.org/t/p/w500${details.poster_path}`}
                                         alt={details.title}
                                         fill
-                                        className="object-cover hover:scale-105 transition-transform duration-300"
+                                        className="object-cover"
+                                        priority
                                     />
                                 </div>
-
-                                {/* Enhanced info box */}
-                                <div className="bg-white/5 p-5 rounded-xl space-y-3 backdrop-blur-sm ring-1 ring-white/10">
+                                
+                                {/* Key Info */}
+                                <div className="mt-6 space-y-3 text-sm text-zinc-400">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-yellow-400 text-xl">★</span>
-                                        <span className="font-semibold text-lg">
-                                            {details.vote_average?.toFixed(1)}/10
-                                        </span>
-                                        <span className="text-foreground/50 text-sm">
-                                            ({details.vote_count} votes)
+                                        <span className="text-amber-400">★</span>
+                                        <span>{details.vote_average?.toFixed(1)}</span>
+                                        <span className="text-zinc-600">•</span>
+                                        <span>
+                                            {new Date(details.release_date || details.first_air_date).getFullYear()}
                                         </span>
                                     </div>
-
-                                    {'release_date' in details && (
-                                        <p className="text-foreground/80">
-                                            Release Date: {new Date(details.release_date).toLocaleDateString()}
-                                        </p>
-                                    )}
-
-                                    {'first_air_date' in details && (
-                                        <p className="text-foreground/80">
-                                            First Air Date: {new Date(details.first_air_date).toLocaleDateString()}
-                                        </p>
-                                    )}
-
                                     {'runtime' in details && details.runtime && (
-                                        <p className="text-foreground/80">
-                                            Runtime: {Math.floor(details.runtime / 60)}h {details.runtime % 60}m
-                                        </p>
+                                        <div>{Math.floor(details.runtime / 60)}h {details.runtime % 60}m</div>
                                     )}
-
                                     {'number_of_seasons' in details && (
-                                        <p className="text-foreground/80">
-                                            Seasons: {details.number_of_seasons}
-                                        </p>
+                                        <div>{details.number_of_seasons} Seasons</div>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Right Column - Enhanced typography and spacing */}
+                            {/* Content Section */}
                             <div className="space-y-8">
                                 <div>
-                                    <h1 className="text-5xl font-bold mb-3 bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
+                                    <h1 className="text-3xl font-medium mb-4">
                                         {details.title}
                                     </h1>
                                     <div className="flex flex-wrap gap-2 mb-6">
                                         {details.genres?.map((genre) => (
                                             <span
                                                 key={genre.id}
-                                                className="px-4 py-1.5 bg-white/5 rounded-full text-sm font-medium ring-1 ring-white/10 hover:bg-white/10 transition-colors"
+                                                className="px-3 py-1 bg-zinc-800/50 rounded-full text-sm text-zinc-400"
                                             >
                                                 {genre.name}
                                             </span>
                                         ))}
                                     </div>
-                                    <p className="text-lg leading-relaxed text-foreground/80">
+                                    <p className="text-zinc-400 leading-relaxed">
                                         {details.overview}
                                     </p>
                                 </div>
 
-                                {/* AI Recommendations - Enhanced card */}
-                                <div className="bg-white/5 p-8 rounded-xl backdrop-blur-sm ring-1 ring-white/10">
-                                    <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-                                        <span className="text-white">AI Recommendations</span>
-                                    </h2>
+                                {/* AI Recommendations */}
+                                <div className="space-y-6">
+                                    <h2 className="text-xl font-medium">Similar Recommendations</h2>
+                                    
                                     {isAiLoading ? (
-                                        <div className="flex items-center gap-3 text-foreground/60">
-                                            <div className="animate-spin h-5 w-5 border-2 border-primary/60 rounded-full border-t-transparent"></div>
-                                            <span>Generating recommendations...</span>
+                                        <div className="flex items-center gap-2 text-zinc-500">
+                                            <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                                            <span>Finding recommendations...</span>
                                         </div>
                                     ) : (
-                                        <div className="space-y-4">
-                                            {aiRecommendations.map((rec, index) => (
-                                                <div key={index} className="flex gap-4 items-start border-b border-white/10 pb-4">
-                                                    {rec.media && (
-                                                        <div className="relative w-32 h-48 flex-shrink-0 rounded-md overflow-hidden">
+                                        <div className="grid sm:grid-cols-2 gap-6">
+                                            {Array.isArray(aiRecommendations) && aiRecommendations.map((rec, index) => (
+                                                <div 
+                                                    key={index} 
+                                                    className="flex flex-col bg-zinc-900/30 rounded-lg hover:bg-zinc-900/50 transition-colors duration-300"
+                                                >
+                                                    {rec.media?.poster_path && (
+                                                        <div className="relative h-[200px] w-full rounded-t-lg overflow-hidden">
                                                             <Image
                                                                 src={`https://image.tmdb.org/t/p/w500${rec.media.poster_path}`}
                                                                 alt={rec.title}
@@ -230,19 +214,24 @@ export default function RecommendationPage() {
                                                             />
                                                         </div>
                                                     )}
-                                                    <div className="flex-1">
-                                                        <h3 className="text-xl font-semibold mb-2">{rec.title}</h3>
-                                                        <p className="text-foreground/80 text-sm leading-relaxed">{rec.reason}</p>
-                                                        {rec.media && (
-                                                            <div className="mt-2 flex items-center gap-2 text-sm text-foreground/60">
-                                                                <span className="text-yellow-400">★</span>
-                                                                <span>{rec.media.vote_average?.toFixed(1)}</span>
-                                                                <span>•</span>
-                                                                <span>
-                                                                    {new Date(rec.media.first_air_date || rec.media.release_date).getFullYear()}
-                                                                </span>
+                                                    <div className="p-4 flex-1">
+                                                        <div className="flex items-start justify-between gap-2 mb-2">
+                                                            <h3 className="text-lg font-medium truncate">{rec.title}</h3>
+                                                            {rec.media?.vote_average && (
+                                                                <div className="flex items-center gap-1 flex-shrink-0">
+                                                                    <span className="text-amber-400/90 text-xs">★</span>
+                                                                    <span className="text-zinc-400 text-xs">
+                                                                        {rec.media.vote_average.toFixed(1)}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        {rec.media?.release_date && (
+                                                            <div className="text-xs text-zinc-500 mb-3">
+                                                                {new Date(rec.media.release_date).getFullYear()}
                                                             </div>
                                                         )}
+                                                        <p className="text-sm text-zinc-400 leading-relaxed">{rec.reason}</p>
                                                     </div>
                                                 </div>
                                             ))}

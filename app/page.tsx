@@ -3,9 +3,9 @@ import DataGrid from '@/components/dataGrid';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-zinc-900/10 pt-10">
+    <main className="py-16 px-8 max-w-6xl mx-auto min-h-screen">
       <SearchComponent />
-      <div className="w-full h-full mb-10">
+      <div className="mt-16">
         <DataGrid />
       </div>
     </main>
