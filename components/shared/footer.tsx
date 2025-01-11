@@ -52,16 +52,6 @@ export default function Footer() {
                                     TMDB
                                 </a>
                             </li>
-                            <li>
-                                <a 
-                                    href="https://github.com" 
-                                    target="_blank" 
-                                    rel="noopener noreferrer"
-                                    className="text-sm text-zinc-400 hover:text-zinc-300 transition-colors"
-                                >
-                                    GitHub
-                                </a>
-                            </li>
                         </ul>
                     </div>
 
@@ -70,7 +60,7 @@ export default function Footer() {
                         <h3 className="text-zinc-100 font-medium">Connect</h3>
                         <div className="flex space-x-4">
                             <a 
-                                href="https://twitter.com" 
+                                href="https://x.com/harryarrouida" 
                                 target="_blank" 
                                 rel="noopener noreferrer"
                                 className="text-zinc-400 hover:text-zinc-300 transition-colors"
@@ -79,7 +69,7 @@ export default function Footer() {
                                 <FaTwitter className="w-5 h-5" />
                             </a>
                             <a 
-                                href="https://github.com" 
+                                href="https://github.com/harryarrouida/show-compass" 
                                 target="_blank" 
                                 rel="noopener noreferrer"
                                 className="text-zinc-400 hover:text-zinc-300 transition-colors"
@@ -94,7 +84,7 @@ export default function Footer() {
                 {/* Copyright */}
                 <div className="mt-12 pt-8 border-t border-zinc-800/50">
                     <p className="text-center text-sm text-zinc-400">
-                        © {currentYear} Your App Name. All rights reserved.
+                        © {currentYear} Show Compass. All rights reserved.
                     </p>
                 </div>
             </div>

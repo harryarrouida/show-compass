@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { search } from '@/services/sharedServices';
 import Link from 'next/link';
 import { Movie, Show } from '@/types/types';
+import Image from 'next/image';
 
 export default function SearchComponent() {
     const [query, setQuery] = useState('');
@@ -26,7 +27,7 @@ export default function SearchComponent() {
                 const results = await search(query);
                 const limitedResults = results.slice(0, 5);
                 setResults(limitedResults);
-            } catch (err) {
+            } catch (error) {
                 setError('Something went wrong. Please try again.');
             } finally {
                 setIsLoading(false);
@@ -41,16 +42,16 @@ export default function SearchComponent() {
     }, [query]);
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <div className="text-center mb-16">
-                <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-zinc-200 via-zinc-400 to-zinc-200 bg-clip-text text-transparent animate-gradient">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+            <div className="text-center mb-8 sm:mb-16">
+                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-zinc-200 via-zinc-400 to-zinc-200 bg-clip-text text-transparent animate-gradient">
                     Discover Your Next Favorite Story
                 </h1>
-                <p className="text-zinc-400 text-lg max-w-3xl mx-auto mb-12 leading-relaxed">
+                <p className="text-zinc-400 text-base sm:text-lg max-w-3xl mx-auto mb-8 sm:mb-12 leading-relaxed px-4">
                     Find the perfect show or movie for any mood. From blockbuster hits to indie darlings, explore a world of entertainment tailored just for you.
                 </p>
 
-                <div className="max-w-2xl mx-auto">
+                <div className="max-w-2xl mx-auto px-4">
                     <div className="relative group">
                         <div className="absolute -inset-1 bg-gradient-to-r from-zinc-500/20 to-zinc-700/20 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
                         <div className="relative">
@@ -60,7 +61,7 @@ export default function SearchComponent() {
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Search for a show..."
                                 aria-label="Search for shows or movies"
-                                className="w-full px-6 py-4 text-lg rounded-full bg-zinc-900/90 backdrop-blur-xl border border-zinc-800/50 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-700/50 transition-all duration-300"
+                                className="w-full px-4 sm:px-6 py-3 sm:py-4 text-base sm:text-lg rounded-full bg-zinc-900/90 backdrop-blur-xl border border-zinc-800/50 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-700/50 transition-all duration-300"
                             />
                             {query && (
                                 <button
@@ -76,8 +77,8 @@ export default function SearchComponent() {
                     
                     {/* Results Section */}
                     {results.length > 0 && (
-                        <div className="mt-8">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                        <div className="mt-6 sm:mt-8">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
                                 {results.map((item: Movie | Show) => (
                                     <Link
                                         href={`/recommendation/${item.id}/${item.type}`}
@@ -85,29 +86,31 @@ export default function SearchComponent() {
                                         className="group transform hover:scale-[1.02] transition-all duration-300"
                                     >
                                         <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-zinc-900/40">
-                                            <img
+                                            <Image
                                                 src={item.poster_path
                                                     ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
                                                     : '/placeholder-poster.png'
                                                 }
                                                 alt={item.title}
+                                                width={500}
+                                                height={750}
                                                 className="w-full h-full object-cover"
-                                                loading="lazy"
+                                                priority={false}
                                             />
                                             <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                         </div>
-                                        <div className="mt-3 space-y-1.5">
-                                            <h3 className="text-zinc-100 text-sm font-medium line-clamp-1 group-hover:text-zinc-300 transition-colors duration-300">
+                                        <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-1.5">
+                                            <h3 className="text-zinc-100 text-xs sm:text-sm font-medium line-clamp-1 group-hover:text-zinc-300 transition-colors duration-300">
                                                 {item.title}
                                             </h3>
-                                            <div className="flex items-center space-x-3">
-                                                <div className="flex items-center bg-zinc-800/40 backdrop-blur-sm rounded-full px-2 py-0.5">
-                                                    <span className="text-amber-400/90 text-xs">★</span>
-                                                    <span className="text-zinc-300 text-xs ml-1.5 font-light">
+                                            <div className="flex items-center space-x-2 sm:space-x-3">
+                                                <div className="flex items-center bg-zinc-800/40 backdrop-blur-sm rounded-full px-1.5 sm:px-2 py-0.5">
+                                                    <span className="text-amber-400/90 text-[10px] sm:text-xs">★</span>
+                                                    <span className="text-zinc-300 text-[10px] sm:text-xs ml-1 sm:ml-1.5 font-light">
                                                         {item.vote_average}
                                                     </span>
                                                 </div>
-                                                <span className="text-zinc-500 text-xs font-light">
+                                                <span className="text-zinc-500 text-[10px] sm:text-xs font-light">
                                                     {new Date(item.release_date).getFullYear()}
                                                 </span>
                                             </div>
@@ -120,14 +123,14 @@ export default function SearchComponent() {
 
                     {/* Loading State */}
                     {isLoading && (
-                        <div className="mt-8">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                        <div className="mt-6 sm:mt-8">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-6">
                                 {[...Array(5)].map((_, index) => (
                                     <div key={index} className="animate-pulse">
                                         <div className="aspect-[2/3] rounded-lg bg-zinc-800/50" />
-                                        <div className="mt-3 space-y-2">
-                                            <div className="h-4 bg-zinc-800/50 rounded w-3/4" />
-                                            <div className="h-3 bg-zinc-800/50 rounded w-1/2" />
+                                        <div className="mt-2 sm:mt-3 space-y-1.5 sm:space-y-2">
+                                            <div className="h-3 sm:h-4 bg-zinc-800/50 rounded w-3/4" />
+                                            <div className="h-2 sm:h-3 bg-zinc-800/50 rounded w-1/2" />
                                         </div>
                                     </div>
                                 ))}
@@ -137,20 +140,20 @@ export default function SearchComponent() {
 
                     {/* Error and Empty States */}
                     {error && (
-                        <div className="text-red-400 text-center mt-8">
+                        <div className="text-red-400 text-center mt-6 sm:mt-8 text-sm sm:text-base">
                             {error}
                         </div>
                     )}
 
                     {query.length >= 2 && !isLoading && results.length === 0 && !error && (
-                        <div className="text-zinc-500 text-center mt-8">
+                        <div className="text-zinc-500 text-center mt-6 sm:mt-8 text-sm sm:text-base">
                             No results found for "{query}"
                         </div>
                     )}
 
                     {/* Suggestions */}
                     {!results.length && !isLoading && (
-                        <div className="mt-4 text-sm text-zinc-500 text-center">
+                        <div className="mt-3 sm:mt-4 text-xs sm:text-sm text-zinc-500 text-center">
                             Try: {suggestions.map((suggestion, index) => (
                                 <span key={suggestion}>
                                     <button
