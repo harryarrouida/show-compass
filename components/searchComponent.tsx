@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { search } from '@/services/sharedServices';
 import Link from 'next/link';
 import { Movie, Show } from '@/types/types';
+import Image from 'next/image';
 
 export default function SearchComponent() {
     const [query, setQuery] = useState('');
@@ -50,7 +51,7 @@ export default function SearchComponent() {
                     Find the perfect show or movie for any mood. From blockbuster hits to indie darlings, explore a world of entertainment tailored just for you.
                 </p>
 
-                <div className="max-w-2xl mx-auto">
+                <div className="max-w-3xl mx-auto">
                     <div className="relative group">
                         <div className="absolute -inset-1 bg-gradient-to-r from-gray-700/30 to-gray-900/30 rounded-full blur opacity-30 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
                         <div className="relative">
@@ -77,37 +78,39 @@ export default function SearchComponent() {
                     {/* Results Section */}
                     {results.length > 0 && (
                         <div className="mt-10">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                                 {results.map((item: Movie | Show) => (
                                     <Link
                                         href={`/recommendation/${item.id}/${item.type}`}
                                         key={item.id}
-                                        className="group transform hover:scale-[1.02] transition-all duration-300"
+                                        className="w-full group flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg"
                                     >
-                                        <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-black/40">
-                                            <img
+                                        <div className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-card-bg transition-all duration-500">
+                                            <Image
                                                 src={item.poster_path
-                                                    ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                                                    ? `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${item.poster_path}`
                                                     : '/placeholder-poster.png'
                                                 }
                                                 alt={item.title}
-                                                className="w-full h-full object-cover"
-                                                loading="lazy"
+                                                fill
+                                                className="object-cover transform transition-all duration-500 group-hover:scale-[1.02]"
+                                                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                                priority={false}
                                             />
-                                            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                            <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                         </div>
                                         <div className="mt-5 space-y-3">
-                                            <h3 className="text-gray-100 text-base font-medium line-clamp-1 group-hover:text-gray-300 transition-colors duration-300">
+                                            <h3 className="text-zinc-200 text-base font-medium leading-snug line-clamp-1 group-hover:text-white transition-colors duration-300">
                                                 {item.title}
                                             </h3>
                                             <div className="flex items-center space-x-4">
-                                                <div className="flex items-center bg-black/40 backdrop-blur-sm rounded-full px-3 py-1">
+                                                <div className="flex items-center bg-card-bg backdrop-blur-sm rounded-full px-3 py-1.5">
                                                     <span className="text-amber-400/90 text-sm">★</span>
-                                                    <span className="text-gray-300 text-sm ml-2 font-light">
-                                                        {item.vote_average}
+                                                    <span className="text-zinc-300 text-sm ml-2 font-light">
+                                                        {item.vote_average.toFixed(1)}
                                                     </span>
                                                 </div>
-                                                <span className="text-gray-500 text-sm font-light">
+                                                <span className="text-zinc-400 text-sm font-light">
                                                     {new Date(item.release_date).getFullYear()}
                                                 </span>
                                             </div>
@@ -121,13 +124,16 @@ export default function SearchComponent() {
                     {/* Loading State */}
                     {isLoading && (
                         <div className="mt-10">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                                 {[...Array(5)].map((_, index) => (
                                     <div key={index} className="animate-pulse">
-                                        <div className="aspect-[2/3] rounded-xl bg-black/40" />
-                                        <div className="mt-4 space-y-3">
-                                            <div className="h-5 bg-black/40 rounded-lg w-3/4" />
-                                            <div className="h-4 bg-black/40 rounded-lg w-1/2" />
+                                        <div className="aspect-[2/3] rounded-lg bg-card-bg" />
+                                        <div className="mt-5 space-y-3">
+                                            <div className="h-5 bg-card-bg rounded w-3/4" />
+                                            <div className="flex items-center space-x-4">
+                                                <div className="h-6 bg-card-bg rounded-full w-20" />
+                                                <div className="h-6 bg-card-bg rounded w-16" />
+                                            </div>
                                         </div>
                                     </div>
                                 ))}

@@ -10,7 +10,10 @@ export const search = async (query: string) => {
   );
   const filteredResults = response.data.results.filter(
     (item: Movie | Show) =>
-      item.poster_path !== null || item.backdrop_path !== null
+      item.poster_path &&
+      item.vote_average &&
+      (item.name || item.title) &&
+      (item.release_date || item.first_air_date)
   );
   const mappedResults = filteredResults.map((item: Movie | Show) => {
     return {
@@ -20,5 +23,5 @@ export const search = async (query: string) => {
       release_date: item.release_date || item.first_air_date,
     };
   });
-  return mappedResults;
+  return mappedResults.slice(0, 4);
 };

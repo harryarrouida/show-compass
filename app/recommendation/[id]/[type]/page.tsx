@@ -47,37 +47,46 @@ export default function RecommendationPage() {
                     Title: "${mediaDetails.title}"
                     Description: "${mediaDetails.overview}"
                     Genres: ${genres}
+                    Release Year: ${new Date(mediaDetails.release_date).getFullYear()}
+                    Average Rating: ${mediaDetails.vote_average}
                     
                     Generate exactly 4 recommendations in the following JSON format with no additional text or explanation:
                     {
                         "recommendations": [
                             {
                                 "title": "Title 1",
-                                "reason": "Brief reason for recommendation"
+                                "reason": "2 sentence reason explaining specific thematic or stylistic connections"
                             },
                             {
                                 "title": "Title 2",
-                                "reason": "Brief reason for recommendation"
-                            },
+                                "reason": "2 sentence reason explaining specific thematic or stylistic connections"
+                            }, 
                             {
                                 "title": "Title 3",
-                                "reason": "Brief reason for recommendation"
+                                "reason": "2 sentence reason explaining specific thematic or stylistic connections"
                             },
                             {
                                 "title": "Title 4",
-                                "reason": "Brief reason for recommendation"
+                                "reason": "2 sentence reason explaining specific thematic or stylistic connections"
                             }
                         ]
                     }
                     
-                    Recommendations should:
-                    1. Include only well-known and critically acclaimed content.
-                    2. Provide a mix of recommendations that share thematic or stylistic elements with the provided content but avoid being too similar.
-                    3. Be appropriate to the genre, audience, and tone of the provided content.
-                    4. Avoid obscure or niche content unless it is highly regarded within its category.
-                    5. Include reasons that clearly connect the recommendation to the provided content. 
+                    Recommendations must follow these rules:
+                    1. Focus on critically acclaimed ${type}s from any era (minimum 7/10 rating on IMDb or similar platforms)
+                    2. Include at least one modern (last 5 years)
+                    3. Match the tone, maturity level, and target audience of the original
+                    4. Prioritize recommendations that share multiple elements:
+                       - Similar themes or philosophical questions
+                       - Comparable narrative structure or storytelling approach
+                       - Matching emotional resonance or atmosphere
+                       - Similar visual style or technical achievements
+                    5. Avoid:
+                       - Direct competitors or extremely similar plots
+                       - Obscure titles unless they won major awards
+                       - Sequels or entries in the same franchise
                     
-                    For example, reasons can highlight shared themes, emotional tone, narrative complexity, or visual style.`;
+                    Each reason must specifically reference elements from the original ${type} and explain how they connect to the recommendation.`;
 
 
                     try {
