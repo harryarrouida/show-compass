@@ -1,4 +1,8 @@
 export type Show = {
+  genres: {
+    id: number;
+    name: string;
+  }[];
   title: string;
   id: number;
   name: string;
@@ -19,6 +23,10 @@ export type Show = {
 };
 
 export type Movie = {
+  genres: {
+    id: number;
+    name: string;
+  }[];
   name?: string;
   type: string;
   id: number;
@@ -47,6 +55,7 @@ export type showDetails = {
   backdrop_path: string | null;
   vote_average: number;
   first_air_date: string;
+  release_date?: string;
   overview: string;
   status: string;
   tagline: string;
@@ -78,6 +87,22 @@ export type showDetails = {
     season_number: number;
     vote_average: number;
   }[];
+  production_companies: {
+    id: number;
+    name: string;
+    logo_path: string | null;
+    origin_country: string;
+  }[];
+  production_countries: {
+    iso_3166_1: string;
+    name: string;
+  }[];
+  spoken_languages: {
+    english_name: string;
+    iso_639_1: string;
+    name: string;
+  }[];
+  belongs_to_collection: null;
 };
 
 export type movieDetails = {

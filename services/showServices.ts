@@ -63,7 +63,7 @@ export async function getShowDetails(showId: number): Promise<Show | null> {
     if (response.data.poster_path === null) {
       return null;
     }
-    return { ...response.data, title: response.data.name };
+    return { ...response.data, title: response.data.name, release_date: response.data.first_air_date };
   } catch (error) {
     console.error("Error fetching show details:", error);
     return null;
