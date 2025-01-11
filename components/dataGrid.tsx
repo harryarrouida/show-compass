@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getPopularShows } from '@/services/showServices';
-import { getPopularMovies } from '@/services/movieServices';
+import { getPopularShows, getTrendingShows } from '@/services/showServices';
+import { getTrendingMovies } from '@/services/movieServices';
 import { Show, Movie } from '@/types/types';
-import CardComponent from './shared/cardComponent';
+import CardComponent from './shared/mediaCard';
 
 export default function DataGrid() {
     const [activeTab, setActiveTab] = useState('shows');
@@ -17,7 +17,7 @@ export default function DataGrid() {
     const fetchShows = async (pageNum: number) => {
         setIsLoading(true);
         try {
-            const data = await getPopularShows(pageNum);
+            const data = await getTrendingShows(pageNum);
             if (pageNum === 1) {
                 setShows(data);
             } else {
@@ -33,7 +33,7 @@ export default function DataGrid() {
     const fetchMovies = async (pageNum: number) => {
         setIsLoading(true);
         try {
-            const data = await getPopularMovies(pageNum);
+            const data = await getTrendingMovies(pageNum);
             if (pageNum === 1) {
                 setMovies(data);
             } else {
@@ -66,7 +66,7 @@ export default function DataGrid() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
             <div className="flex justify-center mb-16">
                 <div className="inline-flex space-x-12 border-b border-zinc-800/50 backdrop-blur-sm">
                     <button
@@ -92,7 +92,7 @@ export default function DataGrid() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                 {data.map((item) => (
                     <CardComponent key={item.id} item={item} activeTab={activeTab} />
                 ))}
@@ -107,18 +107,17 @@ export default function DataGrid() {
                              text-white text-sm rounded-full transition-all duration-300
                              hover:shadow-lg hover:shadow-zinc-800/25"
                 >
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-zinc-600 to-zinc-700 rounded-full blur opacity-30 group-hover:opacity-50 transition duration-300"></div>
                     <div className="relative flex items-center space-x-2">
                         {isLoading ? (
                             <>
-                                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <svg className="animate-spin h-4 w-4 text-zinc-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                <span>Loading...</span>
+                                <span className="text-zinc-300">Loading...</span>
                             </>
                         ) : (
-                            <span>Load More</span>
+                            <span className="text-zinc-300">Load More</span>
                         )}
                     </div>
                 </button>

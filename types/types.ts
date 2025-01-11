@@ -147,3 +147,24 @@ export type movieDetails = {
   }[];
   belongs_to_collection: null;
 };
+
+export type AIRecommendation = {
+  title: string;
+  reason: string;
+  media?: Show | Movie;
+};
+
+export type Episode = {
+  air_date: string;
+  episode_number: number;
+  name: string;
+  overview: string;
+  id: number;
+  production_code: string;
+  runtime: number;
+  season_number: number;
+  still_path: string | null;
+  vote_average: number;
+  vote_count: number;
+};
+

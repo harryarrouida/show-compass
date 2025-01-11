@@ -4,15 +4,10 @@ import { getMovieDetails } from "@/services/movieServices";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { showDetails, movieDetails, Show, Movie } from "@/types/types";
-import Image from 'next/image';
 import Groq from "groq-sdk";
 import { search } from "@/services/sharedServices";
-
-interface AIRecommendation {
-    title: string;
-    reason: string;
-    media?: Show | Movie;
-}
+import MediaDetails from "@/components/shared/mediaDetails";
+import { AIRecommendation } from "@/types/types";
 
 export default function RecommendationPage() {
     const [details, setDetails] = useState<showDetails | movieDetails | null>(null);
@@ -20,6 +15,8 @@ export default function RecommendationPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isAiLoading, setIsAiLoading] = useState(false);
     const { id, type } = useParams();
+    const [showAllSeasons, setShowAllSeasons] = useState(false);
+    const [alert, setAlert] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -171,8 +168,31 @@ export default function RecommendationPage() {
         return <div>no id or type</div>;
     }
 
-    const handleSave = () => {
-        
+    const saveToHistory = (recommendation: AIRecommendation) => {
+        const cardToSave = {
+            title: recommendation.title,
+            reason: recommendation.reason,
+            media: recommendation.media,
+            from: details?.title,
+            poster_path: details?.poster_path,
+            release_date: details?.release_date,
+            genres: details?.genres,
+            overview: details?.overview,
+            vote_average: details?.vote_average,
+            vote_count: details?.vote_count,
+        }
+        const history = localStorage.getItem('history');
+        if (history) {
+            const historyArray = JSON.parse(history);
+            historyArray.push(cardToSave);
+            localStorage.setItem('history', JSON.stringify(historyArray));
+        } else {
+            localStorage.setItem('history', JSON.stringify([cardToSave]));
+        }
+        setAlert("Saved to history");
+        setTimeout(() => {
+            setAlert(null);
+        }, 3000);
     }
 
     return (
@@ -184,176 +204,17 @@ export default function RecommendationPage() {
             ) : (
                 <>
                     {details && (
-                        <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-6 md:gap-12">
-                            {/* Poster Section */}
-                            <div className="space-y-6">
-                                <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-zinc-900/40 max-w-[300px] mx-auto">
-                                    <Image
-                                        src={`https://image.tmdb.org/t/p/w500${details.poster_path}`}
-                                        alt={details.title}
-                                        fill
-                                        className="object-cover"
-                                        priority
-                                    />
-                                </div>
-
-                                {/* Key Info */}
-                                <div className="space-y-6 max-w-[300px] mx-auto">
-                                    {/* Rating & Year */}
-                                    <div className="flex items-center gap-2 text-sm text-zinc-400">
-                                        <span className="text-amber-400">★</span>
-                                        <span>{details.vote_average?.toFixed(1)}</span>
-                                        <span className="text-zinc-600">•</span>
-                                        <span>
-                                            {new Date(details.release_date || '').getFullYear()}
-                                        </span>
-                                        {details.status && (
-                                            <>
-                                                <span className="text-zinc-600">•</span>
-                                                <span>{details.status}</span>
-                                            </>
-                                        )}
-                                    </div>
-
-                                    {/* Runtime or Seasons */}
-                                    {'runtime' in details && details.runtime && (
-                                        <div className="text-sm text-zinc-400">
-                                            {Math.floor(details.runtime / 60)}h {details.runtime % 60}m
-                                        </div>
-                                    )}
-
-                                    {/* Show Specific Details */}
-                                    {'seasons' in details && details.seasons && (
-                                        <div className="space-y-4">
-                                            <h3 className="text-sm font-medium text-zinc-300">Seasons</h3>
-                                            <div className="space-y-3">
-                                                {details.seasons.map((season) =>
-                                                    season.vote_average > 0 && season.vote_average !== null && (
-                                                        <div
-                                                            key={season.id}
-                                                            className="bg-zinc-900/30 rounded-lg p-3 space-y-2"
-                                                        >
-                                                            <div className="flex justify-between items-start">
-                                                                <span className="text-sm font-medium">{season.name}</span>
-                                                                {season.vote_average !== 0 && (
-                                                                    <div className="flex items-center gap-1">
-                                                                        <span className="text-amber-400/90 text-xs">★</span>
-                                                                        <span className="text-zinc-400 text-xs">
-                                                                            {season.vote_average.toFixed(1)}
-                                                                        </span>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            <div className="text-xs text-zinc-500">
-                                                                {season.episode_count} Episodes • {new Date(season.air_date).getFullYear()}
-                                                            </div>
-                                                        </div>
-                                                    )
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Languages */}
-                                    <div className="space-y-2">
-                                        <h3 className="text-sm font-medium text-zinc-300">Languages</h3>
-                                        <div className="flex flex-wrap gap-2">
-                                            {details.spoken_languages?.map((lang) => (
-                                                <span
-                                                    key={lang.iso_639_1}
-                                                    className="text-xs text-zinc-400 bg-zinc-900/30 px-2 py-1 rounded-full"
-                                                >
-                                                    {lang.english_name}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Production Companies */}
-                                    {details.production_companies && details.production_companies.length > 0 && (
-                                        <div className="space-y-2">
-                                            <h3 className="text-sm font-medium text-zinc-300">Production</h3>
-                                            <div className="text-sm text-zinc-400">
-                                                {details.production_companies.map(company => company.name).join(', ')}
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Content Section */}
-                            <div className="space-y-8">
-                                <div>
-                                    <h1 className="text-2xl sm:text-3xl font-medium mb-4">
-                                        {details.title}
-                                    </h1>
-                                    <div className="flex flex-wrap gap-2 mb-6">
-                                        {details.genres?.map((genre) => (
-                                            <span
-                                                key={genre.id}
-                                                className="px-3 py-1 bg-zinc-800/50 rounded-full text-sm text-zinc-400"
-                                            >
-                                                {genre.name}
-                                            </span>
-                                        ))}
-                                    </div>
-                                    <p className="text-zinc-400 leading-relaxed">
-                                        {details.overview}
-                                    </p>
-                                </div>
-
-                                {/* AI Recommendations */}
-                                <div className="space-y-6">
-                                    <h2 className="text-xl font-medium">Similar Recommendations</h2>
-
-                                    {isAiLoading ? (
-                                        <div className="flex items-center gap-2 text-zinc-500">
-                                            <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full"></div>
-                                            <span>Finding recommendations...</span>
-                                        </div>
-                                    ) : (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-                                            {Array.isArray(aiRecommendations) && aiRecommendations.map((rec, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="flex flex-col bg-zinc-900/30 rounded-lg hover:bg-zinc-900/50 transition-colors duration-300"
-                                                >
-                                                    {rec.media?.poster_path && (
-                                                        <div className="relative h-[150px] sm:h-[200px] w-full rounded-t-lg overflow-hidden">
-                                                            <Image
-                                                                src={`https://image.tmdb.org/t/p/w500${rec.media.poster_path}`}
-                                                                alt={rec.title}
-                                                                fill
-                                                                className="object-cover"
-                                                            />
-                                                        </div>
-                                                    )}
-                                                    <div className="p-3 sm:p-4 flex-1">
-                                                        <div className="flex items-start justify-between gap-2 mb-2">
-                                                            <h3 className="text-base sm:text-lg font-medium truncate">{rec.title}</h3>
-                                                            {rec.media?.vote_average && (
-                                                                <div className="flex items-center gap-1 flex-shrink-0">
-                                                                    <span className="text-amber-400/90 text-xs">★</span>
-                                                                    <span className="text-zinc-400 text-xs">
-                                                                        {rec.media.vote_average.toFixed(1)}
-                                                                    </span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        {rec.media?.release_date && (
-                                                            <div className="text-xs text-zinc-500 mb-3">
-                                                                {new Date(rec.media.release_date).getFullYear()}
-                                                            </div>
-                                                        )}
-                                                        <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed">{rec.reason}</p>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
+                        <>
+                            <MediaDetails
+                                details={details}
+                                showAllSeasons={showAllSeasons}
+                                setShowAllSeasons={setShowAllSeasons}
+                                aiRecommendations={aiRecommendations as AIRecommendation[]}
+                                isAiLoading={isAiLoading}
+                                saveToHistory={saveToHistory}
+                                alert={alert}
+                            />
+                        </>
                     )}
                 </>
             )}
