@@ -3,11 +3,12 @@ import { getShowDetails } from "@/services/showServices";
 import { getMovieDetails } from "@/services/movieServices";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { showDetails, movieDetails, Show, Movie } from "@/types/types";
+import { showDetails, movieDetails } from "@/types/types";
 import Groq from "groq-sdk";
 import { search } from "@/services/sharedServices";
 import MediaDetails from "@/components/shared/mediaDetails";
 import { AIRecommendation } from "@/types/types";
+import { generateDefaultPrompt, generateCustomPrompt } from '@/app/constants/aiPrompts';
 
 export default function RecommendationPage() {
     const [details, setDetails] = useState<showDetails | movieDetails | null>(null);
@@ -17,6 +18,9 @@ export default function RecommendationPage() {
     const { id, type } = useParams();
     const [showAllSeasons, setShowAllSeasons] = useState(false);
     const [alert, setAlert] = useState<string | null>(null);
+    const [showChat, setShowChat] = useState(false);
+    const [prompt, setPrompt] = useState("");
+
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -43,50 +47,7 @@ export default function RecommendationPage() {
                         dangerouslyAllowBrowser: true
                     });
                     const genres = mediaDetails.genres.map(genre => genre.name).join(', ');
-                    const prompt = `Based on this ${type}:
-                    Title: "${mediaDetails.title}"
-                    Description: "${mediaDetails.overview}"
-                    Genres: ${genres}
-                    Release Year: ${new Date(mediaDetails.release_date).getFullYear()}
-                    Average Rating: ${mediaDetails.vote_average}
-                    
-                    Generate exactly 4 recommendations in the following JSON format with no additional text or explanation:
-                    {
-                        "recommendations": [
-                            {
-                                "title": "Title 1",
-                                "reason": "2 sentence reason explaining specific thematic or stylistic connections"
-                            },
-                            {
-                                "title": "Title 2",
-                                "reason": "2 sentence reason explaining specific thematic or stylistic connections"
-                            }, 
-                            {
-                                "title": "Title 3",
-                                "reason": "2 sentence reason explaining specific thematic or stylistic connections"
-                            },
-                            {
-                                "title": "Title 4",
-                                "reason": "2 sentence reason explaining specific thematic or stylistic connections"
-                            }
-                        ]
-                    }
-                    
-                    Recommendations must follow these rules:
-                    1. Focus on critically acclaimed ${type}s from any era (minimum 7/10 rating on IMDb or similar platforms)
-                    2. Include at least one modern (last 5 years)
-                    3. Match the tone, maturity level, and target audience of the original
-                    4. Prioritize recommendations that share multiple elements:
-                       - Similar themes or philosophical questions
-                       - Comparable narrative structure or storytelling approach
-                       - Matching emotional resonance or atmosphere
-                       - Similar visual style or technical achievements
-                    5. Avoid:
-                       - Direct competitors or extremely similar plots
-                       - Obscure titles unless they won major awards
-                       - Sequels or entries in the same franchise
-                    
-                    Each reason must specifically reference elements from the original ${type} and explain how they connect to the recommendation.`;
+                    const defaultPrompt = generateDefaultPrompt(mediaDetails, type as string);
 
 
                     try {
@@ -98,7 +59,7 @@ export default function RecommendationPage() {
                                 },
                                 {
                                     role: "user",
-                                    content: prompt
+                                    content: defaultPrompt
                                 }
                             ],
                             model: "llama-3.3-70b-versatile",
@@ -211,6 +172,89 @@ export default function RecommendationPage() {
         }, 3000);
     }
 
+    const toggleChat = () => {
+        setShowChat(!showChat);
+        return !showChat;
+    }
+    const handleSubmitPrompt = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        console.log(prompt);
+        setIsAiLoading(true);
+        try {
+            const groq = new Groq({
+                apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
+                dangerouslyAllowBrowser: true
+            });
+            const completion = await groq.chat.completions.create({
+                messages: [
+                    {
+                        role: "system",
+                        content: "You are a JSON-only response bot. Always respond with valid JSON matching the exact format requested. Never include additional text or explanations."
+                    },
+                    {
+                        role: "user",
+                        content: generateCustomPrompt(details, type as string, prompt)
+                    }
+                ],
+                model: "llama-3.3-70b-versatile",
+                temperature: 0.2,
+            });
+
+            const response = completion.choices[0]?.message?.content || "";
+            let recommendations: AIRecommendation[] = [];
+
+            try {
+                // Clean the response
+                const cleanResponse = response
+                    .trim()
+                    .replace(/```json/g, '')
+                    .replace(/```/g, '')
+                    .trim();
+
+                const parsed = JSON.parse(cleanResponse);
+
+                if (!parsed || !parsed.recommendations || !Array.isArray(parsed.recommendations)) {
+                    throw new Error('Invalid response format');
+                }
+
+                recommendations = parsed.recommendations;
+
+                // Fetch TMDB data for each recommendation
+                const recommendationsWithMedia = await Promise.all(
+                    recommendations.map(async (rec) => {
+                        try {
+                            const searchResults = await search(rec.title);
+                            const mediaMatch = searchResults[0];
+                            return { ...rec, media: mediaMatch };
+                        } catch (error) {
+                            console.error(`Error fetching details for ${rec.title}:`, error);
+                            return rec;
+                        }
+                    })
+                );
+
+                // Sort recommendations by popularity
+                const sortedRecommendations = recommendationsWithMedia.sort((a, b) => {
+                    if (!a.media?.popularity) return 1;
+                    if (!b.media?.popularity) return -1;
+                    return b.media.popularity - a.media.popularity;
+                });
+                console.log(sortedRecommendations);
+                setAiRecommendations(sortedRecommendations);
+                setPrompt(""); // Clear the prompt after successful submission
+            } catch (error) {
+                console.error('Failed to parse AI response:', error);
+                console.log('Raw response:', response);
+                setAiRecommendations("Error processing recommendations. Please try again.");
+            }
+        } catch (error) {
+            console.error('AI Error:', error);
+            setAiRecommendations("Error generating recommendations. Please try again later.");
+        } finally {
+            setIsAiLoading(false);
+        }
+    }
+
     return (
         <div className="p-4 sm:p-8 max-w-6xl mx-auto min-h-screen mt-4 sm:mt-10">
             {isLoading ? (
@@ -229,6 +273,11 @@ export default function RecommendationPage() {
                                 isAiLoading={isAiLoading}
                                 saveToHistory={saveToHistory}
                                 alert={alert}
+                                toggleChat={toggleChat}
+                                showChat={showChat}
+                                setPrompt={setPrompt}
+                                prompt={prompt}
+                                handleSubmitPrompt={handleSubmitPrompt}
                             />
                         </>
                     )}

@@ -13,9 +13,14 @@ interface MediaDetailsProps {
     isAiLoading: boolean;
     saveToHistory: (recommendation: AIRecommendation) => void;
     alert: string | null;
+    toggleChat: () => boolean;
+    showChat: boolean;
+    setPrompt: (prompt: string) => void;
+    prompt: string;
+    handleSubmitPrompt: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
 }
 
-export default function MediaDetails({ details, showAllSeasons, setShowAllSeasons, aiRecommendations, isAiLoading, saveToHistory, alert }: MediaDetailsProps) {
+export default function MediaDetails({ details, showAllSeasons, setShowAllSeasons, aiRecommendations, isAiLoading, saveToHistory, alert, toggleChat, showChat, setPrompt, prompt, handleSubmitPrompt }: MediaDetailsProps) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-8 md:gap-14 mb-16">
             {/* Left Column */}
@@ -140,6 +145,11 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
                             aiRecommendations={aiRecommendations}
                             saveToHistory={saveToHistory}
                             alert={alert}
+                            toggleChat={toggleChat}
+                            showChat={showChat}
+                            setPrompt={setPrompt}
+                            prompt={prompt}
+                            handleSubmitPrompt={handleSubmitPrompt}
                         />
                     </div>
                 </div>
