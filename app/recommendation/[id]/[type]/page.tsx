@@ -43,9 +43,9 @@ export default function RecommendationPage() {
                 setIsAiLoading(true); // Set AI loading state
 
                 // Integrate Groq call directly here
-                const groq = new Groq({ 
+                const groq = new Groq({
                     apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
-                    dangerouslyAllowBrowser: true 
+                    dangerouslyAllowBrowser: true
                 });
                 const prompt = `Based on this ${type}:
                     Title: "${mediaDetails.title}"
@@ -66,20 +66,21 @@ export default function RecommendationPage() {
                         messages: [{ role: "user", content: prompt }],
                         model: "llama-3.3-70b-versatile",
                     });
-                    
+
                     const response = completion.choices[0]?.message?.content || "";
                     let recommendations: AIRecommendation[] = [];
-                    
+
                     try {
-                        const parsed = JSON.parse(response);
+                        const parsed = await JSON.parse(response);
                         recommendations = parsed.recommendations;
-                        
+
                         // Fetch TMDB data for each recommendation
                         const recommendationsWithMedia = await Promise.all(
                             recommendations.map(async (rec) => {
                                 try {
                                     const searchResults = await search(rec.title);
-                                    const mediaMatch = searchResults[0]; // Take first result
+                                    // Take the first result that matches the media type
+                                    const mediaMatch = searchResults[0];
                                     return { ...rec, media: mediaMatch };
                                 } catch (error) {
                                     console.error(`Error fetching details for ${rec.title}:`, error);
@@ -190,11 +191,6 @@ export default function RecommendationPage() {
                                     <h1 className="text-5xl font-bold mb-3 bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
                                         {details.title}
                                     </h1>
-                                    {details.tagline && (
-                                        <p className="text-xl text-foreground/60 italic mb-6">
-                                            "{details.tagline}"
-                                        </p>
-                                    )}
                                     <div className="flex flex-wrap gap-2 mb-6">
                                         {details.genres?.map((genre) => (
                                             <span
@@ -223,7 +219,7 @@ export default function RecommendationPage() {
                                     ) : (
                                         <div className="space-y-4">
                                             {aiRecommendations.map((rec, index) => (
-                                                <div key={index} className="flex gap-4 items-start">
+                                                <div key={index} className="flex gap-4 items-start border-b border-white/10 pb-4">
                                                     {rec.media && (
                                                         <div className="relative w-32 h-48 flex-shrink-0 rounded-md overflow-hidden">
                                                             <Image

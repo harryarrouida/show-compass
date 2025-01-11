@@ -3,7 +3,7 @@ import DataGrid from '@/components/dataGrid';
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-black bg-opacity-98 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))] pt-10">
+    <main className="min-h-screen bg-zinc-900/10 pt-10">
       <SearchComponent />
       <div className="w-full h-full mb-10">
         <DataGrid />

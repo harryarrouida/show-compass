@@ -8,6 +8,8 @@ import { Movie, Show } from '@/types/types';
 export default function SearchComponent() {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState<Movie[] | Show[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [suggestions] = useState(['Arcane', 'Attack on Titan', 'Monster']);
 
     useEffect(() => {
@@ -17,9 +19,18 @@ export default function SearchComponent() {
                 return;
             }
 
-            const results = await search(query);
-            const limitedResults = results.slice(0, 5);
-            setResults(limitedResults);
+            setIsLoading(true);
+            setError(null);
+
+            try {
+                const results = await search(query);
+                const limitedResults = results.slice(0, 5);
+                setResults(limitedResults);
+            } catch (err) {
+                setError('Something went wrong. Please try again.');
+            } finally {
+                setIsLoading(false);
+            }
         };
 
         const debounce = setTimeout(() => {
@@ -42,71 +53,119 @@ export default function SearchComponent() {
                 <div className="max-w-2xl mx-auto">
                     <div className="relative group">
                         <div className="absolute -inset-1 bg-gradient-to-r from-zinc-500/20 to-zinc-700/20 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
-                        <input
-                            type="text"
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Search for a show..."
-                            className="w-full px-6 py-4 text-lg rounded-full bg-zinc-900/90 backdrop-blur-xl border border-zinc-800/50 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-700/50 transition-all duration-300"
-                        />
-                    </div>
-                    <div className="mt-4 text-sm text-zinc-500">
-                        Try: {suggestions.map((suggestion, index) => (
-                            <span key={suggestion}>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Search for a show..."
+                                aria-label="Search for shows or movies"
+                                className="w-full px-6 py-4 text-lg rounded-full bg-zinc-900/90 backdrop-blur-xl border border-zinc-800/50 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-700/50 transition-all duration-300"
+                            />
+                            {query && (
                                 <button
-                                    onClick={() => setQuery(suggestion)}
-                                    className="text-zinc-400 hover:text-zinc-300 underline focus:outline-none transition-colors duration-200"
+                                    onClick={() => setQuery('')}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300"
+                                    aria-label="Clear search"
                                 >
-                                    {suggestion}
+                                    ✕
                                 </button>
-                                {index < suggestions.length - 1 && ', '}
-                            </span>
-                        ))}
+                            )}
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            {results.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8">
-                    {results.map((item: Movie | Show) => (
-                        <Link
-                            href={`/recommendation/${item.id}/${item.type}`}
-                            key={item.id}
-                            className="group transform hover:scale-105 transition-all duration-300"
-                        >
-                            <div className="relative aspect-[2/3] rounded-xl overflow-hidden bg-gray-900/40 shadow-lg shadow-black/50">
-                                <img
-                                    src={item.poster_path
-                                        ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
-                                        : '/placeholder-poster.png'
-                                    }
-                                    alt={item.title}
-                                    className="w-full h-full object-cover"
-                                    loading="lazy"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300">
-                                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                                        <h3 className="text-white text-sm font-medium truncate">
-                                            {item.title}
-                                        </h3>
-                                        <div className="flex items-center mt-2 space-x-3">
-                                            <div className="flex items-center px-2 py-1 rounded-full bg-yellow-500/20 backdrop-blur-sm">
-                                                <span className="text-yellow-400 text-xs">⭐</span>
-                                                <span className="text-yellow-400 text-xs ml-1 font-medium">
-                                                    {item.vote_average}
+                    
+                    {/* Results Section */}
+                    {results.length > 0 && (
+                        <div className="mt-8">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                                {results.map((item: Movie | Show) => (
+                                    <Link
+                                        href={`/recommendation/${item.id}/${item.type}`}
+                                        key={item.id}
+                                        className="group transform hover:scale-[1.02] transition-all duration-300"
+                                    >
+                                        <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-zinc-900/40">
+                                            <img
+                                                src={item.poster_path
+                                                    ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                                                    : '/placeholder-poster.png'
+                                                }
+                                                alt={item.title}
+                                                className="w-full h-full object-cover"
+                                                loading="lazy"
+                                            />
+                                            <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                        </div>
+                                        <div className="mt-3 space-y-1.5">
+                                            <h3 className="text-zinc-100 text-sm font-medium line-clamp-1 group-hover:text-zinc-300 transition-colors duration-300">
+                                                {item.title}
+                                            </h3>
+                                            <div className="flex items-center space-x-3">
+                                                <div className="flex items-center bg-zinc-800/40 backdrop-blur-sm rounded-full px-2 py-0.5">
+                                                    <span className="text-amber-400/90 text-xs">★</span>
+                                                    <span className="text-zinc-300 text-xs ml-1.5 font-light">
+                                                        {item.vote_average.toFixed(1)}
+                                                    </span>
+                                                </div>
+                                                <span className="text-zinc-500 text-xs font-light">
+                                                    {new Date(item.release_date).getFullYear()}
                                                 </span>
                                             </div>
-                                            <span className="text-gray-300 text-xs">
-                                                {new Date(item.release_date).getFullYear()}
-                                            </span>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Loading State */}
+                    {isLoading && (
+                        <div className="mt-8">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                                {[...Array(5)].map((_, index) => (
+                                    <div key={index} className="animate-pulse">
+                                        <div className="aspect-[2/3] rounded-lg bg-zinc-800/50" />
+                                        <div className="mt-3 space-y-2">
+                                            <div className="h-4 bg-zinc-800/50 rounded w-3/4" />
+                                            <div className="h-3 bg-zinc-800/50 rounded w-1/2" />
                                         </div>
                                     </div>
-                                </div>
+                                ))}
                             </div>
-                        </Link>
-                    ))}
+                        </div>
+                    )}
+
+                    {/* Error and Empty States */}
+                    {error && (
+                        <div className="text-red-400 text-center mt-8">
+                            {error}
+                        </div>
+                    )}
+
+                    {query.length >= 2 && !isLoading && results.length === 0 && !error && (
+                        <div className="text-zinc-500 text-center mt-8">
+                            No results found for "{query}"
+                        </div>
+                    )}
+
+                    {/* Suggestions */}
+                    {!results.length && !isLoading && (
+                        <div className="mt-4 text-sm text-zinc-500 text-center">
+                            Try: {suggestions.map((suggestion, index) => (
+                                <span key={suggestion}>
+                                    <button
+                                        onClick={() => setQuery(suggestion)}
+                                        className="text-zinc-400 hover:text-zinc-300 underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-zinc-500 rounded px-1 transition-colors duration-300"
+                                    >
+                                        {suggestion}
+                                    </button>
+                                    {index < suggestions.length - 1 && ' • '}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                 </div>
-            )}
+            </div>
         </div>
     );
 }
