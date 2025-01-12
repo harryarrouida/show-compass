@@ -23,10 +23,12 @@ interface TraktContextType {
   logout: () => void;
   login: () => Promise<void>;
   handleToken: (code: string) => Promise<void>;
-  getUserWatched: () => Promise<any>;
-  getUserHistory: () => Promise<any>;
   getUserWatchedMovies: () => Promise<any>;
   getUserWatchedShows: () => Promise<any>;
+  watchedMovies: any[];
+  watchedShows: any[];
+  watchedMoviesDetails: any[];
+  watchedShowsDetails: any[];
 }
 
 export const TraktContext = createContext<TraktContextType | undefined>(undefined);
@@ -35,6 +37,10 @@ export function TraktProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [user, setUser] = useState<TraktUser | null>(null);
+  const [watchedMovies, setWatchedMovies] = useState<any[]>([]);
+  const [watchedShows, setWatchedShows] = useState<any[]>([]);
+  const [watchedMoviesDetails, setWatchedMoviesDetails] = useState<any[]>([]);
+  const [watchedShowsDetails, setWatchedShowsDetails] = useState<any[]>([]);
 
   const logout = () => {
     setIsAuthenticated(false);
@@ -78,26 +84,11 @@ export function TraktProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const getUserWatched = async () => {
-    if (accessToken) {
-      const watched = await traktWatched(accessToken);
-      console.log("watched", watched);
-      return watched;
-    }
-  }
-
-  const getUserHistory = async () => {
-    if (accessToken) {
-      const history = await traktHistory(accessToken);
-      console.log("history", history);
-      return history;
-    }
-  }
-
   const getUserWatchedMovies = async () => {
     if (accessToken) {
       const moviesWatchedData = await moviesWatched(accessToken);
       console.log("moviesWatched from context", moviesWatchedData);
+      setWatchedMovies(moviesWatchedData);
       return moviesWatchedData;
     }
   }
@@ -106,10 +97,10 @@ export function TraktProvider({ children }: { children: ReactNode }) {
     if (accessToken) {
       const showsWatchedData = await showsWatched(accessToken);
       console.log("showsWatched from context", showsWatchedData);
+      setWatchedShows(showsWatchedData);
       return showsWatchedData;
     }
   }
-
 
   // Check for existing token on mount
   useEffect(() => {
@@ -142,10 +133,12 @@ export function TraktProvider({ children }: { children: ReactNode }) {
       logout,
       login,
       handleToken,
-      getUserWatched,
-      getUserHistory,
       getUserWatchedMovies,
-      getUserWatchedShows
+      getUserWatchedShows,
+      watchedMovies,
+      watchedShows,
+      watchedMoviesDetails,
+      watchedShowsDetails,
     }}>
       {children}
     </TraktContext.Provider>

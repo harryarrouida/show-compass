@@ -2,17 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { useTraktContext } from "@/context/traktContext";
-import { IoTv, IoFilm, IoTime, IoCalendar } from "react-icons/io5";
+import { IoLogOut } from "react-icons/io5";
 import CardComponent from "@/components/shared/mediaCard";
 import { getMovieDetails } from "@/services/content/movieServices";
 import { getShowDetails } from "@/services/content/showServices";
 import { search } from "@/services/content/sharedServices";
 import Link from "next/link";
-import WatchHistoryOverview from '@/components/WatchHistoryOverview';
+import WatchHistoryOverview from '@/components/trakt/WatchHistoryOverview';
+import { useRouter } from 'next/navigation';
+import TraktRecommendations from '@/components/trakt/traktRecommendations';
+
 const ITEMS_PER_PAGE = 20;
 
 const Trakt = () => {
-    const { handleToken, isAuthenticated, getUserWatchedMovies, getUserWatchedShows } = useTraktContext();
+    const { handleToken, isAuthenticated, getUserWatchedMovies, getUserWatchedShows, logout } = useTraktContext();
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'shows' | 'movies'>('shows');
     const [watchedMovies, setWatchedMovies] = useState<any[]>([]);
@@ -20,6 +23,8 @@ const Trakt = () => {
     const [watchedMoviesDetails, setWatchedMoviesDetails] = useState<any[]>([]);
     const [watchedShowsDetails, setWatchedShowsDetails] = useState<any[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
+
+    const router = useRouter();
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -45,12 +50,12 @@ const Trakt = () => {
             const movieDetails = await Promise.all(
                 moviesWatchedData.map((movie: any) => getMovieDetails(movie.tmdbId))
             );
-            
+
             // Wait for all show details to resolve
             const showDetails = await Promise.all(
                 showsWatchedData.map((show: any) => getShowDetails(show.tmdbId))
             );
-            
+
             setWatchedMoviesDetails(movieDetails);
             setWatchedShowsDetails(showDetails);
 
@@ -63,11 +68,16 @@ const Trakt = () => {
         }
     };
 
+    const handleLogout = () => {
+        logout();
+        router.push('/');
+    };
+
     // Calculate pagination
     const getCurrentItems = () => {
         const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
         const endIndex = startIndex + ITEMS_PER_PAGE;
-        return activeTab === 'movies' 
+        return activeTab === 'movies'
             ? watchedMoviesDetails.slice(startIndex, endIndex)
             : watchedShowsDetails.slice(startIndex, endIndex);
     };
@@ -96,98 +106,88 @@ const Trakt = () => {
     }
 
     return (
-        <div className="p-4 sm:p-8 max-w-6xl mx-auto min-h-screen mt-4 sm:mt-10">
-            <h1 className="text-2xl font-bold mb-8">Watch History</h1>
-            
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 min-h-screen py-12">
+            <div className="flex justify-between items-center mb-8 flex justify-center items-center">
+                <h1 className="text-2xl font-bold">Watch History</h1>
+                <button onClick={handleLogout} className="flex items-center hover:scale-105 transition-all duration-300">
+                    <IoLogOut className="text-xl mr-2 text-red-500" />
+                    <div className="text-red-500">Logout</div>
+                </button>
+            </div>
+
             {/* Overview Stats */}
-            <WatchHistoryOverview 
+            <WatchHistoryOverview
                 watchedMovies={watchedMovies}
                 watchedShows={watchedShows}
                 watchedMoviesDetails={watchedMoviesDetails}
                 watchedShowsDetails={watchedShowsDetails}
             />
 
+            {/* Recommendations */}
+            <TraktRecommendations />
+
             {/* Tabs */}
-            <div className="flex items-center justify-end mb-8">
-                <div className="flex space-x-4 border-b border-zinc-800">
-                    <TabButton
-                        active={activeTab === 'shows'}
+            <div className="flex justify-center mb-16">
+                <div className="inline-flex space-x-12 border-b border-zinc-800/50 backdrop-blur-sm">
+                    <button
                         onClick={() => {
                             setActiveTab('shows');
                             setCurrentPage(1);
                         }}
+                        className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${activeTab === 'shows'
+                            ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-zinc-400 after:to-zinc-600'
+                            : 'text-zinc-500 hover:text-zinc-400'
+                            }`}
                     >
                         Shows ({watchedShowsDetails.length})
-                    </TabButton>
-                    <TabButton
-                        active={activeTab === 'movies'}
+                    </button>
+                    <button
                         onClick={() => {
                             setActiveTab('movies');
                             setCurrentPage(1);
                         }}
+                        className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${activeTab === 'movies'
+                            ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-zinc-400 after:to-zinc-600'
+                            : 'text-zinc-500 hover:text-zinc-400'
+                            }`}
                     >
                         Movies ({watchedMoviesDetails.length})
-                    </TabButton>
+                    </button>
                 </div>
             </div>
 
             {/* Grid Layout */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                 {getCurrentItems().map((item: any) => (
-                    <Link 
-                        href={`/recommendation/${item.id}/${activeTab === 'movies' ? 'movie' : 'show'}`} 
-                        key={item.id}
-                        className="group relative aspect-[2/3] rounded-lg overflow-hidden bg-zinc-900/50 border border-zinc-800/50"
-                    >
-                        {item.poster_path ? (
-                            <img
-                                src={`https://image.tmdb.org/t/p/w300${item.poster_path}`}
-                                alt={activeTab === 'movies' ? item.title : item.name}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-zinc-800">
-                                <span className="text-zinc-400">No Image</span>
-                            </div>
-                        )}
-                        
-                        {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex flex-col justify-end">
-                            <h3 className="text-sm font-semibold text-white line-clamp-2">
-                                {activeTab === 'movies' ? item.title : item.name}
-                            </h3>
-                            <div className="flex items-center justify-between mt-2">
-                                <span className="text-xs text-zinc-400">
-                                    {new Date(activeTab === 'movies' ? item.release_date : item.first_air_date).getFullYear()}
-                                </span>
-                                <span className="text-xs text-yellow-400 flex items-center">
-                                    ★ {item.vote_average.toFixed(1)}
-                                </span>
-                            </div>
-                        </div>
-                    </Link>
+                    <CardComponent key={item.id} item={item} activeTab={activeTab} />
                 ))}
             </div>
 
             {/* Pagination */}
             {totalPages > 1 && (
-                <div className="mt-8 flex justify-center items-center gap-4">
+                <div className="mt-20 mb-16 flex justify-center">
                     <button
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
-                        className="px-4 py-2 rounded-md bg-zinc-800/50 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-zinc-700/50 transition-colors"
+                        className="group relative px-8 py-3 bg-gradient-to-r from-zinc-700 to-zinc-800 
+                                disabled:from-zinc-900 disabled:to-zinc-900 disabled:cursor-not-allowed
+                                text-white text-sm rounded-full transition-all duration-300
+                                hover:shadow-lg hover:shadow-zinc-800/25 mr-4"
                     >
                         Previous
                     </button>
-                    
-                    <span className="text-zinc-400">
+
+                    <span className="text-zinc-400 flex items-center mx-4">
                         Page {currentPage} of {totalPages}
                     </span>
-                    
+
                     <button
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                         disabled={currentPage === totalPages}
-                        className="px-4 py-2 rounded-md bg-zinc-800/50 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-zinc-700/50 transition-colors"
+                        className="group relative px-8 py-3 bg-gradient-to-r from-zinc-700 to-zinc-800 
+                                disabled:from-zinc-900 disabled:to-zinc-900 disabled:cursor-not-allowed
+                                text-white text-sm rounded-full transition-all duration-300
+                                hover:shadow-lg hover:shadow-zinc-800/25"
                     >
                         Next
                     </button>
@@ -196,32 +196,5 @@ const Trakt = () => {
         </div>
     );
 };
-
-const StatCard = ({ icon, title, value }: { icon: React.ReactNode, title: string, value: string | number }) => (
-    <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-6">
-        <div className="flex items-center space-x-3 mb-2">
-            <div className="text-zinc-400">{icon}</div>
-            <h3 className="text-zinc-400 text-sm">{title}</h3>
-        </div>
-        <p className="text-2xl font-bold">{value}</p>
-    </div>
-);
-
-const TabButton = ({ children, active, onClick }: {
-    children: React.ReactNode,
-    active: boolean,
-    onClick: () => void
-}) => (
-    <button
-        onClick={onClick}
-        className={`px-4 py-2 text-sm font-medium transition-all relative
-            ${active
-                ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-white'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-    >
-        {children}
-    </button>
-);
 
 export default Trakt;
