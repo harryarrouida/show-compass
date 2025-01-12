@@ -1,15 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getPopularShows, getTrendingShows } from '@/services/showServices';
-import { getTrendingMovies } from '@/services/movieServices';
-import { Show, Movie } from '@/types/types';
+import { getPopularShows, getTrendingShows } from '@/services/content/showServices';
+import { getTrendingMovies } from '@/services/content/movieServices';
+import { Show, Movie, MappedShow, MappedMovie } from '@/types/types';
 import CardComponent from './shared/mediaCard';
 
 export default function DataGrid() {
     const [activeTab, setActiveTab] = useState('shows');
-    const [shows, setShows] = useState<Show[]>([]);
-    const [movies, setMovies] = useState<Movie[]>([]);
+    const [shows, setShows] = useState<MappedShow[]>([]);
+    const [movies, setMovies] = useState<MappedMovie[]>([]);
     const [page, setPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const data = activeTab === 'movies' ? movies : shows;

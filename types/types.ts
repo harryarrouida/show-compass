@@ -14,12 +14,19 @@ export type Show = {
   popularity: number;
   adult: boolean;
   genre_ids: number[];
-  origin_country: string[];
-  original_language: string;
   original_name: string;
-  vote_count: number;
   type: string;
   first_air_date: string;
+};
+
+export type MappedShow = {
+  id: number;
+  title: string;
+  type: string;
+  release_date: string;
+  poster_path: string;
+  vote_average: number;
+  overview: string;
 };
 
 export type Movie = {
@@ -44,9 +51,20 @@ export type Movie = {
   vote_count: number;
   genre_ids: number[];
   first_air_date?: string;
+  original_name?: string;
 };
 
-export type showDetails = {
+export type MappedMovie = {
+  id: number;
+  title: string;
+  type: string;
+  release_date: string;
+  poster_path: string;
+  vote_average: number;
+  overview: string;
+};
+
+export type ShowDetails = {
   vote_count?: number;
   title: string;
   id: number;
@@ -105,7 +123,7 @@ export type showDetails = {
   belongs_to_collection: null;
 };
 
-export type movieDetails = {
+export type MovieDetails = {
   id: number;
   title: string;
   poster_path: string;

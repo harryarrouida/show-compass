@@ -1,10 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { IoCompassOutline, IoListOutline } from "react-icons/io5";
+import { IoCompassOutline, IoListOutline, IoLogOut, IoLogIn } from "react-icons/io5";
+import { useTraktContext } from '@/context/traktContext';
 
 export default function Navbar() {
-    return (
+    const { user, logout, isAuthenticated, login } = useTraktContext();
+return (
         <nav className="sticky top-0 z-50 bg-zinc-900/50 backdrop-blur-xl border-b border-zinc-800">
             <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
                 <div className="flex items-center h-16 justify-between">
@@ -28,6 +30,23 @@ export default function Navbar() {
                                 History
                             </span>
                         </Link>
+
+                        {isAuthenticated ? (
+                            <button onClick={logout} className="flex items-center gap-2.5 px-4 py-2 text-white hover:text-zinc-200 transition-all duration-300 rounded-lg hover:bg-zinc-800">
+                                <IoLogOut className="text-xl" />
+                                {user?.name}
+                                <span className="text-base font-medium">
+                                    Logout
+                                </span>
+                            </button>
+                        ) : (
+                            <button onClick={login} className="flex items-center gap-2.5 px-4 py-2 text-white hover:text-zinc-200 transition-all duration-300 rounded-lg hover:bg-zinc-800">
+                                <IoLogIn className="text-xl" />
+                                <span className="text-base font-medium">
+                                    Login
+                                </span>
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>

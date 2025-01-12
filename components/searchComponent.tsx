@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { search } from '@/services/sharedServices';
 import Link from 'next/link';
-import { Movie, Show } from '@/types/types';
+import { MappedMovie, MappedShow } from '@/types/types';
 import Image from 'next/image';
+import { search } from '@/services/content/sharedServices';
 
 export default function SearchComponent() {
     const [query, setQuery] = useState('');
-    const [results, setResults] = useState<Movie[] | Show[]>([]);
+    const [results, setResults] = useState<MappedMovie[] | MappedShow[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [suggestions] = useState(['Arcane', 'Attack on Titan', 'Monster']);
@@ -79,7 +79,7 @@ export default function SearchComponent() {
                     {results.length > 0 && (
                         <div className="mt-10">
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                                {results.map((item: Movie | Show) => (
+                                {results.map((item: MappedMovie | MappedShow) => (
                                     <Link
                                         href={`/recommendation/${item.id}/${item.type}`}
                                         key={item.id}

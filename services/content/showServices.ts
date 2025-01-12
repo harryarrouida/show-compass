@@ -2,9 +2,11 @@ import axios from "axios";
 
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const BASE_URL = "https://api.themoviedb.org/3";
-import { Show, Episode } from "@/types/types";
+import { Show, ShowDetails, MappedShow } from "@/types/types";
 
-export async function getTrendingShows(page: number = 1): Promise<Show[]> {
+export async function getTrendingShows(
+  page: number = 1
+): Promise<MappedShow[]> {
   const response = await axios.get(
     `${BASE_URL}/trending/tv/week?api_key=${TMDB_API_KEY}&include_adult=false&page=${page}`
   );
@@ -13,16 +15,20 @@ export async function getTrendingShows(page: number = 1): Promise<Show[]> {
   );
   const mappedData = filteredData.map((item: Show) => {
     return {
-      ...item,
+      id: item.id,
       title: item.name,
       type: "show",
       release_date: item.first_air_date,
+      poster_path: item.poster_path,
+      vote_average: item.vote_average,
+      overview: item.overview,
     };
   });
+  console.log("mappedData from getTrendingShows", mappedData);
   return mappedData;
 }
 
-export async function getPopularShows(page: number = 1): Promise<Show[]> {
+export async function getPopularShows(page: number = 1): Promise<MappedShow[]> {
   try {
     const response = await axios.get(
       `${BASE_URL}/tv/popular?api_key=${TMDB_API_KEY}&page=${page}&include_adult=false`
@@ -32,12 +38,16 @@ export async function getPopularShows(page: number = 1): Promise<Show[]> {
     );
     const mappedData = filteredData.map((item: Show) => {
       return {
-        ...item,
+        id: item.id,
         title: item.name,
         type: "show",
         release_date: item.first_air_date,
+        poster_path: item.poster_path,
+        vote_average: item.vote_average,
+        overview: item.overview,
       };
     });
+    console.log("mappedData from getPopularShows", mappedData);
     return mappedData;
   } catch (error) {
     console.error("Error fetching popular shows:", error);
@@ -48,7 +58,7 @@ export async function getPopularShows(page: number = 1): Promise<Show[]> {
 export async function searchShows(
   query: string,
   page: number = 1
-): Promise<Show[]> {
+): Promise<MappedShow[]> {
   try {
     const response = await axios.get(
       `${BASE_URL}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(
@@ -60,12 +70,16 @@ export async function searchShows(
     );
     const mappedData = filteredData.map((item: Show) => {
       return {
-        ...item,
+        id: item.id,
         title: item.name,
         type: "show",
         release_date: item.first_air_date,
+        poster_path: item.poster_path,
+        vote_average: item.vote_average,
+        overview: item.overview,
       };
     });
+    console.log("mappedData from searchShows", mappedData);
     return mappedData;
   } catch (error) {
     console.error("Error searching shows:", error);
@@ -73,32 +87,28 @@ export async function searchShows(
   }
 }
 
-export async function getShowDetails(showId: number): Promise<Show | null> {
+export async function getShowDetails(
+  showId: number, 
+  page: number = 1
+): Promise<ShowDetails | null> {
   try {
     const response = await axios.get(
-      `${BASE_URL}/tv/${showId}?api_key=${TMDB_API_KEY}&include_adult=false`
+      `${BASE_URL}/tv/${showId}?api_key=${TMDB_API_KEY}&include_adult=false&page=${page}`
     );
     if (response.data.poster_path === null) {
       return null;
     }
-    return {
-      ...response.data,
-      title: response.data.name,
-      release_date: response.data.first_air_date,
+    const data = response.data;
+    const mappedData: ShowDetails = {
+      ...data,
+      title: data.name,
+      first_air_date: data.first_air_date,
+      type: "show",
     };
+    console.log("mappedData from getShowDetails", mappedData);
+    return mappedData;
   } catch (error) {
     console.error("Error fetching show details:", error);
     return null;
   }
-}
-
-export async function getShowEpisodes(
-  showId: number,
-  seasonNumber: number,
-  episodeNumber: number
-): Promise<Episode[]> {
-  const response = await axios.get(
-    `${BASE_URL}/tv/${showId}/season/${seasonNumber}/episode/${episodeNumber}?api_key=${TMDB_API_KEY}&include_adult=false`
-  );
-  return response.data;
 }

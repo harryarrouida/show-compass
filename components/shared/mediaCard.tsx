@@ -1,10 +1,10 @@
 import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Movie, Show } from '@/types/types'
+import { MappedMovie, MappedShow, Show } from '@/types/types'
 
 interface CardComponentProps {
-    item: Movie | Show;
+    item: MappedMovie | MappedShow;
     activeTab: string;
 }
 
@@ -21,7 +21,7 @@ export default function CardComponent({ item, activeTab }: CardComponentProps) {
                         ? `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${item.poster_path}`
                         : '/placeholder-poster.png'
                     }
-                    alt={activeTab === 'movies' ? (item as Movie).title : (item as Show).name}
+                    alt={activeTab === 'movies' ? (item as MappedMovie).title : (item as MappedShow).title}
                     fill
                     className="object-cover transform transition-all duration-500 group-hover:scale-[1.02]"
                     sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 20vw"
@@ -34,7 +34,7 @@ export default function CardComponent({ item, activeTab }: CardComponentProps) {
 
             <div className="mt-4 space-y-2.5">
                 <h3 className="text-zinc-200 text-sm font-medium leading-snug line-clamp-1 group-hover:text-white transition-colors duration-300">
-                    {activeTab === 'movies' ? (item as Movie).title : (item as Show).name}
+                    {activeTab === 'movies' ? (item as MappedMovie).title : (item as MappedShow).title}
                 </h3>
                 <div className="flex items-center space-x-3">
                     <div className="flex items-center bg-card-bg backdrop-blur-sm rounded-full px-2.5 py-1">
@@ -44,7 +44,7 @@ export default function CardComponent({ item, activeTab }: CardComponentProps) {
                         </span>
                     </div>
                     <span className="text-zinc-400 text-xs font-light">
-                        {new Date(activeTab === 'movies' ? (item as Movie).release_date : (item as Show).first_air_date).getFullYear()}
+                        {new Date(activeTab === 'movies' ? (item as MappedMovie).release_date : (item as MappedShow).release_date).getFullYear()}
                     </span>
                 </div>
             </div>

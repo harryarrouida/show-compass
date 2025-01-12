@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/shared/navbar";
 import Footer from '@/components/shared/footer';
+import { TraktProvider } from '@/context/traktContext';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,11 +20,13 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.className}>
       <body className="bg-background text-zinc-100 min-h-screen flex flex-col antialiased">
-        <Navbar />
-        <main className="flex-grow mb-16">
-          {children}
-        </main>
-        <Footer />
+        <TraktProvider>
+          <Navbar />
+          <main className="flex-grow mb-16">
+            {children}
+          </main>
+          <Footer />
+        </TraktProvider>
       </body>
     </html>
   );

@@ -1,17 +1,18 @@
 "use client";
-import { getShowDetails } from "@/services/showServices";
-import { getMovieDetails } from "@/services/movieServices";
+import { getShowDetails } from "@/services/content/showServices";
+import { getMovieDetails } from "@/services/content/movieServices";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { showDetails, movieDetails } from "@/types/types";
+import { ShowDetails, MovieDetails } from "@/types/types";
 import Groq from "groq-sdk";
-import { search } from "@/services/sharedServices";
+import { searchMovies, searchShows } from "@/services/content/searchServices";
 import MediaDetails from "@/components/shared/mediaDetails";
 import { AIRecommendation } from "@/types/types";
 import { generateDefaultPrompt, generateCustomPrompt } from '@/app/constants/aiPrompts';
+import { search } from "@/services/content/sharedServices";
 
 export default function RecommendationPage() {
-    const [details, setDetails] = useState<showDetails | movieDetails | null>(null);
+    const [details, setDetails] = useState<ShowDetails | MovieDetails | null>(null);
     const [aiRecommendations, setAiRecommendations] = useState<AIRecommendation[] | string>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isAiLoading, setIsAiLoading] = useState(false);
@@ -35,7 +36,7 @@ export default function RecommendationPage() {
                 }
 
                 if (mediaDetails) {
-                    setDetails(mediaDetails as unknown as showDetails | movieDetails);
+                    setDetails(mediaDetails as unknown as ShowDetails | MovieDetails);
                     setIsLoading(false);  // Show content while waiting for AI
                     setIsAiLoading(true); // Set AI loading state
 
@@ -46,7 +47,7 @@ export default function RecommendationPage() {
                         apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
                         dangerouslyAllowBrowser: true
                     });
-                    const genres = mediaDetails.genres.map(genre => genre.name).join(', ');
+                    const genres = mediaDetails.genres.map((genre: { name: string }) => genre.name).join(', ');
                     const defaultPrompt = generateDefaultPrompt(mediaDetails, type as string);
 
 

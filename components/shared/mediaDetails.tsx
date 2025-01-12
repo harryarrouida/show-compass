@@ -1,12 +1,11 @@
 import Image from 'next/image';
-import { showDetails, movieDetails } from "@/types/types";
+import { ShowDetails, MovieDetails } from "@/types/types";
 import AIRecommendations from '@/components/recommendations/aiRecommendations';
 import { AIRecommendation } from '@/types/types';
-import ShowsEpRating from '@/components/shared/showsEpRating';
 
 
 interface MediaDetailsProps {
-    details: showDetails | movieDetails;
+    details: ShowDetails | MovieDetails;
     showAllSeasons: boolean;
     setShowAllSeasons: (show: boolean) => void;
     aiRecommendations: AIRecommendation[];
