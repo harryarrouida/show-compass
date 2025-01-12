@@ -8,6 +8,7 @@ import { getMovieDetails } from "@/services/content/movieServices";
 import { getShowDetails } from "@/services/content/showServices";
 import { search } from "@/services/content/sharedServices";
 import Link from "next/link";
+import WatchHistoryOverview from '@/components/WatchHistoryOverview';
 const ITEMS_PER_PAGE = 20;
 
 const Trakt = () => {
@@ -96,8 +97,18 @@ const Trakt = () => {
 
     return (
         <div className="p-4 sm:p-8 max-w-6xl mx-auto min-h-screen mt-4 sm:mt-10">
-            <div className="flex items-center justify-between mb-8">
-                <h1 className="text-2xl font-bold">Watch History</h1>
+            <h1 className="text-2xl font-bold mb-8">Watch History</h1>
+            
+            {/* Overview Stats */}
+            <WatchHistoryOverview 
+                watchedMovies={watchedMovies}
+                watchedShows={watchedShows}
+                watchedMoviesDetails={watchedMoviesDetails}
+                watchedShowsDetails={watchedShowsDetails}
+            />
+
+            {/* Tabs */}
+            <div className="flex items-center justify-end mb-8">
                 <div className="flex space-x-4 border-b border-zinc-800">
                     <TabButton
                         active={activeTab === 'shows'}
