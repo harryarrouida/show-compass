@@ -4,14 +4,36 @@ import { IoChevronForwardOutline } from "react-icons/io5";
 import { useTraktContext } from "@/context/traktContext";
 import Groq from "groq-sdk";
 import { search } from "@/services/content/sharedServices";
+import Image from "next/image";
+import AiRecommendations from "@/components/recommendations/aiRecommendations";
+import MediaCard from "@/components/shared/mediaCard";
+import MediaCardContainer from "@/components/shared/MediaCardContainer";
 
 type MediaType = 'movies' | 'shows';
+
+/**
+ * TraktRecommendations Component
+ * 
+ * Generates AI-powered content recommendations based on user's watch history from Trakt.
+ * Uses Groq API for generating recommendations and TMDB for fetching media details.
+ * 
+ * @component
+ * @example
+ * return (
+ *   <TraktRecommendations />
+ * )
+ */
 
 const TraktRecommendations = () => {
     const [loading, setLoading] = useState(false);
     const [recommendations, setRecommendations] = useState<any[]>([]);
     const [mediaType, setMediaType] = useState<MediaType>('movies');
-    const { watchedMovies, watchedShows } = useTraktContext();
+    const { 
+        watchedMoviesCache, 
+        watchedShowsCache,
+        getUserWatchedMovies,
+        getUserWatchedShows 
+    } = useTraktContext();
     const [recommendationsDetails, setRecommendationsDetails] = useState<any[]>([]);
 
     const generatePrompt = (type: MediaType, watchedContent: any[]) => {
@@ -24,33 +46,44 @@ const TraktRecommendations = () => {
             }));
 
         return `Based on these recently watched ${type}:
-${recentContent.map(item => `- ${item.title} (${item.year})`).join('\n')}
-
-Generate exactly 5 ${type} recommendations that capture similar themes, styles, or narratives.
-Respond with ONLY a clean JSON object in this format:
-{
-    "recommendations": [
-        {
-            "title": "Title",
-            "reason": "Two clear, concise sentences explaining specific thematic or stylistic connections to the user's watch history. Focus on narrative elements, themes, and artistic approach."
-        }
-    ]
-}
-
-Rules for recommendations:
-- Each reason must be exactly two sentences
-- Do not mention ratings, reviews, or popularity
-- Focus on specific thematic or stylistic connections
-- Include at least one title from the last 5 years
-- Avoid direct plot summaries and franchise titles
-
-Remember: Return ONLY the JSON object with no additional text or explanation.`;
+            ${recentContent.map(item => `- ${item.title} (${item.year})`).join('\n')}
+            
+            Generate exactly 5 ${type} recommendations that reflect similar themes, styles, or narratives. 
+            Respond with ONLY a clean JSON object in this format:
+            {
+                "recommendations": [
+                    {
+                        "title": "Title",
+                        "reason": "Two clear and precise sentences explaining specific thematic or stylistic connections to the user's watch history. Focus on narrative depth, themes, and artistic qualities."
+                    }
+                ]
+            }
+            
+            Rules for recommendations:
+            - avoid content that is not more than 7.5 rating on IMDB
+            - Each reason must be exactly two sentences.
+            - Do not mention ratings, reviews, or popularity.
+            - Focus on well-known titles with meaningful thematic or stylistic connections.
+            - Include at least one title from the last 5 years.
+            - Avoid direct plot summaries or recommending franchise titles unless significantly related.
+            
+            Remember: Return ONLY the JSON object with no additional text or explanation.`;
     };
 
     const handleRecommendations = async () => {
         setLoading(true);
         try {
-            const watchedContent = mediaType === 'movies' ? watchedMovies : watchedShows;
+            // Get watched content from cache or fetch if needed
+            let watchedContent;
+            if (mediaType === 'movies') {
+                watchedContent = watchedMoviesCache.length > 0 
+                    ? watchedMoviesCache 
+                    : await getUserWatchedMovies();
+            } else {
+                watchedContent = watchedShowsCache.length > 0 
+                    ? watchedShowsCache 
+                    : await getUserWatchedShows();
+            }
 
             if (!watchedContent || watchedContent.length === 0) {
                 throw new Error(`No watched ${mediaType} found`);
@@ -93,6 +126,7 @@ Remember: Return ONLY the JSON object with no additional text or explanation.`;
                     return { ...rec, media: mediaMatch };
                 }));
                 setRecommendationsDetails(recommendationsDetails);
+                console.log("recommendationsDetails", recommendationsDetails);
             } catch (error) {
                 console.error('Failed to parse AI response:', error);
                 setRecommendations([]);
@@ -105,8 +139,8 @@ Remember: Return ONLY the JSON object with no additional text or explanation.`;
     };
 
     return (
-        <div className="mt-16 mb-20">
-            <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-6 max-w-3xl mx-auto">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-16 mb-20">
+            <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-6 max-w-3xl mx-auto mb-16">
                 <div className="flex items-start gap-4">
                     <div className="p-3 bg-zinc-800/50 rounded-lg">
                         <RiRobot2Line className="w-6 h-6 text-zinc-400" />
@@ -154,17 +188,11 @@ Remember: Return ONLY the JSON object with no additional text or explanation.`;
             </div>
 
             {recommendations.length > 0 && (
-                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {recommendations.map((rec, index) => (
-                        <div
-                            key={index}
-                            className="bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-6 hover:bg-zinc-800/50 transition-colors duration-300"
-                        >
-                            <h3 className="text-lg font-medium text-white mb-2">{rec.title}</h3>
-                            <p className="text-sm text-zinc-300 leading-relaxed">{rec.reason}</p>
-                        </div>
-                    ))}
-                </div>
+                <MediaCardContainer
+                    mediaCards={recommendationsDetails}
+                    activeTab={mediaType}
+                    itemsPerPage={15}
+                />
             )}
         </div>
     );

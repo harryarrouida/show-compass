@@ -1,188 +1,120 @@
-export type Show = {
-  genres: {
-    id: number;
-    name: string;
-  }[];
-  title: string;
-  id: number;
-  name: string;
-  poster_path: string;
-  backdrop_path: string | null;
-  vote_average: number;
-  release_date: string;
-  overview: string;
-  popularity: number;
-  adult: boolean;
-  genre_ids: number[];
-  original_name: string;
-  type: string;
-  first_air_date: string;
-};
+/** Media Types */
+export interface TraktWatchedItem {
+    title: string;
+    tmdbId: number;
+    type: 'movie' | 'show';
+}
 
-export type MappedShow = {
-  id: number;
-  title: string;
-  type: string;
-  release_date: string;
-  poster_path: string;
-  vote_average: number;
-  overview: string;
-};
+export interface CacheItem<T> {
+    data: T;
+    timestamp: number;
+}
 
-export type Movie = {
-  genres: {
-    id: number;
-    name: string;
-  }[];
-  name?: string;
-  type: string;
-  id: number;
-  title: string;
-  overview: string;
-  poster_path: string;
-  backdrop_path: string | null;
-  vote_average: number;
-  release_date: string;
-  adult: boolean;
-  original_language: string;
-  original_title: string;
-  popularity: number;
-  video: boolean;
-  vote_count: number;
-  genre_ids: number[];
-  first_air_date?: string;
-  original_name?: string;
-};
+export interface AIRecommendation {
+    title: string;
+    reason: string;
+    media?: {
+        id: number;
+        vote_average: number;
+        title: string;
+        release_date: string;
+        poster_path: string;
+        type: 'movie' | 'show';
+        popularity?: number;
+    };
+}
 
-export type MappedMovie = {
-  id: number;
-  title: string;
-  type: string;
-  release_date: string;
-  poster_path: string;
-  vote_average: number;
-  overview: string;
-};
+/** Service Response Types */
+export interface TMDBSearchResponse {
+    page: number;
+    results: any[];
+    total_pages: number;
+    total_results: number;
+}
 
-export type ShowDetails = {
-  vote_count?: number;
-  title: string;
-  id: number;
-  name: string;
-  poster_path: string;
-  backdrop_path: string | null;
-  vote_average: number;
-  first_air_date: string;
-  release_date?: string;
-  overview: string;
-  status: string;
-  tagline: string;
-  type: string;
-  number_of_episodes: number;
-  number_of_seasons: number;
-  in_production: boolean;
-  created_by: {
+/** Context Types */
+export interface TraktContextState {
+    isAuthenticated: boolean;
+    accessToken: string | null;
+    user: TraktUser | null;
+    watchedMoviesCache: TraktWatchedItem[];
+    watchedShowsCache: TraktWatchedItem[];
+    isLoadingMovies: boolean;
+    isLoadingShows: boolean;
+}
+
+export interface TraktUser {
+    username: string;
+    name?: string;
+    joined_at?: string;
+}
+
+export interface Movie {
     id: number;
-    name: string;
-    profile_path: string | null;
-  }[];
-  genres: {
-    id: number;
-    name: string;
-  }[];
-  networks: {
-    id: number;
-    name: string;
-    logo_path: string | null;
-  }[];
-  seasons: {
-    id: number;
-    name: string;
-    overview: string;
+    title: string;
+    release_date: string;
     poster_path: string | null;
-    air_date: string;
-    episode_count: number;
-    season_number: number;
     vote_average: number;
-  }[];
-  production_companies: {
+    overview: string;
+    type: 'movie';
+}
+
+export interface Show {
     id: number;
     name: string;
-    logo_path: string | null;
-    origin_country: string;
-  }[];
-  production_countries: {
-    iso_3166_1: string;
-    name: string;
-  }[];
-  spoken_languages: {
-    english_name: string;
-    iso_639_1: string;
-    name: string;
-  }[];
-  belongs_to_collection: null;
-};
+    first_air_date: string;
+    poster_path: string | null;
+    vote_average: number;
+    overview: string;
+    type: 'show';
+}
 
-export type MovieDetails = {
-  id: number;
-  title: string;
-  poster_path: string;
-  backdrop_path: string | null;
-  vote_average: number;
-  release_date: string;
-  overview: string;
-  status: string;
-  tagline: string;
-  budget: number;
-  revenue: number;
-  runtime: number;
-  homepage: string;
-  imdb_id: string;
-  original_language: string;
-  original_title: string;
-  popularity: number;
-  video: boolean;
-  vote_count: number;
-  adult: boolean;
-  genres: {
+export interface MappedMovie {
     id: number;
-    name: string;
-  }[];
-  production_companies: {
+    title: string;
+    type: 'movie';
+    release_date: string;
+    poster_path: string | null;
+    vote_average: number;
+    overview: string;
+}
+
+export interface MappedShow {
     id: number;
-    name: string;
-    logo_path: string | null;
-    origin_country: string;
-  }[];
-  production_countries: {
-    iso_3166_1: string;
-    name: string;
-  }[];
-  spoken_languages: {
-    english_name: string;
-    iso_639_1: string;
-    name: string;
-  }[];
-  belongs_to_collection: null;
-};
+    title: string;
+    type: 'show';
+    first_air_date: string;
+    release_date?: string;
+    poster_path: string | null;
+    vote_average: number;
+    overview: string;
+}
 
-export type AIRecommendation = {
-  title: string;
-  reason: string;
-  media?: Show | Movie;
-};
+export interface MovieDetails extends Movie {
+    release_date: string;
+    runtime: number;
+    genres: Array<{ id: number; name: string }>;
+    spoken_languages: Array<{ iso_639_1: string; english_name: string }>;
+    production_companies: Array<{ id: number; name: string }>;
+    vote_count: number;
+}
 
-export type Episode = {
-  air_date: string;
-  episode_number: number;
-  name: string;
-  overview: string;
-  id: number;
-  production_code: string;
-  runtime: number;
-  season_number: number;
-  still_path: string | null;
-  vote_average: number;
-  vote_count: number;
-};
+export interface ShowDetails extends Omit<Show, 'name'> {
+    title: string;
+    first_air_date: string;
+    release_date?: string;
+    episode_run_time: number[];
+    number_of_seasons: number;
+    number_of_episodes: number;
+    genres: Array<{ id: number; name: string }>;
+    spoken_languages: Array<{ iso_639_1: string; english_name: string }>;
+    production_companies: Array<{ id: number; name: string }>;
+    seasons: Array<{
+        id: number;
+        name: string;
+        episode_count: number;
+        air_date: string;
+        vote_average: number;
+    }>;
+}
 

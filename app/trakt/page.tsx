@@ -3,26 +3,28 @@
 import { useEffect, useState } from "react";
 import { useTraktContext } from "@/context/traktContext";
 import { IoLogOut } from "react-icons/io5";
-import CardComponent from "@/components/shared/mediaCard";
 import { getMovieDetails } from "@/services/content/movieServices";
 import { getShowDetails } from "@/services/content/showServices";
-import { search } from "@/services/content/sharedServices";
-import Link from "next/link";
-import WatchHistoryOverview from '@/components/trakt/WatchHistoryOverview';
 import { useRouter } from 'next/navigation';
+import WatchHistoryOverview from '@/components/WatchHistoryOverview';
 import TraktRecommendations from '@/components/trakt/traktRecommendations';
+import MediaCard from '@/components/shared/mediaCard';
+import MediaCardContainer from "@/components/shared/MediaCardContainer";
 
 const ITEMS_PER_PAGE = 20;
 
 const Trakt = () => {
-    const { handleToken, isAuthenticated, getUserWatchedMovies, getUserWatchedShows, logout } = useTraktContext();
+    const { handleToken, isAuthenticated, getUserWatchedMovies, getUserWatchedShows, logout, watchedMoviesCache, watchedShowsCache} = useTraktContext();
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'shows' | 'movies'>('shows');
-    const [watchedMovies, setWatchedMovies] = useState<any[]>([]);
-    const [watchedShows, setWatchedShows] = useState<any[]>([]);
+    const [watchedMovies, setWatchedMovies] = useState<any[]>(watchedMoviesCache);
+    const [watchedShows, setWatchedShows] = useState<any[]>(watchedShowsCache);
     const [watchedMoviesDetails, setWatchedMoviesDetails] = useState<any[]>([]);
     const [watchedShowsDetails, setWatchedShowsDetails] = useState<any[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
+    const [mediaCards, setMediaCards] = useState<any[]>([]);
+    const [mappedMovies, setMappedMovies] = useState<any[]>([]);
+    const [mappedShows, setMappedShows] = useState<any[]>([]);
 
     const router = useRouter();
 
@@ -38,6 +40,12 @@ const Trakt = () => {
         }
     }, [isAuthenticated]);
 
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetchWatchedData();
+        }
+    }, [isAuthenticated]);
+
     const fetchWatchedData = async () => {
         setIsLoading(true);
         try {
@@ -46,21 +54,50 @@ const Trakt = () => {
             setWatchedMovies(moviesWatchedData);
             setWatchedShows(showsWatchedData);
 
+            let movieDetails: any[] = [];
+            let showDetails: any[] = [];
+
             // Wait for all movie details to resolve
-            const movieDetails = await Promise.all(
-                moviesWatchedData.map((movie: any) => getMovieDetails(movie.tmdbId))
-            );
+            if (moviesWatchedData && moviesWatchedData.length > 0) {
+                movieDetails = await Promise.all(
+                    moviesWatchedData.map((movie: any) => getMovieDetails(movie.tmdbId))
+                );
+                setWatchedMoviesDetails(movieDetails);
+            }
 
             // Wait for all show details to resolve
-            const showDetails = await Promise.all(
-                showsWatchedData.map((show: any) => getShowDetails(show.tmdbId))
-            );
+            if (showsWatchedData.length > 0) {
+                showDetails = await Promise.all(
+                    showsWatchedData.map((show: any) => getShowDetails(show.tmdbId))
+                );
+                setWatchedShowsDetails(showDetails);
+            }
 
-            setWatchedMoviesDetails(movieDetails);
-            setWatchedShowsDetails(showDetails);
+            const newMappedMovies = movieDetails.map((movie: any) => ({
+                media: {
+                    id: movie.id,
+                    vote_average: movie.vote_average,
+                    title: movie.title,
+                    release_date: movie.release_date,
+                    poster_path: movie.poster_path,
+                    type: 'movie'
+                }
+            }));
 
-            console.log("watchedMoviesDetails", movieDetails);
-            console.log("watchedShowsDetails", showDetails);
+            const newMappedShows = showDetails.map((show: any) => ({
+                media: {
+                    id: show.id,
+                    vote_average: show.vote_average,
+                    title: show.name,
+                    release_date: show.first_air_date,
+                    poster_path: show.poster_path,
+                    type: 'show'
+                }
+            }));
+
+            setMappedMovies(newMappedMovies);
+            setMappedShows(newMappedShows);
+            setMediaCards([...newMappedMovies, ...newMappedShows]);
         } catch (error) {
             console.error('Error fetching watched data:', error);
         } finally {
@@ -86,6 +123,8 @@ const Trakt = () => {
         (activeTab === 'movies' ? watchedMoviesDetails.length : watchedShowsDetails.length) / ITEMS_PER_PAGE
     );
 
+    console.log("mediaCards", mediaCards);
+
     if (!isAuthenticated) {
         return (
             <div className="min-h-[80vh] flex items-center justify-center">
@@ -106,8 +145,8 @@ const Trakt = () => {
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 min-h-screen py-12">
-            <div className="flex justify-between items-center mb-8 flex justify-center items-center">
+        <div className="max-w-6xl mx-auto px-8 min-h-screen py-12 space-y-16">
+            <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Watch History</h1>
                 <button onClick={handleLogout} className="flex items-center hover:scale-105 transition-all duration-300">
                     <IoLogOut className="text-xl mr-2 text-red-500" />
@@ -115,7 +154,6 @@ const Trakt = () => {
                 </button>
             </div>
 
-            {/* Overview Stats */}
             <WatchHistoryOverview
                 watchedMovies={watchedMovies}
                 watchedShows={watchedShows}
@@ -123,11 +161,9 @@ const Trakt = () => {
                 watchedShowsDetails={watchedShowsDetails}
             />
 
-            {/* Recommendations */}
             <TraktRecommendations />
 
-            {/* Tabs */}
-            <div className="flex justify-center mb-16">
+            <div className="flex justify-center">
                 <div className="inline-flex space-x-12 border-b border-zinc-800/50 backdrop-blur-sm">
                     <button
                         onClick={() => {
@@ -156,42 +192,11 @@ const Trakt = () => {
                 </div>
             </div>
 
-            {/* Grid Layout */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                {getCurrentItems().map((item: any) => (
-                    <CardComponent key={item.id} item={item} activeTab={activeTab} />
-                ))}
-            </div>
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-                <div className="mt-20 mb-16 flex justify-center">
-                    <button
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="group relative px-8 py-3 bg-gradient-to-r from-zinc-700 to-zinc-800 
-                                disabled:from-zinc-900 disabled:to-zinc-900 disabled:cursor-not-allowed
-                                text-white text-sm rounded-full transition-all duration-300
-                                hover:shadow-lg hover:shadow-zinc-800/25 mr-4"
-                    >
-                        Previous
-                    </button>
-
-                    <span className="text-zinc-400 flex items-center mx-4">
-                        Page {currentPage} of {totalPages}
-                    </span>
-
-                    <button
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                        className="group relative px-8 py-3 bg-gradient-to-r from-zinc-700 to-zinc-800 
-                                disabled:from-zinc-900 disabled:to-zinc-900 disabled:cursor-not-allowed
-                                text-white text-sm rounded-full transition-all duration-300
-                                hover:shadow-lg hover:shadow-zinc-800/25"
-                    >
-                        Next
-                    </button>
-                </div>
+            {mediaCards.length > 0 && (
+                <MediaCardContainer 
+                    mediaCards={activeTab === 'movies' ? mappedMovies : mappedShows} 
+                    activeTab={activeTab} 
+                />
             )}
         </div>
     );

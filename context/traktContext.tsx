@@ -25,8 +25,8 @@ interface TraktContextType {
   handleToken: (code: string) => Promise<void>;
   getUserWatchedMovies: () => Promise<any>;
   getUserWatchedShows: () => Promise<any>;
-  watchedMovies: any[];
-  watchedShows: any[];
+  watchedMoviesCache: any[];
+  watchedShowsCache: any[];
   watchedMoviesDetails: any[];
   watchedShowsDetails: any[];
 }
@@ -37,16 +37,23 @@ export function TraktProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [user, setUser] = useState<TraktUser | null>(null);
-  const [watchedMovies, setWatchedMovies] = useState<any[]>([]);
-  const [watchedShows, setWatchedShows] = useState<any[]>([]);
+  const [watchedMoviesCache, setWatchedMoviesCache] = useState<any[]>([]);
+  const [watchedShowsCache, setWatchedShowsCache] = useState<any[]>([]);
   const [watchedMoviesDetails, setWatchedMoviesDetails] = useState<any[]>([]);
   const [watchedShowsDetails, setWatchedShowsDetails] = useState<any[]>([]);
+  const [isLoadingMovies, setIsLoadingMovies] = useState(false);
+  const [isLoadingShows, setIsLoadingShows] = useState(false);
 
   const logout = () => {
     setIsAuthenticated(false);
     setAccessToken(null);
     setUser(null);
     localStorage.removeItem('traktToken');
+    // Clear cached data
+    localStorage.removeItem('watchedMoviesCache');
+    localStorage.removeItem('watchedShowsCache');
+    localStorage.removeItem('watchedMoviesCacheTimestamp');
+    localStorage.removeItem('watchedShowsCacheTimestamp');
   };
 
   const login = async () => {
@@ -86,21 +93,76 @@ export function TraktProvider({ children }: { children: ReactNode }) {
 
   const getUserWatchedMovies = async () => {
     if (accessToken) {
-      const moviesWatchedData = await moviesWatched(accessToken);
-      console.log("moviesWatched from context", moviesWatchedData);
-      setWatchedMovies(moviesWatchedData);
-      return moviesWatchedData;
+      try {
+        const cachedMovies = localStorage.getItem('watchedMoviesCache');
+        const cacheTimestamp = localStorage.getItem('watchedMoviesCacheTimestamp');
+        const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+        if (cachedMovies && cacheTimestamp) {
+          try {
+            const parsedMovies = JSON.parse(cachedMovies);
+            if (Date.now() - parseInt(cacheTimestamp) < CACHE_DURATION) {
+              setWatchedMoviesCache(parsedMovies);
+              return parsedMovies;
+            }
+          } catch (e) {
+            // Handle corrupt cache
+            localStorage.removeItem('watchedMoviesCache');
+            localStorage.removeItem('watchedMoviesCacheTimestamp');
+          }
+        }
+
+        // If no cache or expired, fetch new data
+        const moviesWatchedData = await moviesWatched(accessToken);
+        setWatchedMoviesCache(moviesWatchedData);
+        
+        // Update cache
+        localStorage.setItem('watchedMoviesCache', JSON.stringify(moviesWatchedData));
+        localStorage.setItem('watchedMoviesCacheTimestamp', Date.now().toString());
+        
+        return moviesWatchedData;
+      } catch (error) {
+        console.error('Error fetching watched movies:', error);
+        throw error;
+      }
     }
   }
 
   const getUserWatchedShows = async () => {
     if (accessToken) {
+      // Check localStorage first
+      const cachedShows = localStorage.getItem('watchedShowsCache');
+      const cacheTimestamp = localStorage.getItem('watchedShowsCacheTimestamp');
+      const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+      // If cache exists and is less than 24 hours old, use it
+      if (cachedShows && cacheTimestamp && 
+          Date.now() - parseInt(cacheTimestamp) < CACHE_DURATION) {
+        const parsedShows = JSON.parse(cachedShows);
+        setWatchedShowsCache(parsedShows);
+        return parsedShows;
+      }
+
+      // If no cache or expired, fetch new data
       const showsWatchedData = await showsWatched(accessToken);
-      console.log("showsWatched from context", showsWatchedData);
-      setWatchedShows(showsWatchedData);
+      setWatchedShowsCache(showsWatchedData);
+      
+      // Update cache
+      localStorage.setItem('watchedShowsCache', JSON.stringify(showsWatchedData));
+      localStorage.setItem('watchedShowsCacheTimestamp', Date.now().toString());
+      
       return showsWatchedData;
     }
   }
+
+  const invalidateCache = () => {
+    localStorage.removeItem('watchedMoviesCache');
+    localStorage.removeItem('watchedShowsCache');
+    localStorage.removeItem('watchedMoviesCacheTimestamp');
+    localStorage.removeItem('watchedShowsCacheTimestamp');
+    setWatchedMoviesCache([]);
+    setWatchedShowsCache([]);
+  };
 
   // Check for existing token on mount
   useEffect(() => {
@@ -135,8 +197,8 @@ export function TraktProvider({ children }: { children: ReactNode }) {
       handleToken,
       getUserWatchedMovies,
       getUserWatchedShows,
-      watchedMovies,
-      watchedShows,
+      watchedMoviesCache,
+      watchedShowsCache,
       watchedMoviesDetails,
       watchedShowsDetails,
     }}>

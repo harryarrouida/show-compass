@@ -42,7 +42,7 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
                         <span className="text-amber-400">★</span>
                         <span>{details.vote_average?.toFixed(1)}</span>
                         <span className="text-zinc-500">•</span>
-                        <span>{new Date(details.release_date || '').getFullYear()}</span>
+                        <span>{details.release_date ? new Date(details.release_date).getFullYear() : ''}</span>
                     </div>
 
                     {/* Runtime */}

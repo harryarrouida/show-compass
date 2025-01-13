@@ -1,6 +1,9 @@
+'use client'
 import Image from 'next/image';
 import { AIRecommendation } from "@/types/types";
 import { IoBookmarkOutline, IoStar, IoCheckmarkCircleOutline } from "react-icons/io5";
+import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 
 interface AIRecommendationsProps {
     isAiLoading: boolean;
@@ -14,31 +17,55 @@ interface AIRecommendationsProps {
     handleSubmitPrompt: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
 }
 
-export default function AIRecommendations({ isAiLoading, aiRecommendations, saveToHistory, alert, toggleChat, showChat, setPrompt, prompt, handleSubmitPrompt }: AIRecommendationsProps) {
+export default function AIRecommendations({ 
+    isAiLoading, 
+    aiRecommendations, 
+    saveToHistory, 
+    alert, 
+    toggleChat, 
+    showChat, 
+    setPrompt, 
+    prompt, 
+    handleSubmitPrompt 
+}: AIRecommendationsProps) {
+    const pathname = usePathname();
+    const [isDefaultRecs, setIsDefaultRecs] = useState(true);
+
+    useEffect(() => {
+        if (pathname?.includes('recommendation')) {
+            setIsDefaultRecs(false);
+        }
+    }, [pathname]);
+
     return (
         <div className="space-y-8">
             <div className="flex items-center justify-between">
                 <h2 className="text-2xl font-semibold text-white">Similar Recommendations</h2>
-                <button onClick={toggleChat} className="text-zinc-400 text-sm font-light hover:text-zinc-300 transition-colors duration-300">
-                    {showChat ? "Do you like these? Hide Chat" : "Don't Like These? Chat here"}
-                </button>
+                {!isDefaultRecs && (
+                    <button 
+                        onClick={toggleChat} 
+                        className="text-zinc-400 text-sm font-light hover:text-zinc-300 transition-colors duration-300"
+                    >
+                        {showChat ? "Do you like these? Hide Chat" : "Don't Like These? Chat here"}
+                    </button>
+                )}
             </div>
 
-            {showChat && (
+            {showChat && !isDefaultRecs && (
                 <form onSubmit={handleSubmitPrompt} className="flex items-center gap-3 text-zinc-300">
-                    <input 
-                        value={prompt} 
-                        onChange={(e) => setPrompt(e.target.value)} 
-                        type="text" 
-                        placeholder="What kind of recommendations are you looking for?" 
-                        className="w-full p-3 rounded-md bg-zinc-900/50 text-zinc-300 border border-zinc-800 focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700 placeholder:text-zinc-600 transition-all duration-300" 
+                    <input
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        type="text"
+                        placeholder="What kind of recommendations are you looking for?"
+                        className="w-full p-3 rounded-md bg-zinc-900/50 text-zinc-300 border border-zinc-800 focus:outline-none focus:border-zinc-700 focus:ring-1 focus:ring-zinc-700 placeholder:text-zinc-600 transition-all duration-300"
                     />
-                    <button 
+                    <button
                         disabled={isAiLoading || !prompt.trim()}
                         type="submit"
                         className={`px-6 py-3 bg-primary rounded-md text-white transition-all duration-300 flex items-center gap-2
-                            ${isAiLoading || !prompt.trim() 
-                                ? 'opacity-50 cursor-not-allowed' 
+                            ${isAiLoading || !prompt.trim()
+                                ? 'opacity-50 cursor-not-allowed'
                                 : 'hover:bg-primary/80'}`}
                     >
                         {isAiLoading ? (
@@ -84,6 +111,7 @@ export default function AIRecommendations({ isAiLoading, aiRecommendations, save
                                         alt={rec.title}
                                         fill
                                         className="object-cover"
+                                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw"
                                     />
                                     <button
                                         onClick={() => saveToHistory(rec)}
@@ -95,7 +123,9 @@ export default function AIRecommendations({ isAiLoading, aiRecommendations, save
                             )}
                             <div className="p-4 sm:p-5 flex-1">
                                 <div className="flex items-start justify-between gap-3 mb-3">
-                                    <h3 className="text-lg sm:text-xl font-medium text-white truncate">{rec.title}</h3>
+                                    <h3 className="text-lg sm:text-xl font-medium text-white truncate">
+                                        {rec.title}
+                                    </h3>
                                     {rec.media?.vote_average && (
                                         <div className="flex items-center gap-1.5 flex-shrink-0">
                                             <IoStar className="text-amber-400 text-sm" />
@@ -110,16 +140,20 @@ export default function AIRecommendations({ isAiLoading, aiRecommendations, save
                                         {new Date(rec.media.release_date).getFullYear()}
                                     </div>
                                 )}
-                                <p className="text-sm sm:text-base text-zinc-300 leading-relaxed">{rec.reason}</p>
+                                <p className="text-sm sm:text-base text-zinc-300 leading-relaxed">
+                                    {rec.reason}
+                                </p>
                             </div>
                         </div>
                     ))
                 )}
             </div>
-            {alert && <div className="flex items-center gap-2 text-sm text-green-400 font-medium fixed bottom-12 right-12 bg-green-900/10 rounded-lg p-3">
-                <IoCheckmarkCircleOutline className="text-green-400 text-lg" />
-                {alert}
-            </div>}
+            {alert && (
+                <div className="flex items-center gap-2 text-sm text-green-400 font-medium fixed bottom-12 right-12 bg-green-900/10 rounded-lg p-3">
+                    <IoCheckmarkCircleOutline className="text-green-400 text-lg" />
+                    {alert}
+                </div>
+            )}
         </div>
     );
 } 

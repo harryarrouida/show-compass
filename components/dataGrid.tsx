@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { getPopularShows, getTrendingShows } from '@/services/content/showServices';
 import { getTrendingMovies } from '@/services/content/movieServices';
 import { Show, Movie, MappedShow, MappedMovie } from '@/types/types';
-import CardComponent from './shared/mediaCard';
+import MediaCard from '@/components/shared/mediaCard';
 
 export default function DataGrid() {
     const [activeTab, setActiveTab] = useState('shows');
@@ -94,7 +94,7 @@ export default function DataGrid() {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                 {data.map((item) => (
-                    <CardComponent key={item.id} item={item} activeTab={activeTab} />
+                    <MediaCard key={item.id} item={item} activeTab={activeTab} />
                 ))}
             </div>
 

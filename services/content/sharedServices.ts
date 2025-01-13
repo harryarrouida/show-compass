@@ -5,23 +5,55 @@ const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const BASE_URL = "https://api.themoviedb.org/3";
 
 export const search = async (query: string) => {
-  const response = await axios.get(
-    `${BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${query}&page=1&sort_by=popularity.desc&include_adult=false`
-  );
-  const filteredResults = response.data.results.filter(
-    (item: Movie | Show) =>
-      item.poster_path &&
-      item.vote_average &&
-      (item.name || item.title) &&
-      (item.release_date || item.first_air_date)
-  );
-  const mappedResults = filteredResults.map((item: Movie | Show) => {
-    return {
-      ...item,
-      type: item.title ? "movie" : "show",
-      title: item.title || item.name,
-      release_date: item.release_date || item.first_air_date,
-    };
-  });
-  return mappedResults.slice(0, 4);
+    try {
+        // Search for both movies and shows
+        const [movieResponse, showResponse] = await Promise.all([
+            axios.get(`${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`),
+            axios.get(`${BASE_URL}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`)
+        ]);
+
+        const movies = movieResponse.data.results;
+        const shows = showResponse.data.results;
+
+        // Combine and map results
+        const combinedResults = [
+            ...movies.map((movie: any) => ({
+                id: movie.id,
+                title: movie.title,
+                release_date: movie.release_date,
+                poster_path: movie.poster_path,
+                vote_average: movie.vote_average,
+                popularity: movie.popularity,
+                type: 'movie'
+            })),
+            ...shows.map((show: any) => ({
+                id: show.id,
+                title: show.name,
+                release_date: show.first_air_date,
+                poster_path: show.poster_path,
+                vote_average: show.vote_average,
+                popularity: show.popularity,
+                type: 'show'
+            }))
+        ];
+
+        // Sort by title match and popularity
+        const sortedResults = combinedResults
+            .filter(item => item.poster_path) // Only items with posters
+            .sort((a, b) => {
+                // Exact title match gets priority
+                const aExactMatch = a.title.toLowerCase() === query.toLowerCase();
+                const bExactMatch = b.title.toLowerCase() === query.toLowerCase();
+                if (aExactMatch && !bExactMatch) return -1;
+                if (!aExactMatch && bExactMatch) return 1;
+                
+                // Then sort by popularity
+                return b.popularity - a.popularity;
+            });
+
+        return sortedResults.slice(0, 5); // Return top 5 results
+    } catch (error) {
+        console.error('Search error:', error);
+        return [];
+    }
 };

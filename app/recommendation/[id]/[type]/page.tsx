@@ -22,12 +22,10 @@ export default function RecommendationPage() {
     const [showChat, setShowChat] = useState(false);
     const [prompt, setPrompt] = useState("");
 
-
     useEffect(() => {
         const fetchDetails = async () => {
             setIsLoading(true);
             try {
-                // Fetch media details first
                 let mediaDetails;
                 if (type === "movie") {
                     mediaDetails = await getMovieDetails(Number(id));
@@ -36,94 +34,80 @@ export default function RecommendationPage() {
                 }
 
                 if (mediaDetails) {
-                    setDetails(mediaDetails as unknown as ShowDetails | MovieDetails);
-                    setIsLoading(false);  // Show content while waiting for AI
-                    setIsAiLoading(true); // Set AI loading state
+                    setDetails(mediaDetails);
+                    setIsLoading(false);
+                    setIsAiLoading(true);
 
-                    console.log(mediaDetails);
-
-                    // Integrate Groq call directly here
                     const groq = new Groq({
-                        apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
+                        apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY!,
                         dangerouslyAllowBrowser: true
                     });
-                    const genres = mediaDetails.genres.map((genre: { name: string }) => genre.name).join(', ');
-                    const defaultPrompt = generateDefaultPrompt(mediaDetails, type as string);
 
-
-                    try {
-                        const completion = await groq.chat.completions.create({
-                            messages: [
-                                {
-                                    role: "system",
-                                    content: "You are a JSON-only response bot. Always respond with valid JSON matching the exact format requested. Never include additional text or explanations."
-                                },
-                                {
-                                    role: "user",
-                                    content: defaultPrompt
-                                }
-                            ],
-                            model: "llama-3.3-70b-versatile",
-                            temperature: 0.2, // Lower temperature for more consistent formatting
-                        });
-
-                        const response = completion.choices[0]?.message?.content || "";
-                        let recommendations: AIRecommendation[] = [];
-
-                        try {
-                            // Clean the response
-                            const cleanResponse = response
-                                .trim()
-                                .replace(/```json/g, '')  // Remove any markdown formatting
-                                .replace(/```/g, '')      // Remove any markdown formatting
-                                .trim();
-
-                            console.log('Cleaned response:', cleanResponse); // For debugging
-
-                            const parsed = JSON.parse(cleanResponse);
-
-                            if (!parsed || !parsed.recommendations || !Array.isArray(parsed.recommendations)) {
-                                throw new Error('Invalid response format');
+                    const completion = await groq.chat.completions.create({
+                        messages: [
+                            {
+                                role: "system",
+                                content: "You are a JSON-only response bot. Always respond with valid JSON matching the exact format requested. Never include additional text or explanations."
+                            },
+                            {
+                                role: "user",
+                                content: generateDefaultPrompt(mediaDetails, type as string)
                             }
+                        ],
+                        model: "mixtral-8x7b-32768",
+                        temperature: 0.2,
+                        max_tokens: 1000,
+                        response_format: { type: "json_object" }
+                    });
 
-                            recommendations = parsed.recommendations;
+                    const response = completion.choices[0]?.message?.content || "";
+                    
+                    try {
+                        const cleanResponse = response.trim();
+                        const parsed = JSON.parse(cleanResponse);
 
-                            // Fetch TMDB data for each recommendation
-                            const recommendationsWithMedia = await Promise.all(
-                                recommendations.map(async (rec) => {
-                                    try {
-                                        const searchResults = await search(rec.title);
-                                        const mediaMatch = searchResults[0];
-                                        return { ...rec, media: mediaMatch };
-                                    } catch (error) {
-                                        console.error(`Error fetching details for ${rec.title}:`, error);
-                                        return rec;
+                        if (!parsed || !parsed.recommendations || !Array.isArray(parsed.recommendations)) {
+                            throw new Error('Invalid response format');
+                        }
+
+                        const recommendationsWithMedia = await Promise.all(
+                            parsed.recommendations.map(async (rec: AIRecommendation) => {
+                                try {
+                                    const searchResults = await search(rec.title);
+                                    if (searchResults && searchResults.length > 0) {
+                                        return {
+                                            ...rec,
+                                            media: {
+                                                ...searchResults[0],
+                                                type: type
+                                            }
+                                        };
                                     }
-                                })
-                            );
+                                    return rec;
+                                } catch (error) {
+                                    console.error(`Error fetching details for ${rec.title}:`, error);
+                                    return rec;
+                                }
+                            })
+                        );
 
-                            // Sort recommendations by rating (highest first)
-                            const sortedRecommendations = recommendationsWithMedia.sort((a, b) => {
-                                // If no media or no popularity, put at the end
+                        const sortedRecommendations = recommendationsWithMedia
+                            .filter(rec => rec.media)
+                            .sort((a, b) => {
                                 if (!a.media?.popularity) return 1;
                                 if (!b.media?.popularity) return -1;
-
                                 return b.media.popularity - a.media.popularity;
                             });
 
-                            setAiRecommendations(sortedRecommendations);
-                        } catch (error) {
-                            console.error('Failed to parse AI response:', error);
-                            console.log('Raw response:', response);
-                            setAiRecommendations([]);
-                        }
+                        setAiRecommendations(sortedRecommendations);
                     } catch (error) {
-                        console.error('AI Error:', error);
-                        setAiRecommendations("Error generating recommendations. Please try again later.");
+                        console.error('Failed to parse AI response:', error);
+                        setAiRecommendations([]);
                     }
                 }
             } catch (error) {
                 console.error('Error:', error);
+                setAiRecommendations([]);
             } finally {
                 setIsLoading(false);
                 setIsAiLoading(false);
@@ -135,10 +119,6 @@ export default function RecommendationPage() {
         }
     }, [id, type]);
 
-    if (!id || !type) {
-        return <div>no id or type</div>;
-    }
-
     const saveToHistory = (recommendation: AIRecommendation) => {
         const cardToSave = {
             title: recommendation.title,
@@ -146,11 +126,15 @@ export default function RecommendationPage() {
             media: recommendation.media,
             from: details?.title,
             poster_path: details?.poster_path,
-            release_date: details?.release_date,
+            release_date: type === 'movie' 
+                ? (details as MovieDetails).release_date 
+                : (details as ShowDetails).first_air_date,
             genres: details?.genres,
             overview: details?.overview,
             vote_average: details?.vote_average,
-            vote_count: details?.vote_count,
+            vote_count: type === 'movie' 
+                ? (details as MovieDetails).vote_count 
+                : undefined,
         }
         const history = localStorage.getItem('history');
         if (history) {
@@ -177,9 +161,9 @@ export default function RecommendationPage() {
         setShowChat(!showChat);
         return !showChat;
     }
+
     const handleSubmitPrompt = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log(prompt);
         setIsAiLoading(true);
         try {
             const groq = new Groq({
@@ -197,36 +181,35 @@ export default function RecommendationPage() {
                         content: generateCustomPrompt(details, type as string, prompt)
                     }
                 ],
-                model: "llama-3.3-70b-versatile",
+                model: "mixtral-8x7b-32768",
                 temperature: 0.2,
+                response_format: { type: "json_object" }
             });
 
             const response = completion.choices[0]?.message?.content || "";
-            let recommendations: AIRecommendation[] = [];
-
+            
             try {
-                // Clean the response
-                const cleanResponse = response
-                    .trim()
-                    .replace(/```json/g, '')
-                    .replace(/```/g, '')
-                    .trim();
-
+                const cleanResponse = response.trim();
                 const parsed = JSON.parse(cleanResponse);
 
                 if (!parsed || !parsed.recommendations || !Array.isArray(parsed.recommendations)) {
                     throw new Error('Invalid response format');
                 }
 
-                recommendations = parsed.recommendations;
-
-                // Fetch TMDB data for each recommendation
                 const recommendationsWithMedia = await Promise.all(
-                    recommendations.map(async (rec) => {
+                    parsed.recommendations.map(async (rec: AIRecommendation) => {
                         try {
                             const searchResults = await search(rec.title);
-                            const mediaMatch = searchResults[0];
-                            return { ...rec, media: mediaMatch };
+                            if (searchResults && searchResults.length > 0) {
+                                return {
+                                    ...rec,
+                                    media: {
+                                        ...searchResults[0],
+                                        type: type
+                                    }
+                                };
+                            }
+                            return rec;
                         } catch (error) {
                             console.error(`Error fetching details for ${rec.title}:`, error);
                             return rec;
@@ -234,26 +217,30 @@ export default function RecommendationPage() {
                     })
                 );
 
-                // Sort recommendations by popularity
-                const sortedRecommendations = recommendationsWithMedia.sort((a, b) => {
-                    if (!a.media?.popularity) return 1;
-                    if (!b.media?.popularity) return -1;
-                    return b.media.popularity - a.media.popularity;
-                });
-                console.log(sortedRecommendations);
+                const sortedRecommendations = recommendationsWithMedia
+                    .filter(rec => rec.media)
+                    .sort((a, b) => {
+                        if (!a.media?.popularity) return 1;
+                        if (!b.media?.popularity) return -1;
+                        return b.media.popularity - a.media.popularity;
+                    });
+
                 setAiRecommendations(sortedRecommendations);
-                setPrompt(""); // Clear the prompt after successful submission
+                setPrompt("");
             } catch (error) {
                 console.error('Failed to parse AI response:', error);
-                console.log('Raw response:', response);
-                setAiRecommendations("Error processing recommendations. Please try again.");
+                setAiRecommendations([]);
             }
         } catch (error) {
             console.error('AI Error:', error);
-            setAiRecommendations("Error generating recommendations. Please try again later.");
+            setAiRecommendations([]);
         } finally {
             setIsAiLoading(false);
         }
+    }
+
+    if (!id || !type) {
+        return <div>no id or type</div>;
     }
 
     return (
