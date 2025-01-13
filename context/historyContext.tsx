@@ -9,15 +9,16 @@ interface HistoryItem {
     timestamp: number;
     data: MappedMovie | MappedShow;
     reason: string;
-    from: string;
+    from: MovieDetails | ShowDetails;
 }
 
 interface HistoryContextType {
     history: HistoryItem[];
-    saveToHistory: (item: MappedMovie | MappedShow, mediaType: 'movie' | 'show', reason: string, from: string) => void;
+    saveToHistory: (item: MappedMovie | MappedShow, mediaType: 'movie' | 'show', reason: string, from: MovieDetails | ShowDetails) => void;
     clearHistory: () => void;
     alert: string | null;
     setAlert: (alert: string | null) => void;
+    deleteFromHistory: (id: number) => void;
 }
 
 const HistoryContext = createContext<HistoryContextType | undefined>(undefined);
@@ -62,13 +63,17 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
         });
     };
 
+    const deleteFromHistory = (id: number) => {
+        setHistory(prevHistory => prevHistory.filter(item => item.id !== id));
+    }
+
     const clearHistory = () => {
         setHistory([]);
         localStorage.removeItem('viewHistory');
     };
 
     return (
-        <HistoryContext.Provider value={{ history, saveToHistory, clearHistory, alert, setAlert }}>
+        <HistoryContext.Provider value={{ history, saveToHistory, deleteFromHistory, clearHistory, alert, setAlert }}>
             {children}
         </HistoryContext.Provider>
     );

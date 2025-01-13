@@ -13,12 +13,12 @@ interface HistoryItem {
     timestamp: number;
     data: MappedMovie | MappedShow;
     reason: string;
-    from: MappedMovie | MappedShow | string;
+    from: MappedMovie | MappedShow | null;
 }
 
 export default function HistoryPage() {
     const [showAll, setShowAll] = useState(false);
-    const { history: historyContext, clearHistory } = useHistory();
+    const { history: historyContext, clearHistory, deleteFromHistory } = useHistory();
 
     const displayHistory = showAll ? historyContext : historyContext.slice(0, 2);
 
@@ -28,7 +28,7 @@ export default function HistoryPage() {
 
     const getFromTitle = (from: MappedMovie | MappedShow | string) => {
         if (typeof from === 'string') return from;
-        return from.title || from.name || 'Unknown';
+        return from.title || 'Unknown';
     }
 
     const getFromPosterPath = (from: MappedMovie | MappedShow | string) => {
@@ -36,19 +36,23 @@ export default function HistoryPage() {
         return from.poster_path;
     }
 
+    const handleDelete = (id: number) => {
+        deleteFromHistory(id);
+    }
+
     return (
         <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
-            <h1 className="text-2xl font-semibold text-white mb-8">History</h1>
+            <h1 className="text-3xl font-bold text-white mb-8">History</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {displayHistory.map((item) => (
-                    <Card key={item.id}>
-                        <div className="flex gap-4 p-4">
+                    <Card key={item.id} className="bg-zinc-900/80 backdrop-blur">
+                        <div className="flex gap-4 p-6">
                             {item.data.poster_path && (
-                                <div className="relative w-32 h-48 flex-shrink-0 rounded-lg overflow-hidden">
+                                <div className="relative w-32 h-48 flex-shrink-0 rounded-lg overflow-hidden shadow-lg">
                                     <Image
                                         src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${item.data.poster_path}`}
-                                        alt={item.data.title || item.data.name || ''}
+                                        alt={item.data.title || ''}
                                         fill
                                         className="object-cover"
                                     />
@@ -56,26 +60,26 @@ export default function HistoryPage() {
                             )}
 
                             <div className="flex-1">
-                                <h3 className="text-lg font-medium text-white">{item.data.title}</h3>
-                                <div className="flex items-center gap-2 mt-1 ">
+                                <h3 className="text-xl font-semibold text-white">{item.data.title}</h3>
+                                <div className="flex items-center gap-2 mt-2">
                                     {item.data.release_date && (
-                                        <span className="text-sm text-zinc-500">
+                                        <span className="text-sm text-zinc-400">
                                             {new Date(item.data.release_date).getFullYear()}
                                         </span>
                                     )}
                                     {item.data.vote_average && (
-                                        <span className="text-sm text-zinc-500 flex items-center">
-                                            • {item.data.vote_average.toFixed(1)} <IoStar className="ml-1 text-yellow-500" />
+                                        <span className="text-sm text-zinc-400 flex items-center">
+                                            • {item.data.vote_average.toFixed(1)} <IoStar className="ml-1 text-yellow-400" />
                                         </span>
                                     )}
                                 </div>
-                                <p className="text-sm text-zinc-400 mt-2 line-clamp-3">{item.reason}</p>
+                                <p className="text-sm text-zinc-300 mt-3 line-clamp-3">{item.reason}</p>
                             </div>
                         </div>
 
-                        <div className="flex gap-4 p-4 border-t border-zinc-800/50 bg-zinc-900/30">
+                        <div className="flex gap-4 p-4 border-t border-zinc-700/50 bg-zinc-800/50">
                             {getFromPosterPath(item.from) && (
-                                <div className="relative w-16 h-24 flex-shrink-0 rounded-lg overflow-hidden">
+                                <div className="relative w-16 h-24 flex-shrink-0 rounded-lg overflow-hidden shadow-md">
                                     <Image 
                                         src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${getFromPosterPath(item.from)}`}
                                         alt={getFromTitle(item.from)}
@@ -84,37 +88,43 @@ export default function HistoryPage() {
                                     />
                                 </div>
                             )}
-                            <div>
-                                <p className="text-sm text-zinc-500">Based on</p>
-                                <h4 className="text-sm font-medium text-zinc-300">{getFromTitle(item.from)}</h4>
-                                <p className="text-xs text-zinc-500 mt-1">
+                            <div className="flex-1">
+                                <p className="text-sm font-medium text-zinc-400">Based on</p>
+                                <h4 className="text-sm font-semibold text-zinc-200 mt-1">{getFromTitle(item.from)}</h4>
+                                <p className="text-xs text-zinc-400 mt-1">
                                     Added {new Date(item.timestamp).toLocaleDateString()}
                                 </p>
                             </div>
+                            <button 
+                                onClick={() => handleDelete(item.id)}
+                                className="self-start p-2 hover:bg-zinc-700/50 rounded-full transition-colors"
+                            >
+                                <IoTrashOutline className="w-5 h-5 text-red-400 hover:text-red-300" />
+                            </button>
                         </div>
                     </Card>
                 ))}
             </div>
 
             {historyContext.length === 0 && (
-                <Card className="p-8 text-center">
-                    <p className="text-zinc-400">
+                <Card className="p-8 text-center bg-zinc-900/80 backdrop-blur">
+                    <p className="text-zinc-300 text-lg">
                         No history found. Start exploring recommendations to build your history!
                     </p>
                 </Card>
             )}
 
             {historyContext.length > 0 && (
-                <div className="flex justify-center mt-8 space-x-4">
+                <div className="flex justify-center mt-8 space-x-6">
                     <button
                         onClick={toggleShowAll}
-                        className="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-300 transition-colors"
+                        className="px-6 py-2.5 text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-full transition-all"
                     >
                         {showAll ? 'Show Less' : 'Show All'}
                     </button>
                     <button
                         onClick={clearHistory}
-                        className="flex items-center px-4 py-2 text-sm text-red-500 hover:text-red-400 transition-colors"
+                        className="flex items-center px-6 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-zinc-800/50 rounded-full transition-all"
                     >
                         <IoTrashOutline className="w-4 h-4 mr-2" />
                         Clear History

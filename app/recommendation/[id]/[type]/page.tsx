@@ -3,7 +3,7 @@ import { getShowDetails } from "@/services/content/showServices";
 import { getMovieDetails } from "@/services/content/movieServices";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ShowDetails, MovieDetails } from "@/types/types";
+import { ShowDetails, MovieDetails, MappedMovie, MappedShow } from "@/types/types";
 import Groq from "groq-sdk";
 import { searchMovies, searchShows } from "@/services/content/searchServices";
 import MediaDetails from "@/components/shared/mediaDetails";
@@ -125,12 +125,12 @@ export default function RecommendationPage() {
         if (!recommendation.media) return;
         
         saveToHistoryContext(
-            recommendation.media,
+            recommendation.media as MappedMovie | MappedShow,
             type as 'movie' | 'show',
             recommendation.reason,
-            details
-            );
-        }
+            details as ShowDetails | MovieDetails
+        )
+    }   
 
     const toggleChat = () => {
         setShowChat(!showChat);
