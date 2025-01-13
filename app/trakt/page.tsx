@@ -10,6 +10,7 @@ import WatchHistoryOverview from '@/components/WatchHistoryOverview';
 import TraktRecommendations from '@/components/trakt/traktRecommendations';
 import MediaCard from '@/components/shared/mediaCard';
 import MediaCardContainer from "@/components/shared/MediaCardContainer";
+import { useHistory } from "@/context/historyContext";
 
 const ITEMS_PER_PAGE = 20;
 
@@ -21,11 +22,10 @@ const Trakt = () => {
     const [watchedShows, setWatchedShows] = useState<any[]>(watchedShowsCache);
     const [watchedMoviesDetails, setWatchedMoviesDetails] = useState<any[]>([]);
     const [watchedShowsDetails, setWatchedShowsDetails] = useState<any[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
     const [mediaCards, setMediaCards] = useState<any[]>([]);
     const [mappedMovies, setMappedMovies] = useState<any[]>([]);
     const [mappedShows, setMappedShows] = useState<any[]>([]);
-
+    const { saveToHistory} = useHistory();
     const router = useRouter();
 
     useEffect(() => {
@@ -110,20 +110,9 @@ const Trakt = () => {
         router.push('/');
     };
 
-    // Calculate pagination
-    const getCurrentItems = () => {
-        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-        const endIndex = startIndex + ITEMS_PER_PAGE;
-        return activeTab === 'movies'
-            ? watchedMoviesDetails.slice(startIndex, endIndex)
-            : watchedShowsDetails.slice(startIndex, endIndex);
-    };
-
-    const totalPages = Math.ceil(
-        (activeTab === 'movies' ? watchedMoviesDetails.length : watchedShowsDetails.length) / ITEMS_PER_PAGE
-    );
-
-    console.log("mediaCards", mediaCards);
+    const handleSaveToHistory = (media: any) => {
+        const saved = saveToHistory(media.media, media.media.type, 'AI Recommendation', 'Unknown');
+    }
 
     if (!isAuthenticated) {
         return (
@@ -168,7 +157,6 @@ const Trakt = () => {
                     <button
                         onClick={() => {
                             setActiveTab('shows');
-                            setCurrentPage(1);
                         }}
                         className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${
                             activeTab === 'shows'
@@ -181,7 +169,6 @@ const Trakt = () => {
                     <button
                         onClick={() => {
                             setActiveTab('movies');
-                            setCurrentPage(1);
                         }}
                         className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${
                             activeTab === 'movies'
@@ -195,11 +182,6 @@ const Trakt = () => {
             </div>
 
             {mediaCards.length > 0 && (
-                // <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 mx-12">
-                //     {(activeTab === 'movies' ? mappedMovies : mappedShows).map((item: any) => (
-                //         <MediaCard key={item.media.id} item={item.media} activeTab={activeTab} />
-                //     ))}
-                // </div>
                 <MediaCardContainer
                     mediaCards={mediaCards}
                     activeTab={activeTab}

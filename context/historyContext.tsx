@@ -9,12 +9,12 @@ interface HistoryItem {
     timestamp: number;
     data: MappedMovie | MappedShow;
     reason: string;
-    from: MovieDetails | ShowDetails;
+    from: MovieDetails | ShowDetails | string;
 }
 
 interface HistoryContextType {
     history: HistoryItem[];
-    saveToHistory: (item: MappedMovie | MappedShow, mediaType: 'movie' | 'show', reason: string, from: MovieDetails | ShowDetails) => void;
+    saveToHistory: (item: MappedMovie | MappedShow, mediaType: 'movie' | 'show', reason: string, from: MovieDetails | ShowDetails | string) => void;
     clearHistory: () => void;
     alert: string | null;
     setAlert: (alert: string | null) => void;
@@ -30,7 +30,7 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const savedHistory = localStorage.getItem('viewHistory');
         if (savedHistory) {
-            setHistory(JSON.parse(savedHistory));
+            setHistory(JSON.parse(savedHistory).sort((a: HistoryItem, b: HistoryItem) => b.timestamp - a.timestamp));
         }
     }, []);
 
@@ -38,19 +38,24 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('viewHistory', JSON.stringify(history));
     }, [history]);
 
-    const saveToHistory = (item: MappedMovie | MappedShow, mediaType: 'movie' | 'show', reason: string, from: any) => {
+    const saveToHistory = (
+        media: MappedMovie | MappedShow,
+        mediaType: 'movie' | 'show',
+        reason: string,
+        from: MovieDetails | ShowDetails | string
+    ) => {
         const newItem: HistoryItem = {
-            id: item.id,
+            id: media.id,
             mediaType,
             timestamp: Date.now(),
-            data: item,
+            data: media,
             reason,
             from
         };
 
         setHistory(prevHistory => {
             // Check if item already exists
-            if (prevHistory.some(historyItem => historyItem.id === item.id)) {
+            if (prevHistory.some(historyItem => historyItem.id === media.id)) {
                 setAlert("Already in history");
                 setTimeout(() => setAlert(null), 3000);
                 return prevHistory;
