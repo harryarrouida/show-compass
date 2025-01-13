@@ -1,6 +1,7 @@
 import { IoTv, IoFilm, IoTime } from "react-icons/io5";
 import { SiTrakt } from "react-icons/si";
 import { useTraktContext } from "@/context/traktContext";
+
 interface WatchHistoryOverviewProps {
     watchedMovies: any[];
     watchedShows: any[];
@@ -37,51 +38,46 @@ const WatchHistoryOverview = ({
     const { user } = useTraktContext();
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <StatCard
-                icon={<SiTrakt className="w-5 h-5 text-[#ED1C24]" />}
-                title="Username"
-                value={user?.username || ''}
-                className="col-span-2 md:col-span-1"
-            />
-            <StatCard
-                icon={<IoTv className="w-5 h-5" />}
-                title="Series Watch Time"
-                value={`${showDays}d ${showHours}h`}
-                subtitle={`${watchedShows.length} shows`}
-            />
-            <StatCard
-                icon={<IoFilm className="w-5 h-5" />}
-                title="Movies Watch Time"
-                value={`${movieDays}d ${movieHours}h`}
-                subtitle={`${watchedMovies.length} movies`}
-            />
-            <StatCard
-                icon={<IoTime className="w-5 h-5" />}
-                title="Total Watch Time"
-                value={`${totalDays}d ${totalHours}h`}
-                subtitle="Combined time"
-                className="bg-gradient-to-br from-zinc-900/50 to-zinc-800/50"
-            />
+        <div className="space-y-8">
+            <div className="bg-zinc-900/30 rounded-2xl p-6 border border-zinc-800/50">
+                <div className="flex items-center mb-6">
+                    <div className="flex items-center space-x-3 px-4 py-2 bg-zinc-800/30 rounded-full">
+                        <SiTrakt className="w-5 h-5 text-[#ED1C24]" />
+                        <span className="text-lg font-medium">{user?.username || ''}</span>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="space-y-2">
+                        <div className="flex items-center space-x-3 text-zinc-400">
+                            <IoTv className="w-5 h-5" />
+                            <span className="text-sm">Series Watch Time</span>
+                        </div>
+                        <p className="text-3xl font-light">{`${showDays}d ${showHours}h`}</p>
+                        <p className="text-sm text-zinc-500">{`${watchedShows.length} shows`}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex items-center space-x-3 text-zinc-400">
+                            <IoFilm className="w-5 h-5" />
+                            <span className="text-sm">Movies Watch Time</span>
+                        </div>
+                        <p className="text-3xl font-light">{`${movieDays}d ${movieHours}h`}</p>
+                        <p className="text-sm text-zinc-500">{`${watchedMovies.length} movies`}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex items-center space-x-3 text-zinc-400">
+                            <IoTime className="w-5 h-5" />
+                            <span className="text-sm">Total Time Watched</span>
+                        </div>
+                        <p className="text-3xl font-light">{`${totalDays}d ${totalHours}h`}</p>
+                        <p className="text-sm text-zinc-500">Combined watch time</p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
-
-const StatCard = ({ icon, title, value, subtitle, className = '' }: { 
-    icon: React.ReactNode;
-    title: string;
-    value: string | number;
-    subtitle?: string;
-    className?: string;
-}) => (
-    <div className={`bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-4 hover:border-zinc-700/50 transition-colors ${className}`}>
-        <div className="flex items-center space-x-3 mb-2">
-            <div className="text-zinc-400">{icon}</div>
-            <h3 className="text-zinc-400 text-sm">{title}</h3>
-        </div>
-        <p className="text-xl font-semibold">{value}</p>
-        {subtitle && <p className="text-sm text-zinc-400">{subtitle}</p>}
-    </div>
-);
 
 export default WatchHistoryOverview;

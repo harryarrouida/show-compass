@@ -1,33 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RiRobot2Line } from "react-icons/ri";
 import { IoChevronForwardOutline } from "react-icons/io5";
+import { IoSearchOutline } from "react-icons/io5";
 import { useTraktContext } from "@/context/traktContext";
 import Groq from "groq-sdk";
 import { search } from "@/services/content/sharedServices";
-import Image from "next/image";
-import AiRecommendations from "@/components/recommendations/aiRecommendations";
 import MediaCard from "@/components/shared/mediaCard";
-import MediaCardContainer from "@/components/shared/MediaCardContainer";
 
 type MediaType = 'movies' | 'shows';
-
-/**
- * TraktRecommendations Component
- * 
- * Generates AI-powered content recommendations based on user's watch history from Trakt.
- * Uses Groq API for generating recommendations and TMDB for fetching media details.
- * 
- * @component
- * @example
- * return (
- *   <TraktRecommendations />
- * )
- */
 
 const TraktRecommendations = () => {
     const [loading, setLoading] = useState(false);
     const [recommendations, setRecommendations] = useState<any[]>([]);
     const [mediaType, setMediaType] = useState<MediaType>('movies');
+    const [selectedReason, setSelectedReason] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
     const { 
         watchedMoviesCache, 
         watchedShowsCache,
@@ -36,42 +23,121 @@ const TraktRecommendations = () => {
     } = useTraktContext();
     const [recommendationsDetails, setRecommendationsDetails] = useState<any[]>([]);
 
-    const generatePrompt = (type: MediaType, watchedContent: any[]) => {
-        const recentContent = watchedContent
-            // .slice(0, 10) // Take last 10 watched items
-            .map(item => ({
-                title: item.movie?.title || item.show?.title,
-                genre: item.movie?.genres.name || item.show?.genres.name,
-                year: new Date(item.movie?.year || item.show?.year).getFullYear(),
-            }));
+    useEffect(() => {
+        setRecommendations([]);
+        setRecommendationsDetails([]);
+        setSelectedReason(null);
+    }, [mediaType]);
 
-        return `Based on these recently watched ${type}:
-            ${recentContent.map(item => `- ${item.title} (${item.year})`).join('\n')}
-            
-            Generate exactly 5 ${type} recommendations that reflect similar themes, styles, or narratives. 
-            Respond with ONLY a clean JSON object in this format:
-            {
-                "recommendations": [
-                    {
-                        "title": "Title",
-                        "reason": "Two clear and precise sentences explaining specific thematic or stylistic connections to the user's watch history. Focus on narrative depth, themes, and artistic qualities."
-                    }
-                ]
+    const generatePrompt = async (type: MediaType, watchedContent: any[]) => {
+        // Calculate viewing patterns and preferences
+        const recentContent = await Promise.all(watchedContent.map(async (item) => {
+            const searchResults = await search(item.title);
+            const mediaMatch = searchResults[0];
+            return { ...item, media: {
+                title: mediaMatch.title,
+                year: new Date(mediaMatch.release_date).getFullYear(),
+                genres: mediaMatch.genres || [],
+                rating: mediaMatch.vote_average,
+                watched_at: item.watched_at,
+                vote_average: mediaMatch.vote_average,
+                overview: mediaMatch.overview
+            } };
+        }));
+
+        console.log("recentContent", recentContent);   
+        // Calculate viewing patterns from the cleaned data
+        const genreCounts = recentContent.reduce((acc: any, item) => {
+            item.media.genres?.forEach((genre: string) => {
+                acc[genre] = (acc[genre] || 0) + 1;
+            });
+            return acc;
+        }, {});
+
+        const favoriteGenres = Object.entries(genreCounts)
+            .sort(([,a]: any, [,b]: any) => b - a)
+            .slice(0, 3)
+            .map(([genre]) => genre);
+
+        const decadePreferences = recentContent.reduce((acc: any, item) => {
+            const decade = Math.floor(item.media.year / 10) * 10;
+            acc[decade] = (acc[decade] || 0) + 1;
+            return acc;
+        }, {});
+
+        const ratingDistribution = recentContent.reduce((acc: any, item) => {
+            if (item.media.vote_average) {
+                const ratingKey = item.media.vote_average >= 8 ? 'high' : item.media.vote_average >= 6 ? 'medium' : 'low';
+                acc[ratingKey] = (acc[ratingKey] || 0) + 1;
             }
-            
-            Rules for recommendations:
-            - avoid content that is not more than 7.5 rating on IMDB
-            - Each reason must be exactly two sentences.
-            - Do not mention ratings, reviews, or popularity.
-            - Focus on well-known titles with meaningful thematic or stylistic connections.
-            - Include at least one title from the last 5 years.
-            - Avoid direct plot summaries or recommending franchise titles unless significantly related.
-            
-            Remember: Return ONLY the JSON object with no additional text or explanation.`;
+            return acc;
+        }, {});
+
+        // Sort by watch date for recent content
+        const sortedContent = [...recentContent].sort((a, b) => 
+            new Date(b.watched_at).getTime() - new Date(a.watched_at).getTime()
+        );
+
+        const watchedTitles = watchedContent.map(item => item.title.toLowerCase());
+
+        return `As a streaming-savvy film curator, analyze this viewer's detailed watch history:
+
+                Recent Watch History (last 10 ${type}):
+                ${sortedContent.slice(0, 10).map(item => 
+                    `- ${item.media.title} (${item.media.year}) | Rating: ${item.media.vote_average?.toFixed(1)} | Themes: ${item.media.overview?.slice(0, 100)}...`
+                ).join('\n')}
+
+                Already Watched Titles (DO NOT RECOMMEND ANY OF THESE):
+                ${watchedTitles.join(', ')}
+
+                Viewing Profile:
+                - Favorite Genres: ${favoriteGenres.join(', ')}
+                - Era Preferences: ${Object.entries(decadePreferences)
+                    .map(([decade, count]) => `${decade}s: ${count} films`)
+                    .join(', ')}
+                - Rating Distribution: 
+                  * High-rated (8+): ${ratingDistribution.high || 0}
+                  * Mid-rated (6-7.9): ${ratingDistribution.medium || 0}
+                  * Lower-rated: ${ratingDistribution.low || 0}
+                - Total ${type}: ${watchedContent.length}
+
+                Based on this profile, recommend 5 ${type} that are currently available on major streaming platforms (Netflix, Amazon Prime, Disney+, HBO Max, or Hulu):
+                - One recent acclaimed ${type} (2021-2024)
+                - One ${type} combining their top genres in an unexpected way
+                - One ${type} from their most-watched decade
+                - Two ${type} that connect to their preferences while introducing new elements
+
+                Respond with ONLY a clean JSON object in this format:
+                {
+                    "recommendations": [
+                        {
+                            "title": "Title",
+                            "reason": "First sentence should reference specific patterns from their watch history (genres, eras, or themes they enjoy). Second sentence should highlight unique qualities that make this film special.",
+                            "streaming_platform": "Platform where the film is currently available"
+                        }
+                    ]
+                }
+                
+                Rules:
+                - STRICTLY AVOID recommending any titles from this list: ${watchedTitles.join(', ')}
+                - Must be currently available on major streaming platforms (Netflix, Prime, Disney+, HBO Max, or Hulu)
+                - Must have 7.5+ rating on major platforms
+                - Each reason must be exactly two sentences
+                - Focus on themes, style, and emotional resonance
+                - Avoid obscure or hard-to-find titles
+                - Consider pacing and tone variety
+                - DON'T RECOMMEND ${type} that are already in their watch history
+                - recommends should be different each time
+                
+                Remember: Return ONLY the JSON object with no additional text.`;
     };
 
     const handleRecommendations = async () => {
         setLoading(true);
+        // Clear previous recommendations immediately when starting
+        setRecommendations([]);
+        setRecommendationsDetails([]);
+        
         try {
             // Get watched content from cache or fetch if needed
             let watchedContent;
@@ -94,6 +160,8 @@ const TraktRecommendations = () => {
                 dangerouslyAllowBrowser: true
             });
 
+            const prompt = await generatePrompt(mediaType, watchedContent);
+
             const completion = await groq.chat.completions.create({
                 messages: [
                     {
@@ -102,7 +170,7 @@ const TraktRecommendations = () => {
                     },
                     {
                         role: "user",
-                        content: generatePrompt(mediaType, watchedContent)
+                        content: prompt
                     }
                 ],
                 model: "llama-3.3-70b-versatile",
@@ -110,7 +178,6 @@ const TraktRecommendations = () => {
             });
 
             const response = completion.choices[0]?.message?.content || "";
-
 
             try {
                 const cleanResponse = response.trim()
@@ -138,6 +205,14 @@ const TraktRecommendations = () => {
         }
     };
 
+    const getFilteredContent = () => {
+        const content = mediaType === 'movies' ? watchedMoviesCache : watchedShowsCache;
+        if (!searchQuery) return [];
+        return content.filter((item: any) => 
+            item.title.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-16 mb-20">
             <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-6 max-w-3xl mx-auto mb-16">
@@ -153,11 +228,13 @@ const TraktRecommendations = () => {
                             on what to watch next, tailored to your unique taste.
                         </p>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center justify-between gap-4">
                             <select
                                 value={mediaType}
                                 onChange={(e) => setMediaType(e.target.value as MediaType)}
-                                className="bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-300 focus:outline-none focus:border-zinc-600"
+                                className="bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-300 focus:outline-none focus:border-zinc-600
+                                        appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
+                                        bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12"
                             >
                                 <option value="movies">Movies</option>
                                 <option value="shows">TV Shows</option>
@@ -167,8 +244,8 @@ const TraktRecommendations = () => {
                                 onClick={handleRecommendations}
                                 disabled={loading}
                                 className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-zinc-700 to-zinc-800 
-                                         rounded-full text-sm text-white transition-all duration-300
-                                         hover:shadow-lg hover:shadow-zinc-800/25 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        rounded-full text-sm text-white transition-all duration-300
+                                        hover:shadow-lg hover:shadow-zinc-800/25 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? (
                                     <>
@@ -177,22 +254,71 @@ const TraktRecommendations = () => {
                                     </>
                                 ) : (
                                     <>
+                                        <RiRobot2Line className="w-4 h-4" />
                                         <span>Generate Recommendations</span>
                                         <IoChevronForwardOutline className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
                                     </>
                                 )}
                             </button>
                         </div>
+
+
+
+                        {(mediaType === 'movies' && watchedMoviesCache.length > 0) || (mediaType === 'shows' && watchedShowsCache.length > 0) && (
+                            <div className="mt-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                    {getFilteredContent().map((item: any, index: number) => (
+                                        <MediaCard
+                                            key={index}
+                                            item={item}
+                                            activeTab={mediaType}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
 
             {recommendations.length > 0 && (
-                <MediaCardContainer
-                    mediaCards={recommendationsDetails}
-                    activeTab={mediaType}
-                    itemsPerPage={15}
-                />
+                <div className="space-y-8">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                        {recommendationsDetails.map((rec, index) => (
+                            <div 
+                                key={index}
+                                onMouseEnter={() => setSelectedReason(rec.reason)}
+                                onMouseLeave={() => setSelectedReason(null)}
+                                className="relative"
+                            >
+                                <MediaCard
+                                    item={rec.media}
+                                    activeTab={mediaType}
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    
+                    <div className="relative h-32">
+                        <div 
+                            className={`absolute inset-0 transition-all duration-700 ease-in-out transform
+                                ${selectedReason 
+                                    ? 'opacity-100 translate-y-0' 
+                                    : 'opacity-0 translate-y-8'}`}
+                        >
+                            {selectedReason && (
+                                <div className="bg-gradient-to-r from-zinc-900/95 to-zinc-800/95 
+                                              backdrop-blur-sm border border-zinc-700/50 
+                                              rounded-xl p-6 shadow-xl
+                                              animate-fadeIn">
+                                    <p className="text-zinc-200 text-sm leading-relaxed">
+                                        {selectedReason}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

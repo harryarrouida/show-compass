@@ -13,6 +13,7 @@ export default {
         background: "rgb(9, 9, 11)",
         "card-bg": "rgb(24, 24, 27)",
         "hover-bg": "rgb(39, 39, 42)",
+        primary: "rgb(59, 130, 246)",
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
@@ -20,6 +21,9 @@ export default {
       spacing: {
         '18': '4.5rem',
         '22': '5.5rem',
+      },
+      borderRadius: {
+        'lg': '0.75rem',
       },
     },
   },

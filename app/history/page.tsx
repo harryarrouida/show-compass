@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { IoTrashOutline } from 'react-icons/io5';
+import Card from '@/components/shared/Card';
 
 export default function HistoryPage() {
     const [history, setHistory] = useState<any[]>([]);
@@ -38,27 +38,27 @@ export default function HistoryPage() {
     }
 
     return (
-        <div className="p-4 sm:p-8 max-w-6xl mx-auto min-h-screen mt-4 sm:mt-10">
-            <h1 className="text-2xl font-bold mb-4">History</h1>
+        <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
+            <h1 className="text-2xl font-semibold text-white mb-8">History</h1>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {history.map((item, index) => (
-                    <div key={index} className="bg-zinc-900/50 border border-zinc-800/50 rounded-lg overflow-hidden">
+                    <Card key={index}>
                         <div className="flex gap-4 p-4">
                             {item.media?.poster_path && (
-                                <div className="relative w-32 h-48 flex-shrink-0">
+                                <div className="relative w-32 h-48 flex-shrink-0 rounded-lg overflow-hidden">
                                     <Image
-                                        src={`https://image.tmdb.org/t/p/w200${item.media.poster_path}`}
+                                        src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${item.media.poster_path}`}
                                         alt={item.title}
                                         fill
-                                        className="rounded object-cover"
+                                        className="object-cover"
                                     />
                                 </div>
                             )}
                             
-                            <div>
-                                <h3 className="text-base font-medium">{item.title}</h3>
-                                <p className="text-sm text-zinc-400 mt-2">{item.reason}</p>
+                            <div className="flex-1">
+                                <h3 className="text-lg font-medium text-white">{item.title}</h3>
+                                <p className="text-sm text-zinc-400 mt-2 line-clamp-3">{item.reason}</p>
                             </div>
                         </div>
 
@@ -91,35 +91,34 @@ export default function HistoryPage() {
                                 )}
                             </div>
                         </div>
-                    </div>
+                    </Card>
                 ))}
             </div>
 
             {history.length === 0 && (
-                <p className="text-center text-zinc-500 mt-8">
-                    No history found. Start exploring recommendations to build your history!
-                </p>
+                <Card className="p-8 text-center">
+                    <p className="text-zinc-400">
+                        No history found. Start exploring recommendations to build your history!
+                    </p>
+                </Card>
             )}
 
-            {
-                history.length > 0 && (
+            {history.length > 0 && (
+                <div className="flex justify-center mt-8 space-x-4">
                     <button 
                         onClick={toggleShowAll}
-                        className="mt-8 text-sm flex items-center justify-center text-center text-zinc-500 hover:text-zinc-300"
+                        className="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-300 transition-colors"
                     >
                         {showAll ? 'Show Less' : 'Show All'}
                     </button>
-                )
-            }
-
-            {history.length > 0 && (
-                <button 
-                    onClick={clearHistory}
-                    className="mt-8 text-sm flex items-center justify-center text-center text-red-500 hover:text-red-400"
-                >
-                    <IoTrashOutline className="w-5 h-5 mr-2" />
-                    Clear History
-                </button>
+                    <button 
+                        onClick={clearHistory}
+                        className="flex items-center px-4 py-2 text-sm text-red-500 hover:text-red-400 transition-colors"
+                    >
+                        <IoTrashOutline className="w-4 h-4 mr-2" />
+                        Clear History
+                    </button>
+                </div>
             )}
         </div>
     );

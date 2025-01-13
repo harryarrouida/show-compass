@@ -72,6 +72,8 @@ export async function searchMovies(
         poster_path: item.poster_path,
         vote_average: item.vote_average,
         overview: item.overview,
+        popularity: item.popularity,
+        vote_count: item.vote_count,
       };
     });
     console.log("mappedData from searchMovies", mappedData);

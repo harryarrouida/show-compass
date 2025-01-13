@@ -33,7 +33,7 @@ export default function SearchComponent() {
 
                 // Combine and sort results by popularity
                 const combinedResults = [...movieResults, ...showResults]
-                    .sort((a, b) => (b.vote_average || 0) - (a.vote_average || 0))
+                    .sort((a, b) => (b.popularity || 0 && b.vote_count || 0) - (a.popularity || 0 && a.vote_count || 0))
                     .slice(0, 8); // Limit to top 8 results
 
                 setResults(combinedResults);

@@ -145,7 +145,7 @@ const Trakt = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto px-8 min-h-screen py-12 space-y-16">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 min-h-screen py-12 space-y-16">
             <div className="flex justify-between items-center">
                 <h1 className="text-2xl font-bold">Watch History</h1>
                 <button onClick={handleLogout} className="flex items-center hover:scale-105 transition-all duration-300">
@@ -170,10 +170,11 @@ const Trakt = () => {
                             setActiveTab('shows');
                             setCurrentPage(1);
                         }}
-                        className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${activeTab === 'shows'
-                            ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-zinc-400 after:to-zinc-600'
-                            : 'text-zinc-500 hover:text-zinc-400'
-                            }`}
+                        className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${
+                            activeTab === 'shows'
+                                ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-zinc-400 after:to-zinc-600'
+                                : 'text-zinc-500 hover:text-zinc-400'
+                        }`}
                     >
                         Shows ({watchedShowsDetails.length})
                     </button>
@@ -182,10 +183,11 @@ const Trakt = () => {
                             setActiveTab('movies');
                             setCurrentPage(1);
                         }}
-                        className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${activeTab === 'movies'
-                            ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-zinc-400 after:to-zinc-600'
-                            : 'text-zinc-500 hover:text-zinc-400'
-                            }`}
+                        className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${
+                            activeTab === 'movies'
+                                ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-zinc-400 after:to-zinc-600'
+                                : 'text-zinc-500 hover:text-zinc-400'
+                        }`}
                     >
                         Movies ({watchedMoviesDetails.length})
                     </button>
@@ -193,9 +195,14 @@ const Trakt = () => {
             </div>
 
             {mediaCards.length > 0 && (
-                <MediaCardContainer 
-                    mediaCards={activeTab === 'movies' ? mappedMovies : mappedShows} 
-                    activeTab={activeTab} 
+                // <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 mx-12">
+                //     {(activeTab === 'movies' ? mappedMovies : mappedShows).map((item: any) => (
+                //         <MediaCard key={item.media.id} item={item.media} activeTab={activeTab} />
+                //     ))}
+                // </div>
+                <MediaCardContainer
+                    mediaCards={mediaCards}
+                    activeTab={activeTab}
                 />
             )}
         </div>

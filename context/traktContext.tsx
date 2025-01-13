@@ -41,8 +41,6 @@ export function TraktProvider({ children }: { children: ReactNode }) {
   const [watchedShowsCache, setWatchedShowsCache] = useState<any[]>([]);
   const [watchedMoviesDetails, setWatchedMoviesDetails] = useState<any[]>([]);
   const [watchedShowsDetails, setWatchedShowsDetails] = useState<any[]>([]);
-  const [isLoadingMovies, setIsLoadingMovies] = useState(false);
-  const [isLoadingShows, setIsLoadingShows] = useState(false);
 
   const logout = () => {
     setIsAuthenticated(false);

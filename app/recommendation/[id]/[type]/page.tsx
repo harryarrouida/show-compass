@@ -127,8 +127,8 @@ export default function RecommendationPage() {
             from: details?.title,
             poster_path: details?.poster_path,
             release_date: type === 'movie' 
-                ? (details as MovieDetails).release_date 
-                : (details as ShowDetails).first_air_date,
+                ? (details as MovieDetails)?.release_date 
+                : (details as ShowDetails)?.first_air_date,
             genres: details?.genres,
             overview: details?.overview,
             vote_average: details?.vote_average,

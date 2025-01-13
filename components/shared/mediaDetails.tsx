@@ -20,6 +20,7 @@ interface MediaDetailsProps {
 }
 
 export default function MediaDetails({ details, showAllSeasons, setShowAllSeasons, aiRecommendations, isAiLoading, saveToHistory, alert, toggleChat, showChat, setPrompt, prompt, handleSubmitPrompt }: MediaDetailsProps) {
+    console.log(details);
     return (
         <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-8 md:gap-14 mb-16">
             {/* Left Column */}
@@ -42,7 +43,11 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
                         <span className="text-amber-400">★</span>
                         <span>{details.vote_average?.toFixed(1)}</span>
                         <span className="text-zinc-500">•</span>
-                        <span>{details.release_date ? new Date(details.release_date).getFullYear() : ''}</span>
+                        <span>
+                            {details.type === 'movie'
+                                ? new Date(details.release_date).getFullYear()
+                                : new Date(details.first_air_date).getFullYear()}
+                        </span>
                     </div>
 
                     {/* Runtime */}

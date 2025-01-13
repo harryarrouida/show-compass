@@ -77,6 +77,8 @@ export async function searchShows(
         poster_path: item.poster_path,
         vote_average: item.vote_average,
         overview: item.overview,
+        popularity: item.popularity,
+        vote_count: item.vote_count,
       };
     });
     console.log("mappedData from searchShows", mappedData);

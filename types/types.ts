@@ -57,6 +57,8 @@ export interface Movie {
     vote_average: number;
     overview: string;
     type: 'movie';
+    popularity?: number;
+    vote_count?: number;
 }
 
 export interface Show {
@@ -67,6 +69,8 @@ export interface Show {
     vote_average: number;
     overview: string;
     type: 'show';
+    popularity?: number;
+    vote_count?: number;
 }
 
 export interface MappedMovie {
@@ -77,6 +81,8 @@ export interface MappedMovie {
     poster_path: string | null;
     vote_average: number;
     overview: string;
+    popularity?: number;
+    vote_count?: number;
 }
 
 export interface MappedShow {
@@ -88,6 +94,8 @@ export interface MappedShow {
     poster_path: string | null;
     vote_average: number;
     overview: string;
+    popularity?: number;
+    vote_count?: number;
 }
 
 export interface MovieDetails extends Movie {
