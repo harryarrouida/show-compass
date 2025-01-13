@@ -1,8 +1,8 @@
-import { showDetails, movieDetails } from "@/types/types";
+import { ShowDetails, MovieDetails } from "@/types/types";
 import { IoStar } from "react-icons/io5";
 
 interface MediaMetadataProps {
-    details: showDetails | movieDetails;
+    details: ShowDetails | MovieDetails;
     showAllSeasons: boolean;
     setShowAllSeasons: (show: boolean) => void;
 }
@@ -15,7 +15,7 @@ export default function MediaMetadata({ details, showAllSeasons, setShowAllSeaso
                 <div className="space-y-4">
                     <h3 className="text-sm font-medium text-zinc-300">Seasons</h3>
                     <div className="space-y-3">
-                        {details.seasons.slice(0, showAllSeasons ? details.seasons.length : 4).map((season) =>
+                        {details.seasons.slice(0, showAllSeasons ? details.seasons.length : 4).map((season: any) =>
                             season.vote_average > 0 && season.vote_average !== null && (
                                 <div
                                     key={season.id}
@@ -52,7 +52,7 @@ export default function MediaMetadata({ details, showAllSeasons, setShowAllSeaso
             <div className="space-y-2">
                 <h3 className="text-sm font-medium text-zinc-300">Languages</h3>
                 <div className="flex flex-wrap gap-2">
-                    {details.spoken_languages?.map((lang) => (
+                    {details.spoken_languages?.map((lang: any) => (
                         <span
                             key={lang.iso_639_1}
                             className="text-xs text-zinc-400 bg-zinc-900/30 px-2 py-1 rounded-full"
@@ -68,7 +68,7 @@ export default function MediaMetadata({ details, showAllSeasons, setShowAllSeaso
                 <div className="space-y-2">
                     <h3 className="text-sm font-medium text-zinc-300">Production</h3>
                     <div className="text-sm text-zinc-400">
-                        {details.production_companies.map(company => <div key={company.id} className="inline-block bg-zinc-800/50 px-2 py-1 rounded-full text-xs hover:bg-zinc-700/50 transition-colors duration-300 cursor-pointer">{company.name}</div>).join(', ')}
+                        {details.production_companies.map((company: any) => <div key={company.id} className="inline-block bg-zinc-800/50 px-2 py-1 rounded-full text-xs hover:bg-zinc-700/50 transition-colors duration-300 cursor-pointer">{company.name}</div>).join(', ')}
                     </div>
                 </div>
             )}

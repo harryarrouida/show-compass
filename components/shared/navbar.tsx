@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { IoCompassOutline, IoListOutline, IoLogOut, IoLogIn } from "react-icons/io5";
+import { RiCompass3Line, RiHistoryLine, RiLogoutCircleLine, RiLoginCircleLine } from "react-icons/ri";
 import { SiTrakt } from 'react-icons/si';
 import { useTraktContext } from '@/context/traktContext';
 
@@ -26,7 +26,7 @@ export default function Navbar() {
                             href="/history"
                             className="flex items-center gap-2.5 px-4 py-2 text-white hover:text-zinc-200 transition-all duration-300 rounded-lg hover:bg-zinc-800"
                         >
-                            <IoListOutline className="text-xl" />
+                            <RiHistoryLine className="text-xl" />
                             <span className="text-base font-medium">
                                 History
                             </span>
@@ -36,14 +36,14 @@ export default function Navbar() {
                             <button className="flex items-center gap-2.5 px-4 py-2 text-white hover:text-zinc-200 transition-all duration-300 rounded-lg hover:bg-zinc-800">
                                 <SiTrakt className="text-xl" />
                                 <Link href="/trakt" className="text-base font-medium">
-                                    Trakt
+                                    Trakt Account
                                 </Link>
                             </button>
                         ) : (
                             <button onClick={login} className="flex items-center gap-2.5 px-4 py-2 text-white hover:text-zinc-200 transition-all duration-300 rounded-lg hover:bg-zinc-800">
-                                <IoLogIn className="text-xl" />
+                                <RiLoginCircleLine className="text-xl" />
                                 <span className="text-base font-medium">
-                                    Login
+                                    Login With Trakt
                                 </span>
                             </button>
                         )}

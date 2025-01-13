@@ -10,6 +10,7 @@ import MediaDetails from "@/components/shared/mediaDetails";
 import { AIRecommendation } from "@/types/types";
 import { generateDefaultPrompt, generateCustomPrompt } from '@/app/constants/aiPrompts';
 import { search } from "@/services/content/sharedServices";
+import { useHistory } from '@/context/historyContext';
 
 export default function RecommendationPage() {
     const [details, setDetails] = useState<ShowDetails | MovieDetails | null>(null);
@@ -21,6 +22,7 @@ export default function RecommendationPage() {
     const [alert, setAlert] = useState<string | null>(null);
     const [showChat, setShowChat] = useState(false);
     const [prompt, setPrompt] = useState("");
+    const { saveToHistory: saveToHistoryContext } = useHistory();
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -54,7 +56,7 @@ export default function RecommendationPage() {
                                 content: generateDefaultPrompt(mediaDetails, type as string)
                             }
                         ],
-                        model: "mixtral-8x7b-32768",
+                        model: "llama3-8b-8192",
                         temperature: 0.2,
                         max_tokens: 1000,
                         response_format: { type: "json_object" }
@@ -120,42 +122,15 @@ export default function RecommendationPage() {
     }, [id, type]);
 
     const saveToHistory = (recommendation: AIRecommendation) => {
-        const cardToSave = {
-            title: recommendation.title,
-            reason: recommendation.reason,
-            media: recommendation.media,
-            from: details?.title,
-            poster_path: details?.poster_path,
-            release_date: type === 'movie' 
-                ? (details as MovieDetails)?.release_date 
-                : (details as ShowDetails)?.first_air_date,
-            genres: details?.genres,
-            overview: details?.overview,
-            vote_average: details?.vote_average,
-            vote_count: type === 'movie' 
-                ? (details as MovieDetails).vote_count 
-                : undefined,
+        if (!recommendation.media) return;
+        
+        saveToHistoryContext(
+            recommendation.media,
+            type as 'movie' | 'show',
+            recommendation.reason,
+            details
+            );
         }
-        const history = localStorage.getItem('history');
-        if (history) {
-            const historyArray = JSON.parse(history);
-            if (historyArray.some((item: any) => item.title === cardToSave.title)) {
-                setAlert("Already in history");
-                setTimeout(() => {
-                    setAlert(null);
-                }, 3000);
-                return;
-            }
-            historyArray.push(cardToSave);
-            localStorage.setItem('history', JSON.stringify(historyArray));
-        } else {
-            localStorage.setItem('history', JSON.stringify([cardToSave]));
-        }
-        setAlert("Saved to history");
-        setTimeout(() => {
-            setAlert(null);
-        }, 3000);
-    }
 
     const toggleChat = () => {
         setShowChat(!showChat);

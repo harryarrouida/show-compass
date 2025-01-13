@@ -6,6 +6,7 @@ import { useTraktContext } from "@/context/traktContext";
 import Groq from "groq-sdk";
 import { search } from "@/services/content/sharedServices";
 import MediaCard from "@/components/shared/mediaCard";
+import { useHistory } from '@/context/historyContext';
 
 type MediaType = 'movies' | 'shows';
 
@@ -22,6 +23,7 @@ const TraktRecommendations = () => {
         getUserWatchedShows 
     } = useTraktContext();
     const [recommendationsDetails, setRecommendationsDetails] = useState<any[]>([]);
+    const { saveToHistory: saveToHistoryContext } = useHistory();
 
     useEffect(() => {
         setRecommendations([]);
@@ -213,6 +215,17 @@ const TraktRecommendations = () => {
         );
     };
 
+    const handleSaveToHistory = (recommendation: any) => {
+        if (!recommendation.media) return;
+        
+        saveToHistoryContext(
+            recommendation.media,
+            mediaType === 'movies' ? 'movie' : 'show',
+            recommendation.reason,
+            'Trakt Recommendations'
+        );
+    };
+
     return (
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-16 mb-20">
             <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-6 max-w-3xl mx-auto mb-16">
@@ -294,6 +307,8 @@ const TraktRecommendations = () => {
                                 <MediaCard
                                     item={rec.media}
                                     activeTab={mediaType}
+                                    showSaveToHistory
+                                    onSave={() => handleSaveToHistory(rec)}
                                 />
                             </div>
                         ))}
