@@ -1,4 +1,4 @@
-export const Button = ({ children, ...props }) => (
+export const Button = ({ children, ...props }: ButtonProps) => (
   <button
     className="group relative px-4 py-2 bg-zinc-800 hover:bg-zinc-700
                transition-all duration-300 rounded-lg
