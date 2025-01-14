@@ -6,7 +6,7 @@ interface LoadingSkeletonProps {
 export const LoadingSkeleton = ({ count = 4, type = 'card' }: LoadingSkeletonProps) => {
     if (type === 'card') {
         return (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
                 {Array(count).fill(0).map((_, index) => (
                     <div key={index} className="animate-pulse space-y-4">
                         <div className="bg-zinc-800/50 h-[270px] rounded-lg" />

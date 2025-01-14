@@ -15,7 +15,7 @@ import { useHistory } from "@/context/historyContext";
 const ITEMS_PER_PAGE = 20;
 
 const Trakt = () => {
-    const { handleToken, isAuthenticated, getUserWatchedMovies, getUserWatchedShows, logout, watchedMoviesCache, watchedShowsCache} = useTraktContext();
+    const { handleToken, isAuthenticated, getUserWatchedMovies, getUserWatchedShows, logout, watchedMoviesCache, watchedShowsCache } = useTraktContext();
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'shows' | 'movies'>('shows');
     const [watchedMovies, setWatchedMovies] = useState<any[]>(watchedMoviesCache);
@@ -25,7 +25,7 @@ const Trakt = () => {
     const [mediaCards, setMediaCards] = useState<any[]>([]);
     const [mappedMovies, setMappedMovies] = useState<any[]>([]);
     const [mappedShows, setMappedShows] = useState<any[]>([]);
-    const { saveToHistory} = useHistory();
+    const { saveToHistory } = useHistory();
     const router = useRouter();
 
     useEffect(() => {
@@ -114,6 +114,14 @@ const Trakt = () => {
         const saved = saveToHistory(media.media, media.media.type, 'AI Recommendation', 'Unknown');
     }
 
+    useEffect(() => {
+        if (activeTab === 'movies') {
+            setMediaCards(mappedMovies);
+        } else {
+            setMediaCards(mappedShows);
+        }
+    }, [mappedMovies, mappedShows, activeTab]);
+
     if (!isAuthenticated) {
         return (
             <div className="min-h-[80vh] flex items-center justify-center">
@@ -158,11 +166,10 @@ const Trakt = () => {
                         onClick={() => {
                             setActiveTab('shows');
                         }}
-                        className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${
-                            activeTab === 'shows'
+                        className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${activeTab === 'shows'
                                 ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-zinc-400 after:to-zinc-600'
                                 : 'text-zinc-500 hover:text-zinc-400'
-                        }`}
+                            }`}
                     >
                         Shows ({watchedShowsDetails.length})
                     </button>
@@ -170,23 +177,28 @@ const Trakt = () => {
                         onClick={() => {
                             setActiveTab('movies');
                         }}
-                        className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${
-                            activeTab === 'movies'
+                        className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${activeTab === 'movies'
                                 ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-zinc-400 after:to-zinc-600'
                                 : 'text-zinc-500 hover:text-zinc-400'
-                        }`}
+                            }`}
                     >
                         Movies ({watchedMoviesDetails.length})
                     </button>
                 </div>
             </div>
 
-            {mediaCards.length > 0 && (
-                <MediaCardContainer
-                    mediaCards={mediaCards}
-                    activeTab={activeTab}
-                />
-            )}
+            {/* {mediaCards.length > 0 && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mx-16">
+                    {mediaCards.map((media) => (
+                        <MediaCard key={media.media.id} item={media.media} activeTab={activeTab} />
+                    ))}
+                </div>
+            )} */}
+
+            <MediaCardContainer
+                mediaCards={activeTab === 'movies' ? mappedMovies : mappedShows}
+                activeTab={activeTab}
+            />
 
         </div>
     );
