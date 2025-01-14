@@ -1,12 +1,13 @@
 import { useState, useEffect } from "react";
 import { RiRobot2Line } from "react-icons/ri";
 import { IoChevronForwardOutline } from "react-icons/io5";
-import { IoSearchOutline, IoSave, IoStar } from "react-icons/io5";
+import { IoSave, IoStar, IoBookmarkOutline} from "react-icons/io5";
 import { useTraktContext } from "@/context/traktContext";
 import Groq from "groq-sdk";
 import { search } from "@/services/content/sharedServices";
 import MediaCard from "@/components/shared/mediaCard";
 import { useHistory } from '@/context/historyContext';
+import Image from 'next/image';
 
 type MediaType = 'movies' | 'shows';
 
@@ -176,7 +177,8 @@ const TraktRecommendations = () => {
                     }
                 ],
                 model: "llama-3.3-70b-versatile",
-                temperature: 0.2,
+                temperature: 0.7,
+                top_p: 0.9,
             });
 
             const response = completion.choices[0]?.message?.content || "";
@@ -354,15 +356,17 @@ const TraktRecommendations = () => {
                                         onClick={() => handleSaveToHistory(rec)}
                                         className="absolute top-4 right-4 p-2 bg-zinc-800/50 hover:bg-zinc-700/50 rounded-full text-white transition-all duration-300"
                                     >
-                                        <IoSave className="w-5 h-5" />
+                                        <IoBookmarkOutline className="w-5 h-5" />
                                     </button>
 
                                     <div className="flex flex-col space-y-4">
                                         <div className="flex items-start space-x-4">
-                                            <img
+                                            <Image
                                                 src={`https://image.tmdb.org/t/p/w500${rec.media.poster_path}`}
                                                 alt={rec.media.title}
-                                                className="w-24 h-36 object-cover rounded-lg shadow-lg"
+                                                width={128}
+                                                height={192}
+                                                className="w-32 h-48 object-cover rounded-lg shadow-lg"
                                             />
                                             <div className="flex-1 min-w-0">
                                                 <h3 className="text-lg font-semibold text-white truncate">

@@ -8,8 +8,9 @@ import { useTraktContext } from '@/context/traktContext';
 export default function Navbar() {
     const { user, logout, isAuthenticated, login } = useTraktContext();
     return (
-        <nav className="sticky top-0 z-50 bg-zinc-900/50 backdrop-blur-xl border-b border-zinc-800">
-            <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        <nav className="sticky top-0 z-50 backdrop-blur-xl border-b border-zinc-800/50
+                        transform transition-transform duration-300">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center h-16 justify-between">
                     {/* Logo and Home Link */}
                     <Link

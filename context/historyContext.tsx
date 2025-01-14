@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MappedMovie, MappedShow, MovieDetails, ShowDetails } from '@/types/types';
+import { useToast } from '@/context/toastContext';
 
 interface HistoryItem {
     id: number;
@@ -24,6 +25,7 @@ interface HistoryContextType {
 const HistoryContext = createContext<HistoryContextType | undefined>(undefined);
 
 export function HistoryProvider({ children }: { children: React.ReactNode }) {
+    const { showToast } = useToast();
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [alert, setAlert] = useState<string | null>(null);
 
@@ -56,14 +58,12 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
         setHistory(prevHistory => {
             // Check if item already exists
             if (prevHistory.some(historyItem => historyItem.id === media.id)) {
-                setAlert("Already in history");
-                setTimeout(() => setAlert(null), 3000);
+                showToast("Already in history", "info");
                 return prevHistory;
             }
 
             // Add new item
-            setAlert("Saved to history");
-            setTimeout(() => setAlert(null), 3000);
+            showToast("Saved to history", "success");
             return [...prevHistory, newItem];
         });
     };
@@ -75,6 +75,7 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
     const clearHistory = () => {
         setHistory([]);
         localStorage.removeItem('viewHistory');
+        showToast("History cleared", "success");
     };
 
     return (

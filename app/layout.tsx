@@ -5,6 +5,7 @@ import Navbar from "@/components/shared/navbar";
 import Footer from '@/components/shared/footer';
 import { TraktProvider } from '@/context/traktContext';
 import { HistoryProvider } from '@/context/historyContext';
+import { ToastProvider } from '@/context/toastContext';
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,15 +22,17 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.className}>
       <body className="bg-background text-zinc-100 min-h-screen flex flex-col antialiased">
-        <TraktProvider>
-          <HistoryProvider>
-            <Navbar />
-            <main className="flex-grow mb-16">
-              {children}
-            </main>
-            <Footer />
-          </HistoryProvider>
-        </TraktProvider>
+        <ToastProvider>
+          <TraktProvider>
+            <HistoryProvider>
+              <Navbar />
+              <main className="flex-grow mb-16">
+                {children}
+              </main>
+              <Footer />
+            </HistoryProvider>
+          </TraktProvider>
+        </ToastProvider>
       </body>
     </html>
   );

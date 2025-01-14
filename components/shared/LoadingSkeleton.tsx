@@ -33,4 +33,14 @@ export const LoadingSkeleton = ({ count = 4, type = 'card' }: LoadingSkeletonPro
             ))}
         </div>
     );
-}; 
+};
+
+export const CardSkeleton = () => (
+  <div className="animate-pulse space-y-4">
+    <div className="aspect-[2/3] rounded-lg bg-zinc-800/50" />
+    <div className="space-y-2">
+      <div className="h-4 bg-zinc-800/50 rounded w-3/4" />
+      <div className="h-3 bg-zinc-800/50 rounded w-1/2" />
+    </div>
+  </div>
+); 
