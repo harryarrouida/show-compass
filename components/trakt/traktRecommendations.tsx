@@ -52,7 +52,6 @@ const TraktRecommendations = () => {
             };
         }));
 
-        console.log("recentContent", recentContent);
         // Calculate viewing patterns from the cleaned data
         const genreCounts = recentContent.reduce((acc: any, item) => {
             item.media.genres?.forEach((genre: string) => {
@@ -196,7 +195,6 @@ const TraktRecommendations = () => {
                     return { ...rec, media: mediaMatch };
                 }));
                 setRecommendationsDetails(recommendationsDetails);
-                console.log("recommendationsDetails", recommendationsDetails);
             } catch (error) {
                 console.error('Failed to parse AI response:', error);
                 setRecommendations([]);

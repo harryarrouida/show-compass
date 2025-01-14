@@ -77,7 +77,6 @@ export function TraktProvider({ children }: { children: ReactNode }) {
 
           // Fetch user data
           const userResponse = await traktUser(token);
-          console.log(userResponse);
           setUser(userResponse);
         }
 

@@ -24,7 +24,6 @@ export async function getTrendingMovies(
       overview: item.overview,
     };
   });
-  console.log("mappedData from getTrendingMovies", mappedData);
   return mappedData;
 }
 
@@ -76,10 +75,8 @@ export async function searchMovies(
         vote_count: item.vote_count,
       };
     });
-    console.log("mappedData from searchMovies", mappedData);
     return mappedData;
   } catch (error) {
-    console.error("Error searching movies:", error);
     return [];
   }
 }

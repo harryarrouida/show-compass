@@ -20,7 +20,6 @@ interface MediaDetailsProps {
 }
 
 export default function MediaDetails({ details, showAllSeasons, setShowAllSeasons, aiRecommendations, isAiLoading, saveToHistory, alert, toggleChat, showChat, setPrompt, prompt, handleSubmitPrompt }: MediaDetailsProps) {
-    console.log(details);
     return (
         <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-8 md:gap-14 mb-16">
             {/* Left Column */}

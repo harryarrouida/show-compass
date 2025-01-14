@@ -47,10 +47,8 @@ export async function getPopularShows(page: number = 1): Promise<MappedShow[]> {
         overview: item.overview,
       };
     });
-    console.log("mappedData from getPopularShows", mappedData);
     return mappedData;
   } catch (error) {
-    console.error("Error fetching popular shows:", error);
     return [];
   }
 }
@@ -81,10 +79,8 @@ export async function searchShows(
         vote_count: item.vote_count,
       };
     });
-    console.log("mappedData from searchShows", mappedData);
     return mappedData;
   } catch (error) {
-    console.error("Error searching shows:", error);
     return [];
   }
 }
@@ -107,7 +103,6 @@ export async function getShowDetails(
       first_air_date: data.first_air_date,
       type: "show",
     };
-    console.log("mappedData from getShowDetails", mappedData);
     return mappedData;
   } catch (error) {
     console.error("Error fetching show details:", error);

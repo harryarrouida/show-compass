@@ -110,7 +110,7 @@ export default function SearchComponent() {
                                             <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                         </div>
                                         <div className="mt-5 space-y-3">
-                                            <h3 className="text-zinc-200 text-base font-medium leading-snug line-clamp-1 group-hover:text-white transition-colors duration-300">
+                                            <h3 className="text-start text-zinc-200 text-base font-medium leading-snug line-clamp-1 group-hover:text-white transition-colors duration-300">
                                                 {item.title}
                                             </h3>
                                             <div className="flex items-center space-x-4">

@@ -143,13 +143,6 @@ const Trakt = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 min-h-screen py-12 space-y-16">
-            <div className="flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Watch History</h1>
-                <button onClick={handleLogout} className="flex items-center hover:scale-105 transition-all duration-300">
-                    <IoLogOut className="text-xl mr-2 text-red-500" />
-                    <div className="text-red-500">Logout</div>
-                </button>
-            </div>
 
             <WatchHistoryOverview
                 watchedMovies={watchedMovies}

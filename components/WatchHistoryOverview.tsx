@@ -1,6 +1,7 @@
-import { IoTv, IoFilm, IoTime } from "react-icons/io5";
+import { IoTv, IoFilm, IoTime, IoLogOut } from "react-icons/io5";
 import { SiTrakt } from "react-icons/si";
 import { useTraktContext } from "@/context/traktContext";
+import { useRouter } from 'next/navigation';
 
 interface WatchHistoryOverviewProps {
     watchedMovies: any[];
@@ -35,16 +36,29 @@ const WatchHistoryOverview = ({
     const totalDays = Math.floor(totalMinutes / (24 * 60));
     const totalHours = Math.floor((totalMinutes % (24 * 60)) / 60);
 
-    const { user } = useTraktContext();
+    const { user, logout } = useTraktContext();
+    const router = useRouter();
+
+    const handleLogout = () => {
+        logout();
+        router.push('/');
+    };
 
     return (
         <div className="space-y-8">
             <div className="bg-zinc-900/30 rounded-2xl p-6 border border-zinc-800/50">
-                <div className="flex items-center mb-6">
+                <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-3 px-4 py-2 bg-zinc-800/30 rounded-full">
                         <SiTrakt className="w-5 h-5 text-[#ED1C24]" />
                         <span className="text-lg font-medium">{user?.username || ''}</span>
                     </div>
+                    <button 
+                        onClick={handleLogout} 
+                        className="flex items-center space-x-2 px-4 py-2 bg-zinc-800/30 rounded-full hover:bg-zinc-800/50 transition-all duration-300"
+                    >
+                        <IoLogOut className="w-5 h-5 text-red-500" />
+                        <span className="text-red-500">Logout</span>
+                    </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

@@ -65,7 +65,6 @@ export default function HistoryPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {displayHistory.map((item) => {
-                    console.log('History item:', item);
                     return (
                         <Card key={item.id} className="bg-zinc-900/80 backdrop-blur">
                             <div className="flex gap-4 p-6">
