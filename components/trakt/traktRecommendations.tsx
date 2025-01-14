@@ -45,7 +45,7 @@ const TraktRecommendations = () => {
                     rating: mediaMatch.vote_average,
                     watched_at: item.watched_at,
                     vote_average: mediaMatch.vote_average,
-                    overview: mediaMatch.overview, 
+                    overview: mediaMatch.overview,
                     poster_path: mediaMatch.poster_path,
                     backdrop_path: mediaMatch.backdrop_path
                 }
@@ -87,51 +87,51 @@ const TraktRecommendations = () => {
         const watchedTitles = watchedContent.map(item => item.title.toLowerCase());
 
         return `As a streaming-savvy film curator, analyze this viewer's detailed watch history:
-        
-                ${sortedContent.map(item =>
+
+        ${sortedContent.map(item =>
             `- ${item.media.title} (${item.media.year}) | Rating: ${item.media.vote_average?.toFixed(1)} | Themes: ${item.media.overview?.slice(0, 100)}...`
         ).join('\n')}
-
-                Already Watched Titles (DO NOT RECOMMEND ANY OF THESE):
-                ${watchedTitles.join(', ')}
-
-                Viewing Profile:
-                - Favorite Genres: ${favoriteGenres.join(', ')}
-                - Era Preferences: ${Object.entries(decadePreferences)
+        
+        Already Watched Titles (DO NOT RECOMMEND ANY OF THESE):
+        ${watchedTitles.join(', ')}
+        
+        Viewing Profile:
+        - Favorite Genres: ${favoriteGenres.join(', ')}
+        - Era Preferences: ${Object.entries(decadePreferences)
                 .map(([decade, count]) => `${decade}s: ${count} films`)
                 .join(', ')}
-                - Rating Distribution: 
-                  * High-rated (8+): ${ratingDistribution.high || 0}
-                  * Mid-rated (6-7.9): ${ratingDistribution.medium || 0}
-                  * Lower-rated: ${ratingDistribution.low || 0}
-                - Total ${type}: ${watchedContent.length}
-
-                Based on this profile, recommend ${numRecommendations} ${type} that are currently available on major streaming platforms (Netflix, Amazon Prime, Disney+, HBO Max, or Hulu).
-
-                Respond with ONLY a clean JSON object in this format:
+        - Rating Distribution: 
+          * High-rated (8+): ${ratingDistribution.high || 0}
+          * Mid-rated (6-7.9): ${ratingDistribution.medium || 0}
+          * Lower-rated: ${ratingDistribution.low || 0}
+        - Total ${type}: ${watchedContent.length}
+        
+        Based on this profile, recommend ${numRecommendations} ${type} that align with their viewing preferences and are available on major streaming platforms (Netflix, Amazon Prime, Disney+, HBO Max, or Hulu).
+        
+        Respond with ONLY a clean JSON object in this format:
+        {
+            "recommendations": [
                 {
-                    "recommendations": [
-                        {
-                            "title": "Title",
-                            "reason": "First sentence should reference specific patterns from their watch history (genres, eras, or themes they enjoy). Second sentence should highlight unique qualities that make this film special.",
-                            "streaming_platform": "Platform where the film is currently available"
-                        }
-                    ]
+                    "title": "Title",
+                    "reason": "First sentence references specific patterns from their watch history (genres, eras, or themes they enjoy). Second sentence highlights unique qualities of this ${type} that match their tastes while introducing something fresh.",
+                    "streaming_platform": "Platform where the film/show is currently available"
                 }
-                
-                Rules:
-                - STRICTLY AVOID recommending any titles from this list: ${watchedTitles.join(', ')}
-                - Must be currently available on major streaming platforms (Netflix, Prime, Disney+, HBO Max, or Hulu)
-                - Must have 7.5+ rating on major platforms
-                - Each reason must be exactly two sentences
-                - Focus on themes, style, and emotional resonance
-                - Avoid obscure or hard-to-find titles
-                - Consider pacing and tone variety
-                - DON'T RECOMMEND ${type} that are already in their watch history
-                - recommends should be different each time
-                - reason should be a 2 sentences
-                
-                Remember: Return ONLY the JSON object with no additional text.`;
+            ]
+        }
+        
+        Rules:
+        - STRICTLY AVOID recommending any titles from this list: ${watchedTitles.join(', ')}
+        - Recommendations MUST be currently available on major streaming platforms (Netflix, Prime, Disney+, HBO Max, or Hulu).
+        - Recommendations MUST have a 7.5+ rating on major platforms.
+        - Each reason MUST be exactly two sentences, focusing on specific patterns in their watch history.
+        - Focus on themes, style, emotional resonance, and unique storytelling elements.
+        - Avoid obscure or hard-to-find titles unless exceptionally well-suited.
+        - Consider pacing, tone variety, and delivering fresh, engaging content.
+        - DO NOT RECOMMEND ${type} that are already in their watch history.
+        - Ensure recommendations differ in each response, offering variety and novelty.
+        
+        Remember: Return ONLY the JSON object with no additional text or explanation.`;
+
     };
 
     const handleRecommendations = async () => {
@@ -295,7 +295,7 @@ const TraktRecommendations = () => {
                                             key={index}
                                             item={item}
                                             activeTab={mediaType}
-                                            
+
                                         />
                                     ))}
                                 </div>
@@ -340,7 +340,7 @@ const TraktRecommendations = () => {
                             >
                                 {/* Background Image with Gradient */}
                                 <div className="absolute inset-0">
-                                    <img 
+                                    <img
                                         src={`https://image.tmdb.org/t/p/w1280${rec.media.backdrop_path}`}
                                         alt=""
                                         className="w-full h-full object-cover opacity-20"
@@ -359,9 +359,9 @@ const TraktRecommendations = () => {
 
                                     <div className="flex flex-col space-y-4">
                                         <div className="flex items-start space-x-4">
-                                            <img 
-                                                src={`https://image.tmdb.org/t/p/w500${rec.media.poster_path}`} 
-                                                alt={rec.media.title} 
+                                            <img
+                                                src={`https://image.tmdb.org/t/p/w500${rec.media.poster_path}`}
+                                                alt={rec.media.title}
                                                 className="w-24 h-36 object-cover rounded-lg shadow-lg"
                                             />
                                             <div className="flex-1 min-w-0">
