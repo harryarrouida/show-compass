@@ -20,16 +20,24 @@ export default function MediaCardContainer({
         setVisibleItems(prev => Math.min(prev + itemsPerPage, mediaCards.length));
     };
 
+    console.log("Current activeTab:", activeTab);
+
+    console.log("mediaCards", mediaCards);
+
     return (
         <div className="space-y-8">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mx-12">
-                {mediaCards.slice(0, visibleItems).map((rec, index) => (
-                    <MediaCard
-                        key={index}
-                        item={rec.media}
-                        activeTab={activeTab}
-                    />
-                ))}
+                {mediaCards
+                    .filter(rec => rec.media.type === (activeTab === "movies" ? "movie" : "show"))
+                    .slice(0, visibleItems)
+                    .map((rec, index) => (
+                        <MediaCard
+                            key={index}
+                            item={rec.media}
+                            activeTab={activeTab}
+                        />
+                    ))
+                }
             </div>
 
             {showLoadMore && (
@@ -48,4 +56,3 @@ export default function MediaCardContainer({
         </div>
     );
 }   
-

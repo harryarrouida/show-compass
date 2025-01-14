@@ -187,6 +187,7 @@ const Trakt = () => {
                     activeTab={activeTab}
                 />
             )}
+
         </div>
     );
 };

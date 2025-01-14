@@ -66,7 +66,7 @@ export default function MediaCard({ item, activeTab, showSaveToHistory = false, 
                         e.stopPropagation();
                         onSave();
                     }}
-                    className="absolute top-2 right-2 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300"
+                    className="absolute top-2 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300"
                 >
                     <IoBookmarkOutline className="w-5 h-5 text-white" />
                 </button>

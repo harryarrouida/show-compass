@@ -24,7 +24,8 @@ export const search = async (query: string) => {
                 poster_path: movie.poster_path,
                 vote_average: movie.vote_average,
                 popularity: movie.popularity,
-                type: 'movie'
+                type: 'movie',
+                backdrop_path: movie.backdrop_path
             })),
             ...shows.map((show: any) => ({
                 id: show.id,
@@ -33,7 +34,8 @@ export const search = async (query: string) => {
                 poster_path: show.poster_path,
                 vote_average: show.vote_average,
                 popularity: show.popularity,
-                type: 'show'
+                type: 'show',
+                backdrop_path: show.backdrop_path
             }))
         ];
 
