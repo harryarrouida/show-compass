@@ -68,15 +68,27 @@ export function TraktProvider({ children }: { children: ReactNode }) {
     if (code) {
       try {
         // Exchange code for token
-        const tokenResponse = await traktToken(code);
-        if (tokenResponse.access_token) {
-          const token = tokenResponse.access_token;
-          localStorage.setItem('traktToken', token);
-          setAccessToken(token);
+        const response = await fetch('/api/trakt/token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to authenticate');
+        }
+
+        if (data.access_token) {
+          localStorage.setItem('traktToken', data.access_token);
+          setAccessToken(data.access_token);
           setIsAuthenticated(true);
 
           // Fetch user data
-          const userResponse = await traktUser(token);
+          const userResponse = await traktUser(data.access_token);
           setUser(userResponse);
         }
 
@@ -84,6 +96,7 @@ export function TraktProvider({ children }: { children: ReactNode }) {
         window.history.replaceState({}, document.title, window.location.pathname);
       } catch (error) {
         console.error('Authentication failed:', error);
+        logout(); // Clear any partial auth state
       }
     }
   }

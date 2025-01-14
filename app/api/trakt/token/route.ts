@@ -1,35 +1,32 @@
 import { NextResponse } from 'next/server';
 
-const clientId = process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID;
-const clientSecret = process.env.NEXT_PUBLIC_TRAKT_CLIENT_SECRET;
-const baseUrl = 'https://api.trakt.tv';
-
 export async function POST(request: Request) {
     try {
         const { code } = await request.json();
         
-        const response = await fetch(`${baseUrl}/oauth/token`, {
+        if (!code) {
+            return NextResponse.json({ error: 'No code provided' }, { status: 400 });
+        }
+
+        const response = await fetch('https://api.trakt.tv/oauth/token', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 code,
-                client_id: clientId,
-                client_secret: clientSecret,
-                redirect_uri: 'http://localhost:3000/trakt',
+                client_id: process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID,
+                client_secret: process.env.NEXT_PUBLIC_TRAKT_SECRET,
+                redirect_uri: process.env.NEXT_PUBLIC_TRAKT_REDIRECT_URI,
                 grant_type: 'authorization_code'
             })
         });
 
         const data = await response.json();
         
-        if (!response.ok || !data.access_token) {
-            console.error('Token exchange failed:', data);
-            return NextResponse.json(
-                { error: data.error || 'Failed to exchange token' },
-                { status: response.status || 500 }
-            );
+        if (!response.ok) {
+            console.error('Trakt token exchange error:', data);
+            return NextResponse.json(data, { status: response.status });
         }
 
         return NextResponse.json(data);
