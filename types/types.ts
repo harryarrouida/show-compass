@@ -62,6 +62,7 @@ export interface Movie {
     type: 'movie';
     popularity?: number;
     vote_count?: number;
+    backdrop_path: string | null;
 }
 
 export interface Show {
@@ -74,6 +75,7 @@ export interface Show {
     type: 'show';
     popularity?: number;
     vote_count?: number;
+    backdrop_path: string | null;
 }
 
 export interface MappedMovie {

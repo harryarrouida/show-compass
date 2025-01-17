@@ -43,8 +43,8 @@ export default function AIRecommendations({
 
     return (
         <div className="space-y-8">
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold text-white">Similar Recommendations</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0">
+                <h2 className="text-xl sm:text-2xl font-semibold text-white">Similar Recommendations</h2>
                 {!isDefaultRecs && (
                     <button 
                         onClick={toggleChat} 
@@ -56,7 +56,7 @@ export default function AIRecommendations({
             </div>
 
             {showChat && !isDefaultRecs && (
-                <form onSubmit={handleSubmitPrompt} className="flex items-center gap-3 text-zinc-300">
+                <form onSubmit={handleSubmitPrompt} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 text-zinc-300">
                     <input
                         value={prompt}
                         onChange={(e) => setPrompt(e.target.value)}
@@ -67,7 +67,7 @@ export default function AIRecommendations({
                     <button
                         disabled={isAiLoading || !prompt.trim()}
                         type="submit"
-                        className={`px-6 py-3 bg-primary rounded-md text-white transition-all duration-300 flex items-center gap-2
+                        className={`px-6 py-3 bg-primary rounded-md text-white transition-all duration-300 flex items-center justify-center gap-2 flex-shrink-0
                             ${isAiLoading || !prompt.trim()
                                 ? 'opacity-50 cursor-not-allowed'
                                 : 'hover:bg-primary/80'}`}
@@ -87,7 +87,7 @@ export default function AIRecommendations({
                 </form>
             )}
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-2 mx-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-4 mx-auto">
                 {isAiLoading ? (
                     Array(6).fill(0).map((_, index) => (
                         <CardSkeleton key={index} index={index} />
@@ -107,7 +107,7 @@ export default function AIRecommendations({
             )}
 
             {alert && (
-                <div className="flex items-center gap-2 text-sm text-green-400 font-medium fixed bottom-12 right-12 bg-green-900/10 rounded-lg p-3">
+                <div className="flex items-center gap-2 text-sm text-green-400 font-medium fixed bottom-4 right-4 sm:bottom-12 sm:right-12 bg-green-900/10 rounded-lg p-3 z-50">
                     <IoCheckmarkCircleOutline className="text-green-400 text-lg" />
                     {alert}
                 </div>

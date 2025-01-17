@@ -10,6 +10,7 @@ import TraktRecommendations from "@/components/trakt/traktRecommendations";
 import { useHistory } from "@/context/historyContext";
 import DataGrid from "@/components/dataGrid";
 import PageLayout from "@/components/layout/PageLayout";
+import Loading from "@/components/shared/loading";
 
 const Trakt = () => {
   const {
@@ -125,9 +126,7 @@ const Trakt = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-[80vh] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white" />
-      </div>
+        <Loading text="Loading Watched Data..." size="large" />
     );
   }
 

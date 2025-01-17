@@ -101,6 +101,7 @@ function mapMovieResults(results: any[], includeExtra: boolean = false): MappedM
       type: "movie",
       release_date: item.release_date,
       poster_path: item.poster_path,
+      backdrop_path: item.backdrop_path || null,
       vote_average: item.vote_average,
       overview: item.overview,
       ...(includeExtra && {

@@ -61,18 +61,18 @@ export default function HistoryPage() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
-            <h1 className="text-3xl font-bold text-white mb-8">History</h1>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 sm:mb-8">History</h1>
 
             {historyContext.length === 0 ? (
-                <Card className="p-8 text-center bg-zinc-900/80 backdrop-blur">
-                    <p className="text-zinc-300 text-lg">
+                <Card className="p-6 sm:p-8 text-center bg-zinc-900/80 backdrop-blur">
+                    <p className="text-zinc-300 text-base sm:text-lg">
                         No history found. Start exploring recommendations to build your history!
                     </p>
                 </Card>
             ) : (
                 <>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                         {displayHistory.map((item) => (
                             <div
                                 key={item.id}
@@ -85,22 +85,22 @@ export default function HistoryPage() {
                                         alt={item.data.title || ''}
                                         fill
                                         className="object-cover transform transition-transform duration-500 group-hover:scale-105"
-                                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+                                        sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 20vw"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0" />
                                 </div>
 
-                                <div className="mt-2 space-y-1">
-                                    <h3 className="text-sm font-medium text-zinc-300 line-clamp-1">
+                                <div className="mt-2 space-y-0.5 sm:space-y-1">
+                                    <h3 className="text-xs sm:text-sm font-medium text-zinc-300 line-clamp-1">
                                         {item.data.title}
                                     </h3>
-                                    <div className="flex items-center gap-2 text-xs text-zinc-400">
+                                    <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs text-zinc-400">
                                         {item.data.release_date && (
                                             <span>{new Date(item.data.release_date).getFullYear()}</span>
                                         )}
                                         {item.data.vote_average && (
                                             <span className="flex items-center">
-                                                • <IoStar className="text-amber-400 mx-1" size={12} />
+                                                • <IoStar className="text-amber-400 mx-0.5 sm:mx-1" size={10} />
                                                 {item.data.vote_average.toFixed(1)}
                                             </span>
                                         )}
@@ -112,24 +112,24 @@ export default function HistoryPage() {
                                         e.stopPropagation();
                                         deleteFromHistory(item.id);
                                     }}
-                                    className="absolute z-10 top-2 right-2 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300 opacity-0 group-hover:opacity-100"
+                                    className="absolute z-10 top-1 sm:top-2 right-1 sm:right-2 p-1.5 sm:p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300 opacity-0 group-hover:opacity-100"
                                 >
-                                    <IoTrashOutline className="w-4 h-4 text-red-400" />
+                                    <IoTrashOutline className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
                                 </button>
                             </div>
                         ))}
                     </div>
 
-                    <div className="flex justify-center mt-8 space-x-6">
+                    <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-6 mt-6 sm:mt-8">
                         <button
                             onClick={toggleShowAll}
-                            className="px-6 py-2.5 text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-full transition-all"
+                            className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-full transition-all"
                         >
                             {showAll ? 'Show Less' : 'Show All'}
                         </button>
                         <button
                             onClick={clearHistory}
-                            className="flex items-center px-6 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-zinc-800/50 rounded-full transition-all"
+                            className="w-full sm:w-auto flex items-center justify-center px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-zinc-800/50 rounded-full transition-all"
                         >
                             <IoTrashOutline className="w-4 h-4 mr-2" />
                             Clear History
@@ -139,9 +139,9 @@ export default function HistoryPage() {
             )}
 
             {selectedItem && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedItem(null)} />
-                    <div className="relative bg-zinc-900 rounded-lg w-full max-w-3xl max-h-[85vh] overflow-hidden">
+                    <div className="relative bg-zinc-900 w-full sm:rounded-lg sm:max-w-3xl max-h-[90vh] overflow-y-auto">
                         <button
                             onClick={() => setSelectedItem(null)}
                             className="absolute top-4 right-4 p-2 text-white hover:text-zinc-300 z-10"
@@ -149,7 +149,7 @@ export default function HistoryPage() {
                             <IoClose className="w-6 h-6" />
                         </button>
 
-                        <div className="relative h-[300px] w-full">
+                        <div className="relative h-[200px] sm:h-[300px] w-full">
                             <Image
                                 src={`${process.env.NEXT_PUBLIC_TMDB_BACKDROP_URL}${selectedItem.data.backdrop_path}`}
                                 alt={selectedItem.data.title}
@@ -160,9 +160,9 @@ export default function HistoryPage() {
                             <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/60 to-transparent" />
                         </div>
 
-                        <div className="p-6 -mt-16 relative">
-                            <div className="flex gap-6">
-                                <div className="relative w-[120px] h-[180px] rounded-lg overflow-hidden flex-shrink-0 shadow-xl">
+                        <div className="p-4 sm:p-6 -mt-16 relative">
+                            <div className="flex gap-4 sm:gap-6">
+                                <div className="relative w-[100px] sm:w-[120px] h-[150px] sm:h-[180px] rounded-lg overflow-hidden flex-shrink-0 shadow-xl">
                                     <Image
                                         src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${selectedItem.data.poster_path}`}
                                         alt={selectedItem.data.title}
@@ -171,11 +171,11 @@ export default function HistoryPage() {
                                         priority
                                     />
                                 </div>
-                                <div className="space-y-4 flex-1 min-w-0">
-                                    <h2 className="text-2xl font-semibold text-white truncate">
+                                <div className="space-y-2 sm:space-y-4 flex-1 min-w-0">
+                                    <h2 className="text-xl sm:text-2xl font-semibold text-white truncate">
                                         {selectedItem.data.title}
                                     </h2>
-                                    <div className="flex items-center gap-4 text-zinc-300">
+                                    <div className="flex items-center gap-3 sm:gap-4 text-sm sm:text-base text-zinc-300">
                                         {selectedItem.data.release_date && (
                                             <span>{new Date(selectedItem.data.release_date).getFullYear()}</span>
                                         )}
@@ -186,12 +186,12 @@ export default function HistoryPage() {
                                             </div>
                                         )}
                                     </div>
-                                    <p className="text-zinc-300 leading-relaxed line-clamp-3">
+                                    <p className="text-sm sm:text-base text-zinc-300 leading-relaxed">
                                         {selectedItem.reason}
                                     </p>
-                                    <div className="pt-4 border-t border-zinc-800">
-                                        <p className="text-sm text-zinc-400">Recommended from</p>
-                                        <p className="text-zinc-300 mt-1">
+                                    <div className="pt-3 sm:pt-4 border-t border-zinc-800">
+                                        <p className="text-xs sm:text-sm text-zinc-400">Recommended from</p>
+                                        <p className="text-sm sm:text-base text-zinc-300 mt-1">
                                             {typeof selectedItem.from === 'string' 
                                                 ? selectedItem.from === 'trakt' 
                                                     ? 'Trakt Recommendation' 
@@ -199,7 +199,7 @@ export default function HistoryPage() {
                                                 : selectedItem.from.title
                                             }
                                         </p>
-                                        <p className="text-xs text-zinc-500 mt-2">
+                                        <p className="text-[10px] sm:text-xs text-zinc-500 mt-2">
                                             Added {new Date(selectedItem.timestamp).toLocaleDateString()}
                                         </p>
                                     </div>

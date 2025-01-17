@@ -287,38 +287,38 @@ const TraktRecommendations = () => {
   };
 
   return (
-    <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-20">
-      <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800/50 rounded-2xl p-8 max-w-4xl mx-auto mb-12 shadow-xl">
-        <div className="flex flex-col gap-6">
+    <div className="w-full mx-auto px-2 sm:px-6 lg:px-8 mt-4 sm:mt-8 mb-20">
+      <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800/50 rounded-2xl p-4 sm:p-8 max-w-4xl mx-auto mb-8 sm:mb-12 shadow-xl">
+        <div className="flex flex-col gap-4 sm:gap-6">
           {/* Header Section */}
-          <div className="flex items-center gap-4 pb-6 border-b border-zinc-800/50">
-            <div className="p-3 bg-gradient-to-br from-violet-500/10 to-violet-500/5 rounded-xl border border-violet-500/10">
-              <RiRobot2Line className="w-6 h-6 text-violet-400" />
+          <div className="flex items-center gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-zinc-800/50">
+            <div className="p-2 sm:p-3 bg-gradient-to-br from-violet-500/10 to-violet-500/5 rounded-xl border border-violet-500/10">
+              <RiRobot2Line className="w-5 h-5 sm:w-6 sm:h-6 text-violet-400" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">
                 AI-Powered Recommendations
               </h2>
-              <p className="text-zinc-400 text-sm mt-1">
+              <p className="text-zinc-400 text-xs sm:text-sm mt-0.5 sm:mt-1">
                 Discover your next favorite based on your unique taste
               </p>
             </div>
           </div>
 
           {/* Controls Section */}
-          <div className="space-y-6">
-            <p className="text-zinc-300 text-sm leading-relaxed">
+          <div className="space-y-4 sm:space-y-6">
+            <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed">
               Let our AI analyze your watch history to discover personalized
               recommendations based on themes, narrative styles, and artistic
               approaches.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex flex-wrap gap-3 flex-1">
+            <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1">
                 <select
                   value={mediaType}
                   onChange={(e) => setMediaType(e.target.value as MediaType)}
-                  className="bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-4 py-2.5 text-sm text-zinc-200 
+                  className="w-full sm:w-auto bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-zinc-200 
                             focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20
                             appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
                             bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all"
@@ -332,7 +332,7 @@ const TraktRecommendations = () => {
                   onChange={(e) =>
                     setNumRecommendations(Number(e.target.value) as 5 | 10)
                   }
-                  className="bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-4 py-2.5 text-sm text-zinc-200 
+                  className="w-full sm:w-auto bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-zinc-200 
                             focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20
                             appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
                             bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all"
@@ -343,7 +343,7 @@ const TraktRecommendations = () => {
 
                 <button
                   onClick={() => setFromWatchlist(!fromWatchlist)}
-                  className={`px-4 py-2.5 rounded-xl text-sm transition-all
+                  className={`w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
                             ${
                               fromWatchlist
                                 ? "bg-violet-500/10 text-violet-300 border border-violet-500/20"
@@ -357,7 +357,7 @@ const TraktRecommendations = () => {
               <button
                 onClick={handleRecommendations}
                 disabled={loading}
-                className="group flex items-center justify-center gap-2 px-6 py-2.5 
+                className="group flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 
                           bg-gradient-to-r from-violet-600 to-violet-500 
                           hover:from-violet-500 hover:to-violet-400
                           rounded-xl text-sm text-white font-medium transition-all duration-300
@@ -373,7 +373,7 @@ const TraktRecommendations = () => {
                 ) : (
                   <>
                     <RiRobot2Line className="w-4 h-4" />
-                    <span>Generate Recommendations</span>
+                    <span>Generate</span>
                     <IoChevronForwardOutline className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
                   </>
                 )}
@@ -385,11 +385,8 @@ const TraktRecommendations = () => {
 
       {/* Recommendations Grid */}
       {recommendations.length > 0 && (
-        <div className="space-y-6 mx-4">
-          {/* <h3 className="text-xl font-semibold text-white px-4">
-            Your Personalized Recommendations
-          </h3> */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mx-auto">
+        <div className="space-y-4 sm:space-y-6 mx-2 sm:mx-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 mx-auto">
             {recommendationsDetails.map((rec, index) => (
               <RecommendationCard
                 key={index}

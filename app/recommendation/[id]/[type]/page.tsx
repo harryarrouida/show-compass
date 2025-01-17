@@ -11,6 +11,7 @@ import { AIRecommendation } from "@/types/types";
 import { generateDefaultPrompt, generateCustomPrompt } from '@/constants/aiPrompts';
 import { search } from "@/services/content/sharedServices";
 import { useHistory } from '@/context/historyContext';
+import Loading from "@/components/shared/loading";
 
 export default function RecommendationPage() {
     const [details, setDetails] = useState<ShowDetails | MovieDetails | null>(null);
@@ -49,15 +50,15 @@ export default function RecommendationPage() {
                         messages: [
                             {
                                 role: "system",
-                                content: "You are a JSON-only response bot. Always respond with valid JSON matching the exact format requested. Never include additional text or explanations."
+                                content: "You are a helpful assistant that provides recommendations. Your responses must be valid JSON with a 'recommendations' array containing objects with 'title' and 'reason' fields."
                             },
                             {
                                 role: "user",
                                 content: generateDefaultPrompt(mediaDetails as any, type as string)
                             }
                         ],
-                        model: "llama3-8b-8192",
-                        temperature: 0.2,
+                        model: "mixtral-8x7b-32768",
+                        temperature: 0.1,
                         max_tokens: 1000,
                         response_format: { type: "json_object" }
                     });
@@ -221,9 +222,7 @@ export default function RecommendationPage() {
     return (
         <div className="p-4 sm:p-8 max-w-6xl mx-auto min-h-screen mt-4 sm:mt-10">
             {isLoading ? (
-                <div className="flex justify-center items-center min-h-[60vh]">
-                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
-                </div>
+                <Loading text="Loading Recommendations..." size="large" />
             ) : (
                 <>
                     {details && (

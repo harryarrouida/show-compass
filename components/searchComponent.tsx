@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { MappedMovie, MappedShow } from '@/types/types';
 import { searchMovies } from '@/services/content/movieServices';
 import { searchShows } from '@/services/content/showServices';
@@ -88,7 +89,7 @@ export default function SearchComponent() {
                     {/* Results Section */}
                     {results.length > 0 && (
                         <div className="mt-10">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                                 {results.map((item) => (
                                     // <Link
                                     //     href={`/recommendation/${item.id}/${item.type}`}
