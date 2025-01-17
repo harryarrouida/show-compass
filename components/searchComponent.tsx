@@ -1,11 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { MappedMovie, MappedShow } from '@/types/types';
-import Image from 'next/image';
 import { searchMovies } from '@/services/content/movieServices';
 import { searchShows } from '@/services/content/showServices';
+import MediaCard from './shared/mediaCard';
 
 export default function SearchComponent() {
     const [query, setQuery] = useState('');
@@ -91,43 +90,45 @@ export default function SearchComponent() {
                         <div className="mt-10">
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                                 {results.map((item) => (
-                                    <Link
-                                        href={`/recommendation/${item.id}/${item.type}`}
-                                        key={item.id}
-                                        className="w-full group flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg"
-                                    >
-                                        <div className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-zinc-900/50 transition-all duration-500">
-                                            <Image
-                                                src={item.poster_path
-                                                    ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
-                                                    : '/placeholder-poster.png'
-                                                }
-                                                alt={item.title}
-                                                fill
-                                                className="object-cover transform transition-all duration-500 group-hover:scale-[1.02]"
-                                                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                                            />
-                                            <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                        </div>
-                                        <div className="mt-5 space-y-3">
-                                            <h3 className="text-start text-zinc-200 text-base font-medium leading-snug line-clamp-1 group-hover:text-white transition-colors duration-300">
-                                                {item.title}
-                                            </h3>
-                                            <div className="flex items-center space-x-4">
-                                                <div className="flex items-center bg-zinc-900/50 backdrop-blur-sm rounded-full px-3 py-1.5">
-                                                    <span className="text-amber-400/90 text-sm">★</span>
-                                                    <span className="text-zinc-300 text-sm ml-2 font-light">
-                                                        {item.vote_average?.toFixed(1)}
-                                                    </span>
-                                                </div>
-                                                <span className="text-zinc-400 text-sm font-light">
-                                                    {item.release_date ? new Date(item.release_date).getFullYear() : ''}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </Link>
+                                    // <Link
+                                    //     href={`/recommendation/${item.id}/${item.type}`}
+                                    //     key={item.id}
+                                    //     className="w-full group flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg"
+                                    // >
+                                    //     <div className="relative aspect-[2/3] w-full rounded-lg overflow-hidden bg-zinc-900/50 transition-all duration-500">
+                                    //         <Image
+                                    //             src={item.poster_path
+                                    //                 ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                                    //                 : '/placeholder-poster.png'
+                                    //             }
+                                    //             alt={item.title}
+                                    //             fill
+                                    //             className="object-cover transform transition-all duration-500 group-hover:scale-[1.02]"
+                                    //             sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                    //         />
+                                    //         <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    //     </div>
+                                    //     <div className="mt-5 space-y-3">
+                                    //         <h3 className="text-start text-zinc-200 text-base font-medium leading-snug line-clamp-1 group-hover:text-white transition-colors duration-300">
+                                    //             {item.title}
+                                    //         </h3>
+                                    //         <div className="flex items-center space-x-4">
+                                    //             <div className="flex items-center bg-zinc-900/50 backdrop-blur-sm rounded-full px-3 py-1.5">
+                                    //                 <span className="text-amber-400/90 text-sm">★</span>
+                                    //                 <span className="text-zinc-300 text-sm ml-2 font-light">
+                                    //                     {item.vote_average?.toFixed(1)}
+                                    //                 </span>
+                                    //             </div>
+                                    //             <span className="text-zinc-400 text-sm font-light">
+                                    //                 {item.release_date ? new Date(item.release_date).getFullYear() : ''}
+                                    //             </span>
+                                    //         </div>
+                                    //     </div>
+                                    // </Link>
+                                    <MediaCard key={item.id} item={item} activeTab="" />
                                 ))}
                             </div>
+                            
                         </div>
                     )}
 

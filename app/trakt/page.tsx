@@ -2,18 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useTraktContext } from "@/context/traktContext";
-import { IoLogOut } from "react-icons/io5";
 import { getMovieDetails } from "@/services/content/movieServices";
 import { getShowDetails } from "@/services/content/showServices";
 import { useRouter } from "next/navigation";
 import WatchHistoryOverview from "@/components/WatchHistoryOverview";
 import TraktRecommendations from "@/components/trakt/traktRecommendations";
-import MediaCard from "@/components/shared/mediaCard";
-import MediaCardContainer from "@/components/shared/MediaCardContainer";
 import { useHistory } from "@/context/historyContext";
 import DataGrid from "@/components/dataGrid";
 import PageLayout from "@/components/layout/PageLayout";
-const ITEMS_PER_PAGE = 20;
 
 const Trakt = () => {
   const {
@@ -110,20 +106,6 @@ const Trakt = () => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
-    router.push("/");
-  };
-
-  const handleSaveToHistory = (media: any) => {
-    const saved = saveToHistory(
-      media.media,
-      media.media.type,
-      "AI Recommendation",
-      "Unknown"
-    );
-  };
-
   if (!isAuthenticated) {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
@@ -156,7 +138,7 @@ const Trakt = () => {
 
         <DataGrid
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          setActiveTab={setActiveTab as any}
           shows={mappedShows}
           setShows={setMappedShows}
           movies={mappedMovies}

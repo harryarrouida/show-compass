@@ -1,17 +1,14 @@
 import { useState, useEffect } from "react";
 import { RiRobot2Line } from "react-icons/ri";
 import { IoChevronForwardOutline } from "react-icons/io5";
-import { IoSave, IoStar, IoBookmarkOutline} from "react-icons/io5";
 import { useTraktContext } from "@/context/traktContext";
 import Groq from "groq-sdk";
 import { search } from "@/services/content/sharedServices";
 import MediaCard from "@/components/shared/mediaCard";
 import { useHistory } from '@/context/historyContext';
-import Image from 'next/image';
 import { generateTraktRecommendationsPrompt } from "@/constants/aiPrompts";
 import { RecommendationCard } from "@/components/recommendations/RecommendationCard";
 import { RecommendationModal } from "@/components/recommendations/RecommendationModal";
-import { MediaPosterCard } from "@/components/shared/MediaPosterCard";
 
 type MediaType = 'movies' | 'shows';
 
@@ -31,6 +28,8 @@ const TraktRecommendations = () => {
     const [recommendationsDetails, setRecommendationsDetails] = useState<any[]>([]);
     const { saveToHistory: saveToHistoryContext } = useHistory();
     const [selectedRecommendation, setSelectedRecommendation] = useState<any>(null);
+
+    const [seen, setSeen] = useState<string[]>([]);
 
     useEffect(() => {
         setRecommendations([]);
@@ -98,6 +97,7 @@ const TraktRecommendations = () => {
             favoriteGenres,
             decadePreferences,
             ratingDistribution,
+            seen,
             type,
             numRecommendations
         );
@@ -201,9 +201,20 @@ const TraktRecommendations = () => {
         );
     };
 
+    const handleSeen = (recommendation: any) => {
+        try {
+            // Update seen state with the new title
+            setSeen(prevSeen => [...prevSeen, recommendation.title]);
+            // Close the modal
+            setSelectedRecommendation(null);
+        } catch (error) {
+            console.error('Error marking as seen:', error);
+        }
+    };
+
     return (
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-16 mb-20">
-            <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-6 max-w-3xl mx-auto mb-16">
+        <div className="w-full mx-auto px-6 sm:px-8 lg:px-12 mt-16 mb-20">
+            <div className="w-full bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-6 max-w-3xl mx-auto mb-16">
                 <div className="flex items-start gap-4">
                     <div className="p-3 bg-zinc-800/50 rounded-lg">
                         <RiRobot2Line className="w-6 h-6 text-zinc-400" />
@@ -236,7 +247,7 @@ const TraktRecommendations = () => {
                                             appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
                                             bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12"
                                 >
-                                    <option value={5}>5 Recommendations</option>
+                                    <option value={5} defaultChecked>5 Recommendations</option>
                                     <option value={10}>10 Recommendations</option>
                                 </select>
                             </div>
@@ -284,13 +295,7 @@ const TraktRecommendations = () => {
             {recommendations.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 mx-auto">
                     {recommendationsDetails.map((rec, index) => (
-                        <MediaPosterCard
-                            key={index}
-                            media={rec.media}
-                            reason={rec.reason}
-                            onSelect={(media) => setSelectedRecommendation({ ...rec, media })}
-                            onSave={handleSaveToHistory}
-                        />
+                        <RecommendationCard key={index} recommendation={rec} onSelect={setSelectedRecommendation} onSave={handleSaveToHistory} />
                     ))}
                 </div>
             )}

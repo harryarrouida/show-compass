@@ -5,17 +5,18 @@ import { AIRecommendation } from "@/types/types";
 interface RecommendationCardProps {
     recommendation: AIRecommendation;
     onSelect: (rec: AIRecommendation) => void;
-    onSave: (rec: AIRecommendation) => void;
+  onSave: (rec: AIRecommendation) => void;
+//   seen: string[];
 }
 
 export function RecommendationCard({ recommendation: rec, onSelect, onSave }: RecommendationCardProps) {
     return (
         <div
             onClick={() => onSelect(rec)}
-            className="relative w-[190px]"
+            className="relative w-[180px] cursor-pointer mb-10 group"
         >
-            <div className="w-full group flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg">
-                <div className="group relative">
+            <div className="w-full flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg">
+                <div className="relative">
                     <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
                         {rec.media?.poster_path && (
                             <Image
@@ -29,20 +30,14 @@ export function RecommendationCard({ recommendation: rec, onSelect, onSave }: Re
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0" />
                     </div>
 
-                    <div className="mt-4 space-y-2">
-                        <h3 className="text-lg font-medium line-clamp-1">{rec.title}</h3>
+                    <div className="mt-4 space-y-2 flex justify-between items-center">
+                        <h3 className="text-lg font-medium line-clamp-1 text-left text-sm text-zinc-400">{rec.title}</h3>
                         {rec.media?.vote_average && (
                             <div className="flex items-center gap-2 text-sm text-zinc-400">
                                 <span className="flex items-center">
                                     <IoStar className="text-amber-400 mr-1" />
                                     {rec.media.vote_average.toFixed(1)}
                                 </span>
-                                {rec.media.release_date && (
-                                    <>
-                                        <span>•</span>
-                                        <span>{new Date(rec.media.release_date).getFullYear()}</span>
-                                    </>
-                                )}
                             </div>
                         )}
                     </div>
@@ -54,10 +49,11 @@ export function RecommendationCard({ recommendation: rec, onSelect, onSave }: Re
                     e.stopPropagation();
                     onSave(rec);
                 }}
-                className="absolute top-2 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300 opacity-0 group-hover:opacity-100"
+                className="absolute z-10 top-2 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                aria-label="Save recommendation"
             >
                 <IoBookmarkOutline className="w-5 h-5 text-white" />
             </button>
         </div>
     );
-} 
+}

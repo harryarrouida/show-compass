@@ -3,8 +3,9 @@ import { AIRecommendation } from "@/types/types";
 import { IoCheckmarkCircleOutline } from "react-icons/io5";
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { MediaPosterCard } from "@/components/shared/MediaPosterCard";
 import { RecommendationModal } from './RecommendationModal';
+import { RecommendationCard } from "./RecommendationCard";
+import CardSkeleton from "../shared/CardSkeleton";
 
 interface AIRecommendationsProps {
     isAiLoading: boolean;
@@ -85,22 +86,14 @@ export default function AIRecommendations({
                 </form>
             )}
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 mx-auto">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-2 mx-auto">
                 {isAiLoading ? (
-                    Array(10).fill(0).map((_, index) => (
-                        <div key={index} className="animate-pulse bg-zinc-900/50 rounded-lg aspect-[2/3] w-[160px]">
-                            <div className="h-full bg-zinc-800/50 rounded-lg"></div>
-                        </div>
+                    Array(6).fill(0).map((_, index) => (
+                        <CardSkeleton key={index} index={index} />
                     ))
                 ) : (
                     Array.isArray(aiRecommendations) && aiRecommendations.map((rec, index) => (
-                        <MediaPosterCard
-                            key={index}
-                            media={rec.media}
-                            reason={rec.reason}
-                            onSelect={(media) => setSelectedRec({ ...rec, media })}
-                            onSave={saveToHistory}
-                        />
+                        <RecommendationCard key={index} recommendation={rec} onSelect={setSelectedRec} onSave={saveToHistory} />
                     ))
                 )}
             </div>

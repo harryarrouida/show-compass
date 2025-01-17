@@ -63,7 +63,7 @@ export default function Home() {
         </div>
 
         <DataGrid
-          activeTab={activeTab}
+          activeTab={activeTab as "shows" | "movies"}
           setActiveTab={setActiveTab}
           shows={shows}
           setShows={setShows}

@@ -41,8 +41,8 @@ export default function DataGrid({
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-center mb-6">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+            <div className="flex justify-center mb-16">
                 <div className="inline-flex space-x-12 border-b border-zinc-800/50 backdrop-blur-sm">
                     <button
                         onClick={() => setActiveTab('shows')}
@@ -67,13 +67,13 @@ export default function DataGrid({
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 sm:gap-3 ">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
                 {data.map((item) => (
                     <MediaCard key={item.id} item={item} activeTab={activeTab} />
                 ))}
             </div>
 
-            <div className="mt-8 mb-6 flex justify-center">
+            <div className="mt-20 mb-16 flex justify-center">
                 <button
                     onClick={handleLoadMore}
                     disabled={isLoading}
