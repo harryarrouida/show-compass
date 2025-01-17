@@ -34,7 +34,7 @@ export default function MediaCard({
   const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
 
   return (
-    <div className="relative w-[180px] mb-10">
+    <div className="relative w-[180px] mb-10 cursor-pointer group">
         <Link
           href={`/recommendation/${item.id}/${mediaType}`}
           key={item.id}

@@ -1,46 +1,50 @@
 export const RECOMMENDATION_RULES = {
   baseRules: [
-    "Each reason must be exactly two sentences",
-    "Do not mention ratings, reviews, or popularity",
-    "Focus on specific thematic or stylistic connections",
-    "Include at least one title from the last 5 years",
-    "Avoid direct plot summaries and franchise titles",
+    "Each reason must be exactly two sentences and emphasize a direct connection to the user's taste.",
+    "Avoid mentioning ratings, reviews, or popularity.",
+    "Focus on thematic, stylistic, or emotional connections that align with user preferences.", 
+    "Include at least one title released in the last 5 years.",
+    "Avoid plot summaries and franchise titles unless the connection is exceptionally strong."
   ],
   connectionTypes: [
-    "Similar themes or philosophical questions",
-    "Comparable narrative structure",
-    "Matching emotional tone or atmosphere",
-    "Similar visual style or technical approach",
+    "Shared themes or philosophical questions.",
+    "Comparable narrative structure or character arcs.",
+    "Matching emotional tone, atmosphere, or pacing.",
+    "Similar visual style, technical craftsmanship, or artistic approach."
   ],
   avoidance: [
-    "Direct plot summaries",
-    "Similar titles from the same franchise",
-    "Obscure titles unless particularly relevant",
-    "Generic descriptions",
+    "Direct plot recaps or generic descriptions.",
+    "Titles from the same franchise unless uniquely relevant.",
+    "Obscure or inaccessible titles unless clearly justified.",
+    "Repetition of details from the user's input."
   ],
 };
 
 export const generateDefaultPrompt = (
-  mediaDetails: any,
+  mediaDetails: {
+    title: string;
+    overview: string;
+    genres: Array<{name: string}>;
+    release_date: string;
+    vote_average: number;
+  },
   type: string,
   numRecommendations: number = 6
 ) => `
 Based on this ${type}:
 Title: "${mediaDetails.title}"
 Description: "${mediaDetails.overview}"
-Genres: ${mediaDetails.genres.map((g: any) => g.name).join(", ")}
+Genres: ${mediaDetails.genres.map((g) => g.name).join(", ")}
 Release Year: ${new Date(mediaDetails.release_date).getFullYear()}
 Average Rating: ${mediaDetails.vote_average}
 
-Generate exactly ${numRecommendations} recommendations that capture the essence of this ${type}.
+Generate exactly ${numRecommendations} recommendations that deeply resonate with the user's preferences based on this ${type}.
 Respond with ONLY a clean JSON object in this exact format:
 {
     "recommendations": [
         {
             "title": "Title",
-            "reason": "Two clear, concise sentences that explain specific thematic or stylistic connections to ${
-              mediaDetails.title
-            }. Focus on narrative elements, themes, and artistic approach."
+            "reason": "Two sharp, concise sentences that highlight specific thematic, stylistic, or emotional connections to '${mediaDetails.title}'. Use evocative language to capture the essence of the match."
         }
     ]
 }
@@ -54,10 +58,16 @@ ${RECOMMENDATION_RULES.connectionTypes.map((type) => `- ${type}`).join("\n")}
 Avoid:
 ${RECOMMENDATION_RULES.avoidance.map((item) => `- ${item}`).join("\n")}
 
-Remember: Return ONLY the JSON object with no additional text, markdown, or explanation.`;
+Remember: Return ONLY the JSON object with no additional text or explanation.`;
 
 export const generateCustomPrompt = (
-  details: any,
+  details: {
+    title?: string;
+    overview?: string;
+    genres?: Array<{name: string}>;
+    release_date?: string;
+    vote_average?: number;
+  },
   type: string,
   prompt: string,
   numRecommendations: number = 6
@@ -65,19 +75,19 @@ export const generateCustomPrompt = (
 Based on this ${type}:
 Title: "${details?.title}"
 Overview: "${details?.overview}"
-Genres: ${details?.genres?.map((g: any) => g.name).join(", ")}
+Genres: ${details?.genres?.map((g) => g.name).join(", ")}
 Release Year: ${new Date(details?.release_date || "").getFullYear()}
 Rating: ${details?.vote_average}
 
 User Question: "${prompt}"
 
-Generate exactly ${numRecommendations} recommendations that address the user's question. 
+Generate exactly ${numRecommendations} recommendations that address the user's question and align with their preferences.
 Respond with ONLY a clean JSON object in this exact format:
 {
     "recommendations": [
         {
             "title": "Title",
-            "reason": "Two clear, concise sentences that connect this recommendation to both the original ${type} and the user's request. Focus on themes, style, and relevant elements without mentioning ratings or repeating the user's prompt."
+            "reason": "Two precise, thoughtful sentences that connect this recommendation to both the original ${type} and the user's request. Focus on themes, style, and relevant artistic or emotional elements."
         }
     ]
 }
@@ -85,48 +95,45 @@ Respond with ONLY a clean JSON object in this exact format:
 Rules for recommendations:
 ${RECOMMENDATION_RULES.baseRules.map((rule) => `- ${rule}`).join("\n")}
 
-Remember: Return ONLY the JSON object with no additional text, markdown, or explanation.`;
+Remember: Return ONLY the JSON object with no additional text or explanation.`;
 
 export const generateTraktRecommendationsPrompt = (
   sortedContent: any[],
   watchedTitles: string[],
   favoriteGenres: string[],
-  decadePreferences: Record<string, number>,
-  ratingDistribution: Record<string, number>,
+  decadePreferences: any,
+  ratingDistribution: any,
   seen: string[],
-  type: "movies" | "shows",
+  type: string,
   numRecommendations: number
-) => {
-  return `Based on the user's watch history, generate ${numRecommendations} personalized ${type} recommendations.
-    Consider their favorite genres (${favoriteGenres.join(
-      ", "
-    )}), decade preferences, and rating patterns.
-    Exclude these titles: ${watchedTitles.join(", ")} and ${seen.join(", ")}.
-    Respond with valid JSON in this format:
-    {
-        "recommendations": [
-            {
-                "title": "Movie Title",
-                "reason": "Personalized reason for recommendation"
-            }
-        ]
-    }`;
-};
+) => `
+Based on the user's watch history, generate ${numRecommendations} highly personalized ${type} recommendations.
+Consider their favorite genres (${favoriteGenres.join(
+    ", "
+  )}), decade preferences, and rating patterns.
+Exclude these titles: ${watchedTitles.join(", ")} and ${seen.join(", ")}.
+
+Respond with ONLY valid JSON in this format:
+{
+    "recommendations": [
+        {
+            "title": "Title",
+            "reason": "Two highly personalized sentences that explain why this ${type} perfectly matches the user's taste. Highlight thematic, stylistic, or emotional connections while avoiding generic language."
+        }
+    ]
+}`;
 
 export const generateWatchlistPrompt = (
-  watchedContent: any[],
-  watchlist: any[],
-  type: "movies" | "shows",
+  watchedContent: Array<{title: string}>,
+  watchlist: Array<{title: string}>,
+  type: string,
   numRecommendations: number
-) => {
-  return `Based on the user's watched content containing: ${watchedContent
+) => `
+Based on the user's watched content (${watchedContent
     .map((item) => item.title)
-    .join(", ")}
-
-    Generate exactly ${numRecommendations} personalized ${type} recommendations based on the user's watchlist containing: ${watchlist
+    .join(", ")}), identify the ${numRecommendations} most relevant titles from their watchlist (${watchlist
     .map((item) => item.title)
-    .join(", ")}
-    what are the ${numRecommendations} recommendations that the user would like to watch next from his watchlist?
+    .join(", ")}).
 
 Rules for recommendations:
 ${RECOMMENDATION_RULES.baseRules.map((rule) => `- ${rule}`).join("\n")}
@@ -137,17 +144,12 @@ ${RECOMMENDATION_RULES.connectionTypes.map((type) => `- ${type}`).join("\n")}
 Avoid:
 ${RECOMMENDATION_RULES.avoidance.map((item) => `- ${item}`).join("\n")}
 
-- DO NOT RECOMMEND ANY TITLES THAT ARE NOT IN THE USER WATCHLIST: ${watchlist
-    .map((item) => item.title)
-    .join(", ")}
-
-    Respond with valid JSON in this format:
-    {
-        "recommendations": [
-            {
-                "title": "Title",
-                "reason": "Personalized reason for recommendation"
-            }
-        ]
-    }`;
-};
+Respond with valid JSON in this format:
+{
+    "recommendations": [
+        {
+            "title": "Title",
+            "reason": "Two personalized sentences explaining why this title aligns with the user's watch history and tastes."
+        }
+    ]
+}`;

@@ -82,6 +82,7 @@ export interface MappedMovie {
     type: 'movie';
     release_date: string;
     poster_path: string | null;
+    backdrop_path: string | null;
     vote_average: number;
     overview: string;
     popularity?: number;
@@ -99,6 +100,7 @@ export interface MappedShow {
     overview: string;
     popularity?: number;
     vote_count?: number;
+    backdrop_path: string | null;
 }
 
 export interface MovieDetails extends Movie {
@@ -127,5 +129,14 @@ export interface ShowDetails extends Omit<Show, 'name'> {
         air_date: string;
         vote_average: number;
     }>;
+}
+
+export interface HistoryItem {
+    id: number;
+    mediaType: 'movie' | 'show';
+    timestamp: number;
+    data: MappedMovie | MappedShow;
+    reason: string;
+    from: MappedMovie | MappedShow | string;
 }
 

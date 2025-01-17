@@ -13,6 +13,7 @@ import {
 import { RecommendationCard } from "@/components/recommendations/RecommendationCard";
 import { RecommendationModal } from "@/components/recommendations/RecommendationModal";
 import { getUserWatchlist } from "@/services/trakt/traktServices";
+import PageLayout from "../layout/PageLayout";
 
 // Main component for AI-powered movie/show recommendations based on Trakt.tv data
 type MediaType = "movies" | "shows";
@@ -23,13 +24,16 @@ const TraktRecommendations = () => {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [mediaType, setMediaType] = useState<MediaType>("movies");
   const [numRecommendations, setNumRecommendations] = useState<5 | 10>(10);
-  const [recommendationsDetails, setRecommendationsDetails] = useState<any[]>([]);
-  
+  const [recommendationsDetails, setRecommendationsDetails] = useState<any[]>(
+    []
+  );
+
   // UI state management
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
-  const [selectedRecommendation, setSelectedRecommendation] = useState<any>(null);
+  const [selectedRecommendation, setSelectedRecommendation] =
+    useState<any>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // Watchlist related state
   const [fromWatchlist, setFromWatchlist] = useState<boolean>(false);
   const [watchlist, setWatchlist] = useState<any[]>([]);
@@ -55,12 +59,12 @@ const TraktRecommendations = () => {
     try {
       // Extract JSON from markdown if present
       const jsonMatch = response.match(/```(?:json)?([\s\S]*?)```/);
-      let cleanResponse = jsonMatch 
-        ? jsonMatch[1].trim() 
-        : response.trim();
+      let cleanResponse = jsonMatch ? jsonMatch[1].trim() : response.trim();
 
       // Remove any non-JSON text
-      cleanResponse = cleanResponse.replace(/^[^{]*/g, '').replace(/[^}]*$/g, '');
+      cleanResponse = cleanResponse
+        .replace(/^[^{]*/g, "")
+        .replace(/[^}]*$/g, "");
       return JSON.parse(cleanResponse);
     } catch (error) {
       console.error("Failed to parse response:", error);
@@ -75,7 +79,7 @@ const TraktRecommendations = () => {
     watchlist: any[]
   ): Promise<string> => {
     if (!fromWatchlist || !accessToken) return "";
-    
+
     let watchlistItems;
     try {
       watchlistItems = await getUserWatchlist(accessToken, type);
@@ -101,9 +105,14 @@ const TraktRecommendations = () => {
 
     try {
       // Get watched content from cache or fetch new
-      let watchedContent = mediaType === "movies"
-        ? (watchedMoviesCache.length > 0 ? watchedMoviesCache : await getUserWatchedMovies())
-        : (watchedShowsCache.length > 0 ? watchedShowsCache : await getUserWatchedShows());
+      let watchedContent =
+        mediaType === "movies"
+          ? watchedMoviesCache.length > 0
+            ? watchedMoviesCache
+            : await getUserWatchedMovies()
+          : watchedShowsCache.length > 0
+          ? watchedShowsCache
+          : await getUserWatchedShows();
 
       if (!watchedContent || watchedContent.length === 0) {
         throw new Error(`No watched ${mediaType} found`);
@@ -114,8 +123,12 @@ const TraktRecommendations = () => {
         dangerouslyAllowBrowser: true,
       });
 
-      const prompt = fromWatchlist 
-        ? await generatePromptFromWatchlist(mediaType, watchedContent, watchlist)
+      const prompt = fromWatchlist
+        ? await generatePromptFromWatchlist(
+            mediaType,
+            watchedContent,
+            watchlist
+          )
         : await generatePrompt(mediaType, watchedContent);
 
       if (!prompt) {
@@ -126,7 +139,8 @@ const TraktRecommendations = () => {
         messages: [
           {
             role: "system",
-            content: "You are a JSON-only response bot. Always respond with valid JSON matching the exact format requested. Your response should be a JSON object with a 'recommendations' array containing objects with 'title' and 'reason' properties. Never include additional text or explanations.",
+            content:
+              "You are a JSON-only response bot. Always respond with valid JSON matching the exact format requested. Your response should be a JSON object with a 'recommendations' array containing objects with 'title' and 'reason' properties. Never include additional text or explanations.",
           },
           {
             role: "user",
@@ -170,7 +184,8 @@ const TraktRecommendations = () => {
 
   // Utility functions for UI interactions
   const getFilteredContent = () => {
-    const content = mediaType === "movies" ? watchedMoviesCache : watchedShowsCache;
+    const content =
+      mediaType === "movies" ? watchedMoviesCache : watchedShowsCache;
     if (!searchQuery) return [];
     return content.filter((item: any) =>
       item.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -293,8 +308,9 @@ const TraktRecommendations = () => {
           {/* Controls Section */}
           <div className="space-y-6">
             <p className="text-zinc-300 text-sm leading-relaxed">
-              Let our AI analyze your watch history to discover personalized recommendations 
-              based on themes, narrative styles, and artistic approaches.
+              Let our AI analyze your watch history to discover personalized
+              recommendations based on themes, narrative styles, and artistic
+              approaches.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
@@ -311,19 +327,11 @@ const TraktRecommendations = () => {
                   <option value="shows">TV Shows</option>
                 </select>
 
-                <button
-                  onClick={() => setFromWatchlist(!fromWatchlist)}
-                  className={`px-4 py-2.5 rounded-xl text-sm transition-all
-                            ${fromWatchlist 
-                              ? 'bg-violet-500/10 text-violet-300 border border-violet-500/20' 
-                              : 'bg-zinc-800/30 text-zinc-300 border border-zinc-700/50'}`}
-                >
-                  {fromWatchlist ? "From Watchlist" : "General"}
-                </button>
-
                 <select
                   value={numRecommendations}
-                  onChange={(e) => setNumRecommendations(Number(e.target.value) as 5 | 10)}
+                  onChange={(e) =>
+                    setNumRecommendations(Number(e.target.value) as 5 | 10)
+                  }
                   className="bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-4 py-2.5 text-sm text-zinc-200 
                             focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20
                             appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
@@ -332,6 +340,18 @@ const TraktRecommendations = () => {
                   <option value={5}>5 Recommendations</option>
                   <option value={10}>10 Recommendations</option>
                 </select>
+
+                <button
+                  onClick={() => setFromWatchlist(!fromWatchlist)}
+                  className={`px-4 py-2.5 rounded-xl text-sm transition-all
+                            ${
+                              fromWatchlist
+                                ? "bg-violet-500/10 text-violet-300 border border-violet-500/20"
+                                : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
+                            }`}
+                >
+                  {fromWatchlist ? "From Watchlist" : "General"}
+                </button>
               </div>
 
               <button
@@ -365,10 +385,10 @@ const TraktRecommendations = () => {
 
       {/* Recommendations Grid */}
       {recommendations.length > 0 && (
-        <div className="space-y-6">
-          <h3 className="text-xl font-semibold text-white px-4">
+        <div className="space-y-6 mx-4">
+          {/* <h3 className="text-xl font-semibold text-white px-4">
             Your Personalized Recommendations
-          </h3>
+          </h3> */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mx-auto">
             {recommendationsDetails.map((rec, index) => (
               <RecommendationCard

@@ -22,6 +22,8 @@ interface MediaDetailsProps {
 export default function MediaDetails({ details, showAllSeasons, setShowAllSeasons, aiRecommendations, isAiLoading, saveToHistory, alert, toggleChat, showChat, setPrompt, prompt, handleSubmitPrompt }: MediaDetailsProps) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-[320px_1fr] gap-8 md:gap-14 mb-16">
+            {/* media backdrop as a background   */}
+            
             {/* Left Column */}
             <div className="space-y-8">
                 {/* Poster */}

@@ -1,6 +1,7 @@
 'use client'
 import { AIRecommendation } from "@/types/types";
 import { IoCheckmarkCircleOutline } from "react-icons/io5";
+import { RiSendPlaneFill } from "react-icons/ri";
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { RecommendationModal } from './RecommendationModal';
@@ -78,8 +79,8 @@ export default function AIRecommendations({
                             </>
                         ) : (
                             <>
-                                <IoCheckmarkCircleOutline className="w-5 h-5" />
-                                <span>Ask</span>
+                                <RiSendPlaneFill className="w-5 h-5" />
+                                <span>Send</span>
                             </>
                         )}
                     </button>

@@ -53,7 +53,7 @@ export default function RecommendationPage() {
                             },
                             {
                                 role: "user",
-                                content: generateDefaultPrompt(mediaDetails, type as string)
+                                content: generateDefaultPrompt(mediaDetails as any, type as string)
                             }
                         ],
                         model: "llama3-8b-8192",
@@ -153,7 +153,7 @@ export default function RecommendationPage() {
                     },
                     {
                         role: "user",
-                        content: generateCustomPrompt(details, type as string, prompt)
+                        content: generateCustomPrompt(details as any, type as string, prompt)
                     }
                 ],
                 model: "mixtral-8x7b-32768",
