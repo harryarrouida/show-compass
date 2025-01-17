@@ -8,7 +8,7 @@ import Groq from "groq-sdk";
 import { searchMovies, searchShows } from "@/services/content/searchServices";
 import MediaDetails from "@/components/shared/mediaDetails";
 import { AIRecommendation } from "@/types/types";
-import { generateDefaultPrompt, generateCustomPrompt } from '@/app/constants/aiPrompts';
+import { generateDefaultPrompt, generateCustomPrompt } from '@/constants/aiPrompts';
 import { search } from "@/services/content/sharedServices";
 import { useHistory } from '@/context/historyContext';
 
@@ -125,11 +125,11 @@ export default function RecommendationPage() {
         if (!recommendation.media) return;
         
         saveToHistoryContext(
-            recommendation.media as MappedMovie | MappedShow,
+            recommendation.media as unknown as MappedMovie | MappedShow,
             type as 'movie' | 'show',
             recommendation.reason,
             details as ShowDetails | MovieDetails
-        )
+        );
     }   
 
     const toggleChat = () => {

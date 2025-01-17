@@ -28,7 +28,7 @@ Genres: ${mediaDetails.genres.map((g: any) => g.name).join(', ')}
 Release Year: ${new Date(mediaDetails.release_date).getFullYear()}
 Average Rating: ${mediaDetails.vote_average}
 
-Generate exactly 4 recommendations that capture the essence of this ${type}.
+Generate exactly 8 recommendations that capture the essence of this ${type}.
 Respond with ONLY a clean JSON object in this exact format:
 {
     "recommendations": [
@@ -60,7 +60,7 @@ Rating: ${details?.vote_average}
 
 User Question: "${prompt}"
 
-Generate exactly 4 recommendations that address the user's question. 
+Generate exactly 8 recommendations that address the user's question. 
 Respond with ONLY a clean JSON object in this exact format:
 {
     "recommendations": [
@@ -74,4 +74,28 @@ Respond with ONLY a clean JSON object in this exact format:
 Rules for recommendations:
 ${RECOMMENDATION_RULES.baseRules.map(rule => `- ${rule}`).join('\n')}
 
-Remember: Return ONLY the JSON object with no additional text, markdown, or explanation.`; 
+Remember: Return ONLY the JSON object with no additional text, markdown, or explanation.`;
+
+export const generateTraktRecommendationsPrompt = (
+    sortedContent: any[],
+    watchedTitles: string[],
+    favoriteGenres: string[],
+    decadePreferences: Record<string, number>,
+    ratingDistribution: Record<string, number>,
+    type: 'movies' | 'shows',
+    numRecommendations: number
+) => {
+    return `Based on the user's watch history, generate ${numRecommendations} personalized ${type} recommendations.
+    Consider their favorite genres (${favoriteGenres.join(', ')}), decade preferences, and rating patterns.
+    Exclude these titles: ${watchedTitles.join(', ')}.
+    
+    Respond with valid JSON in this format:
+    {
+        "recommendations": [
+            {
+                "title": "Movie Title",
+                "reason": "Personalized reason for recommendation"
+            }
+        ]
+    }`;
+}; 

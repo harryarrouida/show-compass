@@ -8,6 +8,9 @@ import { search } from "@/services/content/sharedServices";
 import MediaCard from "@/components/shared/mediaCard";
 import { useHistory } from '@/context/historyContext';
 import Image from 'next/image';
+import { generateTraktRecommendationsPrompt } from "@/constants/aiPrompts";
+import { RecommendationCard } from "@/components/recommendations/RecommendationCard";
+import { RecommendationModal } from "@/components/recommendations/RecommendationModal";
 
 type MediaType = 'movies' | 'shows';
 
@@ -17,7 +20,7 @@ const TraktRecommendations = () => {
     const [mediaType, setMediaType] = useState<MediaType>('movies');
     const [selectedReason, setSelectedReason] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
-    const [numRecommendations, setNumRecommendations] = useState<4 | 8>(4);
+    const [numRecommendations, setNumRecommendations] = useState<5 | 10>(10);
     const {
         watchedMoviesCache,
         watchedShowsCache,
@@ -26,6 +29,7 @@ const TraktRecommendations = () => {
     } = useTraktContext();
     const [recommendationsDetails, setRecommendationsDetails] = useState<any[]>([]);
     const { saveToHistory: saveToHistoryContext } = useHistory();
+    const [selectedRecommendation, setSelectedRecommendation] = useState<any>(null);
 
     useEffect(() => {
         setRecommendations([]);
@@ -87,52 +91,15 @@ const TraktRecommendations = () => {
 
         const watchedTitles = watchedContent.map(item => item.title.toLowerCase());
 
-        return `As a streaming-savvy film curator, analyze this viewer's detailed watch history:
-
-        ${sortedContent.map(item =>
-            `- ${item.media.title} (${item.media.year}) | Rating: ${item.media.vote_average?.toFixed(1)} | Themes: ${item.media.overview?.slice(0, 100)}...`
-        ).join('\n')}
-        
-        Already Watched Titles (DO NOT RECOMMEND ANY OF THESE):
-        ${watchedTitles.join(', ')}
-        
-        Viewing Profile:
-        - Favorite Genres: ${favoriteGenres.join(', ')}
-        - Era Preferences: ${Object.entries(decadePreferences)
-                .map(([decade, count]) => `${decade}s: ${count} films`)
-                .join(', ')}
-        - Rating Distribution: 
-          * High-rated (8+): ${ratingDistribution.high || 0}
-          * Mid-rated (6-7.9): ${ratingDistribution.medium || 0}
-          * Lower-rated: ${ratingDistribution.low || 0}
-        - Total ${type}: ${watchedContent.length}
-        
-        Based on this profile, recommend ${numRecommendations} ${type} that align with their viewing preferences and are available on major streaming platforms (Netflix, Amazon Prime, Disney+, HBO Max, or Hulu).
-        
-        Respond with ONLY a clean JSON object in this format:
-        {
-            "recommendations": [
-                {
-                    "title": "Title",
-                    "reason": "First sentence references specific patterns from their watch history (genres, eras, or themes they enjoy). Second sentence highlights unique qualities of this ${type} that match their tastes while introducing something fresh.",
-                    "streaming_platform": "Platform where the film/show is currently available"
-                }
-            ]
-        }
-        
-        Rules:
-        - STRICTLY AVOID recommending any titles from this list: ${watchedTitles.join(', ')}
-        - Recommendations MUST be currently available on major streaming platforms (Netflix, Prime, Disney+, HBO Max, or Hulu).
-        - Recommendations MUST have a 7.5+ rating on major platforms.
-        - Each reason MUST be exactly two sentences, focusing on specific patterns in their watch history.
-        - Focus on themes, style, emotional resonance, and unique storytelling elements.
-        - Avoid obscure or hard-to-find titles unless exceptionally well-suited.
-        - Consider pacing, tone variety, and delivering fresh, engaging content.
-        - DO NOT RECOMMEND ${type} that are already in their watch history.
-        - Ensure recommendations differ in each response, offering variety and novelty.
-        
-        Remember: Return ONLY the JSON object with no additional text or explanation.`;
-
+        return generateTraktRecommendationsPrompt(
+            sortedContent,
+            watchedTitles,
+            favoriteGenres,
+            decadePreferences,
+            ratingDistribution,
+            type,
+            numRecommendations
+        );
     };
 
     const handleRecommendations = async () => {
@@ -194,7 +161,13 @@ const TraktRecommendations = () => {
                 const recommendationsDetails = await Promise.all(parsed.recommendations.map(async (rec: any) => {
                     const searchResults = await search(rec.title);
                     const mediaMatch = searchResults[0];
-                    return { ...rec, media: mediaMatch };
+                    return { 
+                        ...rec, 
+                        media: {
+                            ...mediaMatch,
+                            backdrop_path: mediaMatch.backdrop_path || ''
+                        } 
+                    };
                 }));
                 setRecommendationsDetails(recommendationsDetails);
             } catch (error) {
@@ -257,13 +230,13 @@ const TraktRecommendations = () => {
 
                                 <select
                                     value={numRecommendations}
-                                    onChange={(e) => setNumRecommendations(Number(e.target.value) as 4 | 8)}
+                                    onChange={(e) => setNumRecommendations(Number(e.target.value) as 5 | 10)}
                                     className="bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-300 focus:outline-none focus:border-zinc-600
                                             appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
                                             bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12"
                                 >
-                                    <option value={4}>4 Recommendations</option>
-                                    <option value={8}>8 Recommendations</option>
+                                    <option value={5}>5 Recommendations</option>
+                                    <option value={10}>10 Recommendations</option>
                                 </select>
                             </div>
 
@@ -308,89 +281,23 @@ const TraktRecommendations = () => {
             </div>
 
             {recommendations.length > 0 && (
-                <div className="space-y-8">
-                    {/* <div className="flex justify-center">
-                        <div className="inline-flex space-x-12 border-b border-zinc-800/50 backdrop-blur-sm">
-                            <button
-                                onClick={() => setMediaType('shows')}
-                                className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${
-                                    mediaType === 'shows'
-                                        ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-zinc-400 after:to-zinc-600'
-                                        : 'text-zinc-500 hover:text-zinc-400'
-                                }`}
-                            >
-                                Shows
-                            </button>
-                            <button
-                                onClick={() => setMediaType('movies')}
-                                className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${
-                                    mediaType === 'movies'
-                                        ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-zinc-400 after:to-zinc-600'
-                                        : 'text-zinc-500 hover:text-zinc-400'
-                                }`}
-                            >
-                                Movies
-                            </button>
-                        </div>
-                    </div> */}
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        {recommendationsDetails.map((rec, index) => (
-                            <div
-                                key={index}
-                                className="group relative overflow-hidden rounded-xl bg-zinc-900/80 border border-zinc-800/50 hover:bg-zinc-800/50 transition-all duration-300"
-                            >
-                                {/* Background Image with Gradient */}
-                                <div className="absolute inset-0">
-                                    <img
-                                        src={`https://image.tmdb.org/t/p/w1280${rec.media.backdrop_path}`}
-                                        alt=""
-                                        className="w-full h-full object-cover opacity-20"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/95 to-zinc-900/90" />
-                                </div>
-
-                                {/* Content */}
-                                <div className="relative p-6">
-                                    <button
-                                        onClick={() => handleSaveToHistory(rec)}
-                                        className="absolute top-4 right-4 p-2 bg-zinc-800/50 hover:bg-zinc-700/50 rounded-full text-white transition-all duration-300"
-                                    >
-                                        <IoBookmarkOutline className="w-5 h-5" />
-                                    </button>
-
-                                    <div className="flex flex-col space-y-4">
-                                        <div className="flex items-start space-x-4">
-                                            <Image
-                                                src={`https://image.tmdb.org/t/p/w500${rec.media.poster_path}`}
-                                                alt={rec.media.title}
-                                                width={128}
-                                                height={192}
-                                                className="w-32 h-48 object-cover rounded-lg shadow-lg"
-                                            />
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="text-lg font-semibold text-white truncate">
-                                                    {rec.media.title}
-                                                </h3>
-                                                <div className="flex items-center gap-3 mt-2 text-sm text-zinc-400">
-                                                    <div className="flex items-center">
-                                                        <IoStar className="text-amber-400 mr-1" />
-                                                        {rec.media.vote_average?.toFixed(1)}
-                                                    </div>
-                                                    <span>•</span>
-                                                    <span>{new Date(rec.media.release_date).getFullYear()}</span>
-                                                </div>
-                                                <p className="mt-3 text-sm text-zinc-300">
-                                                    {rec.reason}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                    {recommendationsDetails.map((rec, index) => (
+                        <RecommendationCard
+                            key={index}
+                            recommendation={rec}
+                            onSelect={(rec) => setSelectedRecommendation(rec)}
+                            onSave={handleSaveToHistory}
+                        />
+                    ))}
                 </div>
+            )}
+
+            {selectedRecommendation && (
+                <RecommendationModal
+                    recommendation={selectedRecommendation}
+                    onClose={() => setSelectedRecommendation(null)}
+                />
             )}
         </div>
     );

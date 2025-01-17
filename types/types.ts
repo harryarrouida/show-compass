@@ -10,18 +10,21 @@ export interface CacheItem<T> {
     timestamp: number;
 }
 
+interface MediaDetails {
+    id: number;
+    vote_average: number;
+    title: string;
+    release_date: string;
+    poster_path: string;
+    backdrop_path: string;
+    type: 'movie' | 'show';
+    popularity?: number;
+}
+
 export interface AIRecommendation {
     title: string;
     reason: string;
-    media?: {
-        id: number;
-        vote_average: number;
-        title: string;
-        release_date: string;
-        poster_path: string;
-        type: 'movie' | 'show';
-        popularity?: number;
-    };
+    media?: MediaDetails;
 }
 
 /** Service Response Types */

@@ -7,7 +7,6 @@ import { TraktProvider } from '@/context/traktContext';
 import { HistoryProvider } from '@/context/historyContext';
 import { ToastProvider } from '@/context/toastContext';
 
-const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Movie Recommendations",
@@ -20,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={inter.className}>
+    <html lang="en">
       <body className="bg-background text-zinc-100 min-h-screen flex flex-col antialiased">
         <ToastProvider>
           <TraktProvider>
