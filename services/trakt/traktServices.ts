@@ -26,8 +26,8 @@ export const traktWatched = async (token: string) => {
 };
 
 export const traktWatchlist = async (token: string) => {
-    const watchlist = await axios.get(`${baseUrl}/users/me/watchlist/movies`, {
-//   const watchlist = await axios.get("/api/trakt/watched", {
+  const watchlist = await axios.get(`${baseUrl}/users/me/watchlist/movies`, {
+    //   const watchlist = await axios.get("/api/trakt/watched", {
     headers: {
       Authorization: `Bearer ${token}`,
       "trakt-api-key": process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID,
@@ -52,7 +52,12 @@ export const traktHistory = async (token: string) => {
 
 export const moviesWatched = async (token: string) => {
   const moviesWatched = await axios.get(`${baseUrl}/users/me/watched/movies`, {
-    headers: { Authorization: `Bearer ${token}`, "trakt-api-key": process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID, "trakt-api-version": "2", "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "trakt-api-key": process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID,
+      "trakt-api-version": "2",
+      "Content-Type": "application/json",
+    },
   });
   const mappedMoviesWatched = moviesWatched.data.map((movie: any) => {
     return {
@@ -66,7 +71,12 @@ export const moviesWatched = async (token: string) => {
 
 export const showsWatched = async (token: string) => {
   const showsWatched = await axios.get(`${baseUrl}/users/me/watched/shows`, {
-    headers: { Authorization: `Bearer ${token}`, "trakt-api-key": process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID, "trakt-api-version": "2", "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "trakt-api-key": process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID,
+      "trakt-api-version": "2",
+      "Content-Type": "application/json",
+    },
   });
   const mappedShowsWatched = showsWatched.data.map((show: any) => {
     return {
@@ -78,3 +88,22 @@ export const showsWatched = async (token: string) => {
   return mappedShowsWatched;
 };
 
+export const getUserWatchlist = async (token: string, type: string) => {
+  const watchlist = await axios.get(`${baseUrl}/users/me/watchlist/${type}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "trakt-api-key": process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID,
+      "trakt-api-version": "2",
+      "Content-Type": "application/json",
+    },
+  });
+  const mappedWatchlist = watchlist.data.map((item: any) => {
+    return {
+      title: item[item.type].title,
+      tmdbId: item[item.type].ids.tmdb,
+      type: item.type,
+      listedAt: item.listed_at,
+    };
+  });
+  return mappedWatchlist;
+};

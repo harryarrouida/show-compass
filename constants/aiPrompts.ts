@@ -112,3 +112,42 @@ export const generateTraktRecommendationsPrompt = (
         ]
     }`;
 };
+
+export const generateWatchlistPrompt = (
+  watchedContent: any[],
+  watchlist: any[],
+  type: "movies" | "shows",
+  numRecommendations: number
+) => {
+  return `Based on the user's watched content containing: ${watchedContent
+    .map((item) => item.title)
+    .join(", ")}
+
+    Generate exactly ${numRecommendations} personalized ${type} recommendations based on the user's watchlist containing: ${watchlist
+    .map((item) => item.title)
+    .join(", ")}
+    what are the ${numRecommendations} recommendations that the user would like to watch next from his watchlist?
+
+Rules for recommendations:
+${RECOMMENDATION_RULES.baseRules.map((rule) => `- ${rule}`).join("\n")}
+
+Focus on connections like:
+${RECOMMENDATION_RULES.connectionTypes.map((type) => `- ${type}`).join("\n")}
+
+Avoid:
+${RECOMMENDATION_RULES.avoidance.map((item) => `- ${item}`).join("\n")}
+
+- DO NOT RECOMMEND ANY TITLES THAT ARE NOT IN THE USER WATCHLIST: ${watchlist
+    .map((item) => item.title)
+    .join(", ")}
+
+    Respond with valid JSON in this format:
+    {
+        "recommendations": [
+            {
+                "title": "Title",
+                "reason": "Personalized reason for recommendation"
+            }
+        ]
+    }`;
+};

@@ -32,6 +32,7 @@ const Trakt = () => {
   const [page, setPage] = useState(1);
   const { saveToHistory } = useHistory();
   const router = useRouter();
+  const [watchlist, setWatchlist] = useState<any[]>([]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -104,6 +105,11 @@ const Trakt = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const fetchWatchlist = async () => {
+    // const watchlist = await getUserWatchlist();
+    // setWatchlist(watchlist);
   };
 
   if (!isAuthenticated) {

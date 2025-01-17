@@ -5,309 +5,391 @@ import { useTraktContext } from "@/context/traktContext";
 import Groq from "groq-sdk";
 import { search } from "@/services/content/sharedServices";
 import MediaCard from "@/components/shared/mediaCard";
-import { useHistory } from '@/context/historyContext';
-import { generateTraktRecommendationsPrompt } from "@/constants/aiPrompts";
+import { useHistory } from "@/context/historyContext";
+import {
+  generateTraktRecommendationsPrompt,
+  generateWatchlistPrompt,
+} from "@/constants/aiPrompts";
 import { RecommendationCard } from "@/components/recommendations/RecommendationCard";
 import { RecommendationModal } from "@/components/recommendations/RecommendationModal";
+import { getUserWatchlist } from "@/services/trakt/traktServices";
 
-type MediaType = 'movies' | 'shows';
+// Main component for AI-powered movie/show recommendations based on Trakt.tv data
+type MediaType = "movies" | "shows";
 
 const TraktRecommendations = () => {
-    const [loading, setLoading] = useState(false);
-    const [recommendations, setRecommendations] = useState<any[]>([]);
-    const [mediaType, setMediaType] = useState<MediaType>('movies');
-    const [selectedReason, setSelectedReason] = useState<string | null>(null);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [numRecommendations, setNumRecommendations] = useState<5 | 10>(10);
-    const {
-        watchedMoviesCache,
-        watchedShowsCache,
-        getUserWatchedMovies,
-        getUserWatchedShows
-    } = useTraktContext();
-    const [recommendationsDetails, setRecommendationsDetails] = useState<any[]>([]);
-    const { saveToHistory: saveToHistoryContext } = useHistory();
-    const [selectedRecommendation, setSelectedRecommendation] = useState<any>(null);
+  // Core state management
+  const [loading, setLoading] = useState(false);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [mediaType, setMediaType] = useState<MediaType>("movies");
+  const [numRecommendations, setNumRecommendations] = useState<5 | 10>(10);
+  const [recommendationsDetails, setRecommendationsDetails] = useState<any[]>([]);
+  
+  // UI state management
+  const [selectedReason, setSelectedReason] = useState<string | null>(null);
+  const [selectedRecommendation, setSelectedRecommendation] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Watchlist related state
+  const [fromWatchlist, setFromWatchlist] = useState<boolean>(false);
+  const [watchlist, setWatchlist] = useState<any[]>([]);
+  const [seen, setSeen] = useState<string[]>([]);
 
-    const [seen, setSeen] = useState<string[]>([]);
+  const {
+    watchedMoviesCache,
+    watchedShowsCache,
+    getUserWatchedMovies,
+    getUserWatchedShows,
+  } = useTraktContext();
+  const { saveToHistory: saveToHistoryContext } = useHistory();
+  const { accessToken } = useTraktContext();
 
-    useEffect(() => {
-        setRecommendations([]);
-        setRecommendationsDetails([]);
-        setSelectedReason(null);
-    }, [mediaType]);
+  useEffect(() => {
+    setRecommendations([]);
+    setRecommendationsDetails([]);
+    setSelectedReason(null);
+  }, [mediaType]);
 
-    const generatePrompt = async (type: MediaType, watchedContent: any[]) => {
-        // Calculate viewing patterns and preferences
-        const recentContent = await Promise.all(watchedContent.map(async (item) => {
-            const searchResults = await search(item.title);
+  // Helper function to clean AI responses and ensure valid JSON
+  const cleanAndParseResponse = (response: string) => {
+    try {
+      // Extract JSON from markdown if present
+      const jsonMatch = response.match(/```(?:json)?([\s\S]*?)```/);
+      let cleanResponse = jsonMatch 
+        ? jsonMatch[1].trim() 
+        : response.trim();
+
+      // Remove any non-JSON text
+      cleanResponse = cleanResponse.replace(/^[^{]*/g, '').replace(/[^}]*$/g, '');
+      return JSON.parse(cleanResponse);
+    } catch (error) {
+      console.error("Failed to parse response:", error);
+      throw new Error("Invalid response format");
+    }
+  };
+
+  // Generates recommendations from user's watchlist
+  const generatePromptFromWatchlist = async (
+    type: MediaType,
+    watchedContent: any[],
+    watchlist: any[]
+  ): Promise<string> => {
+    if (!fromWatchlist || !accessToken) return "";
+    
+    let watchlistItems;
+    try {
+      watchlistItems = await getUserWatchlist(accessToken, type);
+      setWatchlist(watchlistItems);
+    } catch (error) {
+      console.error("Error fetching watchlist:", error);
+      return "";
+    }
+
+    return generateWatchlistPrompt(
+      watchedContent,
+      watchlistItems,
+      mediaType,
+      numRecommendations
+    );
+  };
+
+  // Main function to handle recommendation generation
+  const handleRecommendations = async () => {
+    setLoading(true);
+    setRecommendations([]);
+    setRecommendationsDetails([]);
+
+    try {
+      // Get watched content from cache or fetch new
+      let watchedContent = mediaType === "movies"
+        ? (watchedMoviesCache.length > 0 ? watchedMoviesCache : await getUserWatchedMovies())
+        : (watchedShowsCache.length > 0 ? watchedShowsCache : await getUserWatchedShows());
+
+      if (!watchedContent || watchedContent.length === 0) {
+        throw new Error(`No watched ${mediaType} found`);
+      }
+
+      const groq = new Groq({
+        apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
+        dangerouslyAllowBrowser: true,
+      });
+
+      const prompt = fromWatchlist 
+        ? await generatePromptFromWatchlist(mediaType, watchedContent, watchlist)
+        : await generatePrompt(mediaType, watchedContent);
+
+      if (!prompt) {
+        throw new Error("Failed to generate prompt");
+      }
+
+      const completion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: "You are a JSON-only response bot. Always respond with valid JSON matching the exact format requested. Your response should be a JSON object with a 'recommendations' array containing objects with 'title' and 'reason' properties. Never include additional text or explanations.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.7,
+        top_p: 0.9,
+      });
+
+      const response = completion.choices[0]?.message?.content || "";
+
+      try {
+        const parsed = cleanAndParseResponse(response);
+        setRecommendations(parsed.recommendations);
+        const recommendationsDetails = await Promise.all(
+          parsed.recommendations.map(async (rec: any) => {
+            const searchResults = await search(rec.title);
             const mediaMatch = searchResults[0];
             return {
-                ...item, media: {
-                    title: mediaMatch.title,
-                    year: new Date(mediaMatch.release_date).getFullYear(),
-                    genres: mediaMatch.genres || [],
-                    rating: mediaMatch.vote_average,
-                    watched_at: item.watched_at,
-                    vote_average: mediaMatch.vote_average,
-                    overview: mediaMatch.overview,
-                    poster_path: mediaMatch.poster_path,
-                    backdrop_path: mediaMatch.backdrop_path
-                }
+              ...rec,
+              media: {
+                ...mediaMatch,
+                backdrop_path: mediaMatch.backdrop_path || "",
+              },
             };
-        }));
-
-        // Calculate viewing patterns from the cleaned data
-        const genreCounts = recentContent.reduce((acc: any, item) => {
-            item.media.genres?.forEach((genre: string) => {
-                acc[genre] = (acc[genre] || 0) + 1;
-            });
-            return acc;
-        }, {});
-
-        const favoriteGenres = Object.entries(genreCounts)
-            .sort(([, a]: any, [, b]: any) => b - a)
-            .slice(0, 3)
-            .map(([genre]) => genre);
-
-        const decadePreferences = recentContent.reduce((acc: any, item) => {
-            const decade = Math.floor(item.media.year / 10) * 10;
-            acc[decade] = (acc[decade] || 0) + 1;
-            return acc;
-        }, {});
-
-        const ratingDistribution = recentContent.reduce((acc: any, item) => {
-            if (item.media.vote_average) {
-                const ratingKey = item.media.vote_average >= 8 ? 'high' : item.media.vote_average >= 6 ? 'medium' : 'low';
-                acc[ratingKey] = (acc[ratingKey] || 0) + 1;
-            }
-            return acc;
-        }, {});
-
-        // Sort by watch date for recent content
-        const sortedContent = [...recentContent].sort((a, b) =>
-            new Date(b.watched_at).getTime() - new Date(a.watched_at).getTime()
+          })
         );
-
-        const watchedTitles = watchedContent.map(item => item.title.toLowerCase());
-
-        return generateTraktRecommendationsPrompt(
-            sortedContent,
-            watchedTitles,
-            favoriteGenres,
-            decadePreferences,
-            ratingDistribution,
-            seen,
-            type,
-            numRecommendations
-        );
-    };
-
-    const handleRecommendations = async () => {
-        setLoading(true);
-        // Clear previous recommendations immediately when starting
+        setRecommendationsDetails(recommendationsDetails);
+      } catch (error) {
+        console.error("Failed to parse AI response:", error);
         setRecommendations([]);
-        setRecommendationsDetails([]);
+      }
+    } catch (error) {
+      console.error("Error generating recommendations:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        try {
-            // Get watched content from cache or fetch if needed
-            let watchedContent;
-            if (mediaType === 'movies') {
-                watchedContent = watchedMoviesCache.length > 0
-                    ? watchedMoviesCache
-                    : await getUserWatchedMovies();
-            } else {
-                watchedContent = watchedShowsCache.length > 0
-                    ? watchedShowsCache
-                    : await getUserWatchedShows();
-            }
-
-            if (!watchedContent || watchedContent.length === 0) {
-                throw new Error(`No watched ${mediaType} found`);
-            }
-
-            const groq = new Groq({
-                apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
-                dangerouslyAllowBrowser: true
-            });
-
-            const prompt = await generatePrompt(mediaType, watchedContent);
-
-            const completion = await groq.chat.completions.create({
-                messages: [
-                    {
-                        role: "system",
-                        content: "You are a JSON-only response bot. Always respond with valid JSON matching the exact format requested. Never include additional text or explanations."
-                    },
-                    {
-                        role: "user",
-                        content: prompt
-                    }
-                ],
-                model: "llama-3.3-70b-versatile",
-                temperature: 0.7,
-                top_p: 0.9,
-            });
-
-            const response = completion.choices[0]?.message?.content || "";
-
-            try {
-                const cleanResponse = response.trim()
-                    .replace(/```json/g, '')
-                    .replace(/```/g, '')
-                    .trim();
-
-                const parsed = JSON.parse(cleanResponse);
-                setRecommendations(parsed.recommendations);
-                const recommendationsDetails = await Promise.all(parsed.recommendations.map(async (rec: any) => {
-                    const searchResults = await search(rec.title);
-                    const mediaMatch = searchResults[0];
-                    return { 
-                        ...rec, 
-                        media: {
-                            ...mediaMatch,
-                            backdrop_path: mediaMatch.backdrop_path || ''
-                        } 
-                    };
-                }));
-                setRecommendationsDetails(recommendationsDetails);
-            } catch (error) {
-                console.error('Failed to parse AI response:', error);
-                setRecommendations([]);
-            }
-        } catch (error) {
-            console.error('Error generating recommendations:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const getFilteredContent = () => {
-        const content = mediaType === 'movies' ? watchedMoviesCache : watchedShowsCache;
-        if (!searchQuery) return [];
-        return content.filter((item: any) =>
-            item.title.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    };
-
-    const handleSaveToHistory = (recommendation: any) => {
-        if (!recommendation.media) return;
-
-        saveToHistoryContext(
-            recommendation.media,
-            mediaType === 'movies' ? 'movie' : 'show',
-            recommendation.reason,
-            'Trakt Recommendations'
-        );
-    };
-
-    const handleSeen = (recommendation: any) => {
-        try {
-            // Update seen state with the new title
-            setSeen(prevSeen => [...prevSeen, recommendation.title]);
-            // Close the modal
-            setSelectedRecommendation(null);
-        } catch (error) {
-            console.error('Error marking as seen:', error);
-        }
-    };
-
-    return (
-        <div className="w-full mx-auto px-6 sm:px-8 lg:px-12 mt-16 mb-20">
-            <div className="w-full bg-zinc-900/50 border border-zinc-800/50 rounded-lg p-6 max-w-3xl mx-auto mb-16">
-                <div className="flex items-start gap-4">
-                    <div className="p-3 bg-zinc-800/50 rounded-lg">
-                        <RiRobot2Line className="w-6 h-6 text-zinc-400" />
-                    </div>
-                    <div className="space-y-3 flex-1">
-                        <h2 className="text-xl font-semibold text-white">AI-Powered Recommendations</h2>
-                        <p className="text-zinc-400 text-sm leading-relaxed">
-                            Let our AI analyze your watch history to discover personalized recommendations
-                            based on themes, narrative styles, and artistic approaches. Get fresh perspectives
-                            on what to watch next, tailored to your unique taste.
-                        </p>
-
-                        <div className="flex items-center justify-between gap-4">
-                            <div className="flex gap-4">
-                                <select
-                                    value={mediaType}
-                                    onChange={(e) => setMediaType(e.target.value as MediaType)}
-                                    className="bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-300 focus:outline-none focus:border-zinc-600
-                                            appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
-                                            bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12"
-                                >
-                                    <option value="movies">Movies</option>
-                                    <option value="shows">TV Shows</option>
-                                </select>
-
-                                <select
-                                    value={numRecommendations}
-                                    onChange={(e) => setNumRecommendations(Number(e.target.value) as 5 | 10)}
-                                    className="bg-zinc-800/50 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-300 focus:outline-none focus:border-zinc-600
-                                            appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
-                                            bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12"
-                                >
-                                    <option value={5} defaultChecked>5 Recommendations</option>
-                                    <option value={10}>10 Recommendations</option>
-                                </select>
-                            </div>
-
-                            <button
-                                onClick={handleRecommendations}
-                                disabled={loading}
-                                className="group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-zinc-700 to-zinc-800 
-                                        rounded-full text-sm text-white transition-all duration-300
-                                        hover:shadow-lg hover:shadow-zinc-800/25 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {loading ? (
-                                    <>
-                                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-zinc-400 border-t-transparent" />
-                                        <span>Analyzing...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <RiRobot2Line className="w-4 h-4" />
-                                        <span>Generate Recommendations</span>
-                                        <IoChevronForwardOutline className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-                                    </>
-                                )}
-                            </button>
-                        </div>
-
-                        {(mediaType === 'movies' && watchedMoviesCache.length > 0) || (mediaType === 'shows' && watchedShowsCache.length > 0) && (
-                            <div className="mt-4">
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8">
-                                    {getFilteredContent().map((item: any, index: number) => (
-                                        <MediaCard
-                                            key={index}
-                                            item={item}
-                                            activeTab={mediaType}
-
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-
-            {recommendations.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 mx-auto">
-                    {recommendationsDetails.map((rec, index) => (
-                        <RecommendationCard key={index} recommendation={rec} onSelect={setSelectedRecommendation} onSave={handleSaveToHistory} />
-                    ))}
-                </div>
-            )}
-
-            {selectedRecommendation && (
-                <RecommendationModal
-                    recommendation={selectedRecommendation}
-                    onClose={() => setSelectedRecommendation(null)}
-                />
-            )}
-        </div>
+  // Utility functions for UI interactions
+  const getFilteredContent = () => {
+    const content = mediaType === "movies" ? watchedMoviesCache : watchedShowsCache;
+    if (!searchQuery) return [];
+    return content.filter((item: any) =>
+      item.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
+  };
+
+  // Save recommendation to user history
+  const handleSaveToHistory = (recommendation: any) => {
+    if (!recommendation.media) return;
+    saveToHistoryContext(
+      recommendation.media,
+      mediaType === "movies" ? "movie" : "show",
+      recommendation.reason,
+      "Trakt Recommendations"
+    );
+  };
+
+  // Mark recommendation as seen and close modal
+  const handleSeen = (recommendation: any) => {
+    setSeen((prevSeen) => [...prevSeen, recommendation.title]);
+    setSelectedRecommendation(null);
+  };
+
+  const generatePrompt = async (type: MediaType, watchedContent: any[]) => {
+    // Calculate viewing patterns and preferences
+    const recentContent = await Promise.all(
+      watchedContent.map(async (item) => {
+        const searchResults = await search(item.title);
+        const mediaMatch = searchResults[0];
+        return {
+          ...item,
+          media: {
+            title: mediaMatch.title,
+            year: new Date(mediaMatch.release_date).getFullYear(),
+            genres: mediaMatch.genres || [],
+            rating: mediaMatch.vote_average,
+            watched_at: item.watched_at,
+            vote_average: mediaMatch.vote_average,
+            overview: mediaMatch.overview,
+            poster_path: mediaMatch.poster_path,
+            backdrop_path: mediaMatch.backdrop_path,
+          },
+        };
+      })
+    );
+
+    // Calculate viewing patterns from the cleaned data
+    const genreCounts = recentContent.reduce((acc: any, item) => {
+      item.media.genres?.forEach((genre: string) => {
+        acc[genre] = (acc[genre] || 0) + 1;
+      });
+      return acc;
+    }, {});
+
+    const favoriteGenres = Object.entries(genreCounts)
+      .sort(([, a]: any, [, b]: any) => b - a)
+      .slice(0, 3)
+      .map(([genre]) => genre);
+
+    const decadePreferences = recentContent.reduce((acc: any, item) => {
+      const decade = Math.floor(item.media.year / 10) * 10;
+      acc[decade] = (acc[decade] || 0) + 1;
+      return acc;
+    }, {});
+
+    const ratingDistribution = recentContent.reduce((acc: any, item) => {
+      if (item.media.vote_average) {
+        const ratingKey =
+          item.media.vote_average >= 8
+            ? "high"
+            : item.media.vote_average >= 6
+            ? "medium"
+            : "low";
+        acc[ratingKey] = (acc[ratingKey] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    // Sort by watch date for recent content
+    const sortedContent = [...recentContent].sort(
+      (a, b) =>
+        new Date(b.watched_at).getTime() - new Date(a.watched_at).getTime()
+    );
+
+    const watchedTitles = watchedContent.map((item) =>
+      item.title.toLowerCase()
+    );
+
+    return generateTraktRecommendationsPrompt(
+      sortedContent,
+      watchedTitles,
+      favoriteGenres,
+      decadePreferences,
+      ratingDistribution,
+      seen,
+      type,
+      numRecommendations
+    );
+  };
+
+  return (
+    <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 mt-8 mb-20">
+      <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800/50 rounded-2xl p-8 max-w-4xl mx-auto mb-12 shadow-xl">
+        <div className="flex flex-col gap-6">
+          {/* Header Section */}
+          <div className="flex items-center gap-4 pb-6 border-b border-zinc-800/50">
+            <div className="p-3 bg-gradient-to-br from-violet-500/10 to-violet-500/5 rounded-xl border border-violet-500/10">
+              <RiRobot2Line className="w-6 h-6 text-violet-400" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">
+                AI-Powered Recommendations
+              </h2>
+              <p className="text-zinc-400 text-sm mt-1">
+                Discover your next favorite based on your unique taste
+              </p>
+            </div>
+          </div>
+
+          {/* Controls Section */}
+          <div className="space-y-6">
+            <p className="text-zinc-300 text-sm leading-relaxed">
+              Let our AI analyze your watch history to discover personalized recommendations 
+              based on themes, narrative styles, and artistic approaches.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-wrap gap-3 flex-1">
+                <select
+                  value={mediaType}
+                  onChange={(e) => setMediaType(e.target.value as MediaType)}
+                  className="bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-4 py-2.5 text-sm text-zinc-200 
+                            focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20
+                            appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
+                            bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all"
+                >
+                  <option value="movies">Movies</option>
+                  <option value="shows">TV Shows</option>
+                </select>
+
+                <button
+                  onClick={() => setFromWatchlist(!fromWatchlist)}
+                  className={`px-4 py-2.5 rounded-xl text-sm transition-all
+                            ${fromWatchlist 
+                              ? 'bg-violet-500/10 text-violet-300 border border-violet-500/20' 
+                              : 'bg-zinc-800/30 text-zinc-300 border border-zinc-700/50'}`}
+                >
+                  {fromWatchlist ? "From Watchlist" : "General"}
+                </button>
+
+                <select
+                  value={numRecommendations}
+                  onChange={(e) => setNumRecommendations(Number(e.target.value) as 5 | 10)}
+                  className="bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-4 py-2.5 text-sm text-zinc-200 
+                            focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20
+                            appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
+                            bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all"
+                >
+                  <option value={5}>5 Recommendations</option>
+                  <option value={10}>10 Recommendations</option>
+                </select>
+              </div>
+
+              <button
+                onClick={handleRecommendations}
+                disabled={loading}
+                className="group flex items-center justify-center gap-2 px-6 py-2.5 
+                          bg-gradient-to-r from-violet-600 to-violet-500 
+                          hover:from-violet-500 hover:to-violet-400
+                          rounded-xl text-sm text-white font-medium transition-all duration-300
+                          hover:shadow-lg hover:shadow-violet-500/25 
+                          disabled:opacity-50 disabled:cursor-not-allowed
+                          disabled:hover:shadow-none"
+              >
+                {loading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                    <span>Analyzing...</span>
+                  </>
+                ) : (
+                  <>
+                    <RiRobot2Line className="w-4 h-4" />
+                    <span>Generate Recommendations</span>
+                    <IoChevronForwardOutline className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recommendations Grid */}
+      {recommendations.length > 0 && (
+        <div className="space-y-6">
+          <h3 className="text-xl font-semibold text-white px-4">
+            Your Personalized Recommendations
+          </h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mx-auto">
+            {recommendationsDetails.map((rec, index) => (
+              <RecommendationCard
+                key={index}
+                recommendation={rec}
+                onSelect={setSelectedRecommendation}
+                onSave={handleSaveToHistory}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {selectedRecommendation && (
+        <RecommendationModal
+          recommendation={selectedRecommendation}
+          onClose={() => setSelectedRecommendation(null)}
+        />
+      )}
+    </div>
+  );
 };
 
 export default TraktRecommendations;
