@@ -77,7 +77,7 @@ export default function HistoryPage() {
                             <div
                                 key={item.id}
                                 onClick={() => setSelectedItem(item as HistoryItem)}
-                                className="group relative w-full cursor-pointer"
+                                className="mx-auto group relative w-[140px] md:w-[180px] lg:w-[200px] cursor-pointer"
                             >
                                 <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
                                     <Image
@@ -90,21 +90,16 @@ export default function HistoryPage() {
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0" />
                                 </div>
 
-                                <div className="mt-2 space-y-0.5 sm:space-y-1">
+                                <div className="mt-2 space-y-0.5 sm:space-y-1 flex justify-between items-center">
                                     <h3 className="text-xs sm:text-sm font-medium text-zinc-300 line-clamp-1">
                                         {item.data.title}
                                     </h3>
-                                    <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-xs text-zinc-400">
-                                        {item.data.release_date && (
-                                            <span>{new Date(item.data.release_date).getFullYear()}</span>
-                                        )}
                                         {item.data.vote_average && (
                                             <span className="flex items-center">
-                                                • <IoStar className="text-amber-400 mx-0.5 sm:mx-1" size={10} />
+                                                <IoStar className="text-amber-400 mx-0.5 sm:mx-1" size={10} />
                                                 {item.data.vote_average.toFixed(1)}
                                             </span>
                                         )}
-                                    </div>
                                 </div>
 
                                 <button
@@ -149,7 +144,7 @@ export default function HistoryPage() {
                             <IoClose className="w-6 h-6" />
                         </button>
 
-                        <div className="relative h-[200px] sm:h-[300px] w-full">
+                        <div className="relative h-[200px] sm:h-[300px]">
                             <Image
                                 src={`${process.env.NEXT_PUBLIC_TMDB_BACKDROP_URL}${selectedItem.data.backdrop_path}`}
                                 alt={selectedItem.data.title}

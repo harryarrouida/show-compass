@@ -87,7 +87,7 @@ export default function AIRecommendations({
                 </form>
             )}
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-4 mx-auto">
+            <div className="mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-4">
                 {isAiLoading ? (
                     Array(6).fill(0).map((_, index) => (
                         <CardSkeleton key={index} index={index} />

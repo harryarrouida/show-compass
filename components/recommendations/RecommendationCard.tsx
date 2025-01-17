@@ -16,9 +16,9 @@ export function RecommendationCard({
   return (
     <div
       onClick={() => onSelect(rec)}
-      className="group relative w-[180px] cursor-pointer mb-10"
+      className="mx-auto group relative w-[140px] md:w-[180px] lg:w-[200px] cursor-pointer mb-10"
     >
-      <div className="w-full flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg">
+      <div className="mx-auto w-full flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg">
         <div className="relative">
           <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
             {rec.media?.poster_path && (

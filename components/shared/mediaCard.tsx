@@ -34,37 +34,37 @@ export default function MediaCard({
   const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
 
   return (
-    <div className="relative w-[180px] sm:w-[100px] mb-10 cursor-pointer group">
-        <Link
-          href={`/recommendation/${item.id}/${mediaType}`}
-          key={item.id}
-          className="w-[180px] group flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg"
-        >
-          <div className="group relative">
-            <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
-              <Image
-                src={posterUrl}
-                alt={title}
-                fill
-                className="object-cover transform transition-transform duration-500 group-hover:scale-105"
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0" />
-            </div>
-
-            <div className="mt-4 space-y-2 transition-opacity duration-300 flex justify-between items-center px-2">
-              <h3 className="text-lg font-medium line-clamp-1 text-left text-sm text-zinc-400">{title}</h3>
-              <div className="flex items-center gap-2 text-sm text-zinc-400">
-                <span className="flex items-center">
-                  <IoStar className="text-amber-400 mr-1" />
-                  {rating}
-                </span>
-                {/* <span>•</span> */}
-                {/* <span>{year}</span> */}
-              </div>
-            </div>
+    <div className="mx-auto relative w-[140px] md:w-[180px] lg:w-[200px] mb-10 cursor-pointer group">
+      <Link
+        href={`/recommendation/${item.id}/${mediaType}`}
+        key={item.id}
+        className="mx-auto w-full md:w-[180px] lg:w-[200px] group flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg"
+      >
+        <div className="group relative">
+          <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
+            <Image
+              src={posterUrl}
+              alt={title}
+              fill
+              className="object-cover transform transition-transform duration-500 group-hover:scale-105"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0" />
           </div>
-        </Link>
+
+          <div className="mt-2 space-y-0.5 sm:space-y-1 flex justify-between items-center">
+            <h3 className="text-xs sm:text-sm font-medium text-zinc-300 line-clamp-1">
+              {title}
+            </h3>
+            {rating && (
+              <span className="flex items-center">
+                <IoStar className="text-amber-400 mx-0.5 sm:mx-1" size={10} />
+                {rating}
+              </span>
+            )}
+          </div>
+        </div>
+      </Link>
 
       {showSaveToHistory && onSave && (
         <button

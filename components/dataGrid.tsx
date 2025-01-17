@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { MappedShow, MappedMovie } from '@/types/types';
 import MediaCard from '@/components/shared/mediaCard';
-import Loading from './shared/loading';
 
 interface DataGridProps {
     activeTab: string;
@@ -68,7 +67,7 @@ export default function DataGrid({
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
+            <div className="mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
                 {data.map((item) => (
                     <MediaCard key={item.id} item={item} activeTab={activeTab} />
                 ))}
@@ -85,7 +84,13 @@ export default function DataGrid({
                 >
                     <div className="relative flex items-center space-x-2">
                         {isLoading ? (
-                            <Loading text="Loading More..." size="small" />
+                            <>
+                                <svg className="animate-spin h-4 w-4 text-zinc-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span className="text-zinc-300">Loading...</span>
+                            </>
                         ) : (
                             <span className="text-zinc-300">Load More</span>
                         )}
