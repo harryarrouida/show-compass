@@ -23,7 +23,7 @@ export default function MediaCard({ item, activeTab, showSaveToHistory = false, 
     const year = releaseDate ? new Date(releaseDate).getFullYear() : '';
 
     return (
-        <div className="relative">
+        <div className="relative w-[180px] mb-10">
             <Link
                 href={`/recommendation/${item.id}/${mediaType}`}
                 key={item.id}
@@ -36,6 +36,7 @@ export default function MediaCard({ item, activeTab, showSaveToHistory = false, 
                             alt={title}
                             fill
                             className="object-cover transform transition-transform duration-500 group-hover:scale-105"
+                            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0" />
                     </div>

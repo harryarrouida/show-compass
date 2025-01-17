@@ -1,73 +1,48 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getPopularShows, getTrendingShows } from '@/services/content/showServices';
-import { getTrendingMovies } from '@/services/content/movieServices';
-import { Show, Movie, MappedShow, MappedMovie } from '@/types/types';
+import { MappedShow, MappedMovie } from '@/types/types';
 import MediaCard from '@/components/shared/mediaCard';
 
-export default function DataGrid() {
-    const [activeTab, setActiveTab] = useState('shows');
-    const [shows, setShows] = useState<MappedShow[]>([]);
-    const [movies, setMovies] = useState<MappedMovie[]>([]);
-    const [page, setPage] = useState(1);
-    const [isLoading, setIsLoading] = useState(false);
+interface DataGridProps {
+    activeTab: string;
+    setActiveTab: (tab: string) => void;
+    shows: MappedShow[];
+    setShows: (shows: MappedShow[]) => void;
+    movies: MappedMovie[];
+    setMovies: (movies: MappedMovie[]) => void;
+    page: number;
+    setPage: (page: number) => void;
+    isLoading: boolean;
+    setIsLoading: (loading: boolean) => void;
+}
+
+export default function DataGrid({
+    activeTab,
+    setActiveTab,
+    shows,
+    setShows,
+    movies,
+    setMovies,
+    page,
+    setPage,
+    isLoading,
+    setIsLoading
+}: DataGridProps) {
     const data = activeTab === 'movies' ? movies : shows;
-
-    const fetchShows = async (pageNum: number) => {
-        setIsLoading(true);
-        try {
-            const data = await getTrendingShows(pageNum);
-            if (pageNum === 1) {
-                setShows(data);
-            } else {
-                setShows(prevShows => [...prevShows, ...data]);
-            }
-        } catch (error) {
-            console.error('Error fetching shows:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const fetchMovies = async (pageNum: number) => {
-        setIsLoading(true);
-        try {
-            const data = await getTrendingMovies(pageNum);
-            if (pageNum === 1) {
-                setMovies(data);
-            } else {
-                setMovies(prevMovies => [...prevMovies, ...data]);
-            }
-        } catch (error) {
-            console.error('Error fetching movies:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
 
     useEffect(() => {
         setPage(1);
-        if (activeTab === 'movies') {
-            fetchMovies(1);
-        } else {
-            fetchShows(1);
-        }
-    }, [activeTab]);
+    }, [activeTab, setPage]);
 
     const handleLoadMore = () => {
         const nextPage = page + 1;
         setPage(nextPage);
-        if (activeTab === 'movies') {
-            fetchMovies(nextPage);
-        } else {
-            fetchShows(nextPage);
-        }
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-            <div className="flex justify-center mb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-center mb-6">
                 <div className="inline-flex space-x-12 border-b border-zinc-800/50 backdrop-blur-sm">
                     <button
                         onClick={() => setActiveTab('shows')}
@@ -92,13 +67,13 @@ export default function DataGrid() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 sm:gap-3 ">
                 {data.map((item) => (
                     <MediaCard key={item.id} item={item} activeTab={activeTab} />
                 ))}
             </div>
 
-            <div className="mt-20 mb-16 flex justify-center">
+            <div className="mt-8 mb-6 flex justify-center">
                 <button
                     onClick={handleLoadMore}
                     disabled={isLoading}

@@ -11,6 +11,7 @@ import Image from 'next/image';
 import { generateTraktRecommendationsPrompt } from "@/constants/aiPrompts";
 import { RecommendationCard } from "@/components/recommendations/RecommendationCard";
 import { RecommendationModal } from "@/components/recommendations/RecommendationModal";
+import { MediaPosterCard } from "@/components/shared/MediaPosterCard";
 
 type MediaType = 'movies' | 'shows';
 
@@ -264,7 +265,7 @@ const TraktRecommendations = () => {
 
                         {(mediaType === 'movies' && watchedMoviesCache.length > 0) || (mediaType === 'shows' && watchedShowsCache.length > 0) && (
                             <div className="mt-4">
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-8">
                                     {getFilteredContent().map((item: any, index: number) => (
                                         <MediaCard
                                             key={index}
@@ -281,12 +282,13 @@ const TraktRecommendations = () => {
             </div>
 
             {recommendations.length > 0 && (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 mx-auto">
                     {recommendationsDetails.map((rec, index) => (
-                        <RecommendationCard
+                        <MediaPosterCard
                             key={index}
-                            recommendation={rec}
-                            onSelect={(rec) => setSelectedRecommendation(rec)}
+                            media={rec.media}
+                            reason={rec.reason}
+                            onSelect={(media) => setSelectedRecommendation({ ...rec, media })}
                             onSave={handleSaveToHistory}
                         />
                     ))}

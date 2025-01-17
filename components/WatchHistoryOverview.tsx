@@ -45,7 +45,7 @@ const WatchHistoryOverview = ({
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-12 mx-16 mt-12">
             <div className="bg-gradient-to-br from-zinc-900/40 to-zinc-900/20 backdrop-blur-sm rounded-3xl p-8 border border-zinc-800/30 shadow-xl">
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center space-x-3 px-5 py-2.5 bg-zinc-800/20 rounded-full border border-zinc-700/30 backdrop-blur-md">
