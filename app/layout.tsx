@@ -26,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={quicksand.variable}>
-      <body className="bg-zinc-900 text-zinc-100 min-h-screen flex flex-col antialiased font-sans relative">
+      <body className="bg-neutral-950 min-h-screen flex flex-col antialiased font-sans relative">
         <ToastProvider>
           <TraktProvider>
             <HistoryProvider>

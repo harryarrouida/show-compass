@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { RiHistoryLine, RiLoginCircleLine, RiMenuLine } from "react-icons/ri";
+import { RiHistoryLine, RiLoginCircleLine, RiMenuLine, RiSaveLine } from "react-icons/ri";
 import { SiTrakt } from 'react-icons/si';
 import { useTraktContext } from '@/context/traktContext';
 
@@ -27,8 +27,8 @@ export default function Navbar() {
                             href="/history"
                             className="flex items-center gap-2 px-4 py-2 text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-all duration-300"
                         >
-                            <RiHistoryLine className="text-xl" />
-                            <span className="font-medium">History</span>
+                            <RiSaveLine className="text-xl" />
+                            <span className="font-medium">Saved</span>
                         </Link>
 
                         {isAuthenticated ? (
