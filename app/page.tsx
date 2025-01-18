@@ -63,6 +63,7 @@ export default function Home() {
         </div>
 
         <DataGrid
+          isWithSearch={false}
           activeTab={activeTab as "shows" | "movies"}
           setActiveTab={setActiveTab}
           shows={shows}
