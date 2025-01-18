@@ -34,8 +34,9 @@ export default function MediaCard({
   const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
 
   return (
-    <div className="mx-auto relative w-[100px] md:w-[150px] lg:w-[180px] mb-10 cursor-pointer group" key={item.id + item.title}>
+    <div className="relative w-[100px] md:w-[150px] lg:w-[180px] mb-10 cursor-pointer group" key={item.id + Math.random()}>
       <Link
+        key={item.id + Math.random()}
         href={`/recommendation/${item.id}/${mediaType}`}
         className="mx-auto w-full md:w-full lg:w-full group flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg"
       >

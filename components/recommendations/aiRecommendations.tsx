@@ -45,23 +45,49 @@ export default function AIRecommendations({ isAiLoading, aiRecommendations, save
             {showChat && !isDefaultRecs && (
                 <form onSubmit={handleSubmitPrompt} className="mb-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <div className="relative flex-grow">
-                        <input value={prompt} onChange={(e) => setPrompt(e.target.value)} type="text" placeholder="What kind of recommendations are you looking for?" className="w-full p-4 sm:p-5 rounded-xl bg-zinc-900 text-zinc-100 border border-violet-500/20 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 placeholder:text-zinc-500 transition-all duration-300 text-sm sm:text-base"/>
-                        {prompt.length > 0 && (
-                            <button type="button" onClick={() => setPrompt('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors">
-                                <IoClose size={18} />
+                        <input 
+                            value={prompt} 
+                            onChange={(e) => setPrompt(e.target.value)}
+                            type="text"
+                            placeholder="What kind of recommendations are you looking for?"
+                            className="w-full p-3 sm:p-4 rounded-xl bg-zinc-900 text-zinc-100 border border-violet-500/20 
+                                     focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 
+                                     placeholder:text-zinc-500 transition-all duration-300 text-sm sm:text-base"
+                            disabled={isAiLoading}
+                        />
+                        {prompt.length > 0 && !isAiLoading && (
+                            <button 
+                                type="button" 
+                                onClick={() => setPrompt('')}
+                                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 p-1 text-zinc-500 
+                                         hover:text-zinc-300 transition-colors"
+                                aria-label="Clear input"
+                            >
+                                <IoClose size={16} className="sm:w-[18px] sm:h-[18px]" />
                             </button>
                         )}
                     </div>
-                    <button disabled={isAiLoading || !prompt.trim()} type="submit" className={`px-6 py-4 sm:py-5 bg-violet-600 rounded-xl text-white font-medium transition-all duration-300 flex items-center justify-center gap-2 flex-shrink-0 text-sm sm:text-base shadow-lg shadow-violet-600/10 ${isAiLoading || !prompt.trim() ? 'opacity-50 cursor-not-allowed bg-violet-600/50' : 'hover:bg-violet-700 hover:shadow-lg hover:shadow-violet-600/20 active:scale-95'}`}>
+                    <button 
+                        disabled={isAiLoading || !prompt.trim()} 
+                        type="submit" 
+                        className={`px-4 sm:px-6 py-3 sm:py-4 rounded-xl text-white font-medium transition-all duration-300 
+                                  flex items-center justify-center gap-2 flex-shrink-0 text-sm sm:text-base shadow-lg 
+                                  shadow-violet-600/10 ${
+                                    isAiLoading || !prompt.trim() 
+                                    ? 'bg-violet-600/50 opacity-50 cursor-not-allowed' 
+                                    : 'bg-violet-600 hover:bg-violet-700 hover:shadow-lg hover:shadow-violet-600/20 active:scale-95'
+                                  }`}
+                        aria-label={isAiLoading ? "Loading..." : "Send message"}
+                    >
                         {isAiLoading ? (
                             <>
-                                <div className="animate-spin h-4 w-4 sm:h-5 sm:w-5 border-2 border-white border-t-transparent rounded-full"></div>
-                                <span className="hidden sm:inline">Loading...</span>
+                                <div className="animate-spin h-4 w-4 sm:h-5 sm:w-5 border-2 border-white border-t-transparent rounded-full" />
+                                <span className="sm:inline">Loading...</span>
                             </>
                         ) : (
                             <>
                                 <RiSendPlaneFill className="w-4 h-4 sm:w-5 sm:h-5" />
-                                <span className="hidden sm:inline">Send</span>
+                                <span>Send</span>
                             </>
                         )}
                     </button>

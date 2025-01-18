@@ -22,7 +22,7 @@ export function RecommendationCard({
     >
       <div className="mx-auto w-full flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg">
         <div className="relative">
-          <div className="absolute -left-4 -top-4 md:-top-6 z-20">
+          <div className="absolute -left-2 -top-4 md:-top-6 z-20">
             <span className="text-5xl sm:text-6xl md:text-6xl font-black opacity-90
               bg-gradient-to-br from-violet-300/80 to-violet-500/80 bg-clip-text text-transparent
               [text-shadow:4px_4px_0px_#000,

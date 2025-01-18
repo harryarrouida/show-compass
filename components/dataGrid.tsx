@@ -13,7 +13,7 @@ interface DataGridProps {
   movies: MappedMovie[];
   setMovies: (movies: MappedMovie[]) => void;
   page: number;
-  setPage: (page: number) => void;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
   isWithSearch: boolean;
@@ -36,7 +36,7 @@ export default function DataGrid({
   const [filteredData, setFilteredData] = useState<(MappedShow | MappedMovie)[]>(data);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [displayCount, setDisplayCount] = useState<number>(10);
-  const itemsPerPage = 10;
+  const itemsPerPage = window.innerWidth > 768 ? 10 : 9;
 
   useEffect(() => {
     setPage(1);
@@ -44,12 +44,21 @@ export default function DataGrid({
   }, [activeTab, setPage]);
 
   useEffect(() => {
-    setFilteredData(data as (MappedShow | MappedMovie)[]);
+    setFilteredData(data);
   }, [data, page]);
 
   const handleLoadMore = async () => {
     if (!isLoading) {
-      setDisplayCount(prev => prev + itemsPerPage);
+      setIsLoading(true);
+      setPage((prev: number) => prev + 1);
+      
+      // Keep existing content visible while loading new items
+      const newDisplayCount = displayCount + itemsPerPage;
+      const existingItems = data.slice(0, displayCount);
+      const loadingItems = Array(itemsPerPage).fill(null);
+      
+      setFilteredData([...existingItems, ...loadingItems]);
+      setDisplayCount(newDisplayCount);
     }
   };
 
@@ -68,7 +77,7 @@ export default function DataGrid({
   };
 
   const LoadingSkeleton = () => (
-    <div className="animate-pulse">
+    <div className="animate-pulse w-[100px] md:w-[150px] lg:w-[180px] mb-10 mx-auto">
       <div className="bg-zinc-800 rounded-lg h-[300px] w-full"></div>
       <div className="mt-2 bg-zinc-800 h-4 w-3/4 rounded"></div>
       <div className="mt-1 bg-zinc-800 h-3 w-1/2 rounded"></div>
@@ -76,8 +85,8 @@ export default function DataGrid({
   );
 
   return (
-    <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-16 gap-6 sm:gap-0">
+    <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
+      <div className="mx-auto flex flex-col sm:flex-row justify-between items-center mb-16 gap-6 sm:gap-0">
         <div className={isWithSearch ? "inline-flex space-x-12 border-b border-zinc-800/50" : "mx-auto space-x-12 border-b border-zinc-800/50"}>
           <button
             onClick={() => setActiveTab("shows")}
@@ -130,20 +139,18 @@ export default function DataGrid({
         )}
       </div>
 
-      <div className="sm:mx-auto grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-8">
-        {isLoading ? (
-          Array(10).fill(0).map((_, index) => (
-            <LoadingSkeleton key={index} />
-          ))
-        ) : isWithSearch ? (
-          filteredData.slice(0, displayCount).map((item) => (
-            <MediaCard key={item.id + item.title + Math.random()} item={item} activeTab={activeTab} />
-          ))
-        ) : (
-          data.slice(0, displayCount).map((item) => (
-            <MediaCard key={item.id + item.title + Math.random()} item={item} activeTab={activeTab} />
-          ))
-        )}
+      <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-8 place-items-center">
+        {(isWithSearch ? filteredData : data).slice(0, displayCount).map((item, index) => (
+          <div key={item?.id + item?.title || `loading-${index}`} className="w-full flex justify-center">
+            {item ? (
+              <div className="animate-fadeIn" key={item.id + Math.random()}>
+                <MediaCard item={item} activeTab={activeTab} />
+              </div>
+            ) : (
+              <LoadingSkeleton />
+            )}
+          </div>
+        ))}
       </div>
 
       {((!isWithSearch && data.length > displayCount) || (isWithSearch && filteredData.length > displayCount)) && (
