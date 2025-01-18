@@ -37,7 +37,7 @@ export function RecommendationModal({
 
         <div className="p-4 sm:p-6 -mt-16 relative">
           <div className="flex gap-4 sm:gap-6">
-            <div className="relative w-[100px] sm:w-[120px] h-[150px] sm:h-[180px] rounded-lg overflow-hidden flex-shrink-0 shadow-xl">
+            <div className="relative w-[180px] sm:w-[160px] h-[180px] sm:h-[240px] rounded-lg overflow-hidden flex-shrink-0 shadow-xl">
               <Image
                 src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${selectedRec.media?.poster_path}`}
                 alt={selectedRec.title}

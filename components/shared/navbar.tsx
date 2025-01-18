@@ -2,54 +2,50 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { RiCompass3Line, RiHistoryLine, RiLogoutCircleLine, RiLoginCircleLine, RiMenuLine } from "react-icons/ri";
+import { RiHistoryLine, RiLoginCircleLine, RiMenuLine } from "react-icons/ri";
 import { SiTrakt } from 'react-icons/si';
 import { useTraktContext } from '@/context/traktContext';
 
 export default function Navbar() {
-    const { user, logout, isAuthenticated, login } = useTraktContext();
+    const { isAuthenticated, login } = useTraktContext();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     return (
-        <nav className="sticky top-0 z-50 backdrop-blur-xl border-b border-violet-500/10
-                        transform transition-transform duration-300">
+        <nav className="sticky top-0 z-50 bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-800/50 shadow-lg">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center h-16 justify-between">
-                    {/* Logo and Home Link */}
-                    <Link
-                        href="/"
-                        className="flex items-center text-white hover:text-violet-500 transition-colors duration-300"
-                    >
-                        <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white via-violet-300 to-white bg-clip-text text-transparent">
+                    {/* Logo */}
+                    <Link href="/" className="group">
+                        <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-white via-violet-300 to-white bg-clip-text text-transparent transition-all duration-300 group-hover:via-violet-400">
                             Show Compass
-                        </span>
+                        </h1>
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <div className="hidden sm:flex items-center gap-2">
+                    <div className="hidden sm:flex items-center gap-3">
                         <Link
                             href="/history"
-                            className="flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-4 py-2 text-white hover:text-violet-500 transition-colors duration-300 rounded-lg"
+                            className="flex items-center gap-2 px-4 py-2 text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-all duration-300"
                         >
-                            <RiHistoryLine className="text-lg sm:text-xl" />
-                            <span className="text-sm sm:text-base font-medium">
-                                History
-                            </span>
+                            <RiHistoryLine className="text-xl" />
+                            <span className="font-medium">History</span>
                         </Link>
 
                         {isAuthenticated ? (
-                            <button className="flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-4 py-2 text-white hover:text-violet-500 transition-colors duration-300 rounded-lg">
-                                <SiTrakt className="text-lg sm:text-xl" />
-                                <Link href="/trakt" className="text-sm sm:text-base font-medium">
-                                    Trakt Account
-                                </Link>
-                            </button>
+                            <Link 
+                                href="/trakt"
+                                className="flex items-center gap-2 px-4 py-2 text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-all duration-300"
+                            >
+                                <SiTrakt className="text-xl" />
+                                <span className="font-medium">Trakt Account</span>
+                            </Link>
                         ) : (
-                            <button onClick={login} className="flex items-center gap-1.5 sm:gap-2.5 px-2 sm:px-4 py-2 text-white hover:text-violet-500 transition-colors duration-300 rounded-lg">
-                                <RiLoginCircleLine className="text-lg sm:text-xl" />
-                                <span className="text-sm sm:text-base font-medium">
-                                    Login With Trakt
-                                </span>
+                            <button 
+                                onClick={login}
+                                className="flex items-center gap-2 px-4 py-2 text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-all duration-300"
+                            >
+                                <RiLoginCircleLine className="text-xl" />
+                                <span className="font-medium">Login With Trakt</span>
                             </button>
                         )}
                     </div>
@@ -57,7 +53,8 @@ export default function Navbar() {
                     {/* Mobile Menu Button */}
                     <button 
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="sm:hidden p-2 text-white hover:text-violet-500 transition-colors duration-300"
+                        className="sm:hidden p-2 text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-lg transition-all duration-300"
+                        aria-label="Toggle menu"
                     >
                         <RiMenuLine className="text-2xl" />
                     </button>
@@ -65,24 +62,24 @@ export default function Navbar() {
 
                 {/* Mobile Navigation */}
                 {isMenuOpen && (
-                    <div className="sm:hidden py-4 space-y-2">
+                    <div className="sm:hidden py-2 border-t border-zinc-800/50">
                         <Link
                             href="/history"
-                            className="flex items-center gap-2 px-4 py-3 text-white hover:text-violet-500 transition-colors duration-300"
+                            className="flex items-center gap-2 px-4 py-3 text-zinc-300 hover:text-white hover:bg-zinc-800/30 transition-all duration-300"
                             onClick={() => setIsMenuOpen(false)}
                         >
                             <RiHistoryLine className="text-xl" />
-                            <span className="text-base font-medium">History</span>
+                            <span className="font-medium">History</span>
                         </Link>
 
                         {isAuthenticated ? (
                             <Link
                                 href="/trakt"
-                                className="flex items-center gap-2 px-4 py-3 text-white hover:text-violet-500 transition-colors duration-300"
+                                className="flex items-center gap-2 px-4 py-3 text-zinc-300 hover:text-white hover:bg-zinc-800/30 transition-all duration-300"
                                 onClick={() => setIsMenuOpen(false)}
                             >
                                 <SiTrakt className="text-xl" />
-                                <span className="text-base font-medium">Trakt Account</span>
+                                <span className="font-medium">Trakt Account</span>
                             </Link>
                         ) : (
                             <button 
@@ -90,10 +87,10 @@ export default function Navbar() {
                                     login();
                                     setIsMenuOpen(false);
                                 }}
-                                className="flex items-center gap-2 px-4 py-3 w-full text-left text-white hover:text-violet-500 transition-colors duration-300"
+                                className="flex items-center gap-2 px-4 py-3 w-full text-left text-zinc-300 hover:text-white hover:bg-zinc-800/30 transition-all duration-300"
                             >
                                 <RiLoginCircleLine className="text-xl" />
-                                <span className="text-base font-medium">Login With Trakt</span>
+                                <span className="font-medium">Login With Trakt</span>
                             </button>
                         )}
                     </div>
