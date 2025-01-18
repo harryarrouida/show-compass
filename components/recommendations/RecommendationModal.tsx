@@ -14,21 +14,21 @@ export function RecommendationModal({
   onSave,
 }: RecommendationModalProps) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div className="fixed -top-10 min-h-screen inset-0 z-50 flex items-end justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       
       {/* Modal Container */}
-      <div className="relative w-full bg-zinc-900 rounded-t-2xl max-h-[85vh] overflow-y-auto sm:rounded-lg sm:max-w-3xl sm:m-4">
+      <div className="relative w-full bg-zinc-900 rounded-t-2xl max-h-[85vh] overflow-y-auto">
         {/* Backdrop Image */}
         <div className="relative h-[200px] sm:h-[300px]">
           <Image
             src={`${process.env.NEXT_PUBLIC_TMDB_BACKDROP_URL}${selectedRec.media?.backdrop_path}`}
             alt={selectedRec.title}
             fill
-            className="object-cover"
+            className="object-cover opacity-80"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/70 to-transparent" />
         </div>
 
         {/* Close Button */}
@@ -42,7 +42,7 @@ export function RecommendationModal({
         </div>
 
         {/* Content */}
-        <div className="px-4 pb-8 sm:p-6 -mt-32 relative">
+        <div className="px-4 pb-8 sm:p-6 relative">
           {/* Poster and Details Grid */}
           <div className="flex flex-col sm:flex-row sm:gap-6">
             {/* Poster */}
@@ -51,7 +51,7 @@ export function RecommendationModal({
                 src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${selectedRec.media?.poster_path}`}
                 alt={selectedRec.title}
                 fill
-                className="object-cover"
+                className="object-cover opacity-90"
                 priority
               />
             </div>
@@ -79,7 +79,7 @@ export function RecommendationModal({
           </div>
 
           {/* Save Button - Fixed at Bottom */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-zinc-900 border-t border-zinc-800 sm:relative sm:border-0 sm:bg-transparent sm:mt-8">
+          <div className="p-4 bg-zinc-900 border-t border-zinc-800 sm:relative sm:border-0 sm:bg-transparent sm:mt-8">
             <button
               onClick={(e) => {
                 e.stopPropagation();

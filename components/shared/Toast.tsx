@@ -29,7 +29,7 @@ export const Toast = ({ message, type = 'success', onClose }: ToastProps) => {
     };
 
     return (
-        <div className="fixed bottom-4 right-4 z-50 animate-fade-in">
+        <div className="fixed top-4 md:bottom-4 right-4 z-50 animate-fade-in">
             <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border backdrop-blur-sm ${backgrounds[type]}`}>
                 {icons[type]}
                 <p className="text-sm text-zinc-200">{message}</p>

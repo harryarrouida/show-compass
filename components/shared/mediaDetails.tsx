@@ -74,7 +74,7 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
 
                     {/* Show Specific Details - Seasons */}
                     {'seasons' in details && details.seasons && (
-                        <div className="space-y-4">
+                        <div className="space-y-4 hidden md:block lg:block">
                             <h3 className="text-sm font-medium text-zinc-300 text-center md:text-left">Seasons</h3>
                             <div className="space-y-3">
                                 {details.seasons
@@ -129,7 +129,7 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
 
                     {/* Production Companies */}
                     {details.production_companies && details.production_companies.length > 0 && (
-                        <div className="space-y-3">
+                        <div className="space-y-3 hidden md:block lg:block">
                             <h3 className="text-sm font-medium text-zinc-300 text-center md:text-left">Production</h3>
                             <div className="text-sm text-zinc-400 text-center md:text-left">
                                 {details.production_companies.map(company => company.name).join(', ')}
