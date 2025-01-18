@@ -14,11 +14,11 @@ export function RecommendationModal({
   onSave,
 }: RecommendationModalProps) {
   return (
-    <div className="fixed -top-10 min-h-screen inset-0 z-50 flex items-end justify-center">
+    <div className="fixed -top-10 min-h-screen inset-0 z-50 flex items-end md:items-center justify-center">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       
       {/* Modal Container */}
-      <div className="relative w-full bg-zinc-900 rounded-t-2xl max-h-[85vh] overflow-y-auto">
+      <div className="relative w-full md:w-[800px] bg-zinc-900 rounded-t-2xl md:rounded-2xl max-h-[85vh] overflow-y-auto">
         {/* Backdrop Image */}
         <div className="relative h-[200px] sm:h-[300px]">
           <Image
@@ -42,11 +42,11 @@ export function RecommendationModal({
         </div>
 
         {/* Content */}
-        <div className="px-4 pb-8 sm:p-6 relative">
+        <div className="px-4 pb-8 sm:p-8 relative">
           {/* Poster and Details Grid */}
-          <div className="flex flex-col sm:flex-row sm:gap-6">
+          <div className="flex flex-col md:flex-row md:gap-8">
             {/* Poster */}
-            <div className="relative w-[140px] h-[210px] sm:w-[180px] sm:h-[270px] rounded-lg overflow-hidden shadow-xl mx-auto sm:mx-0">
+            <div className="relative w-[140px] h-[210px] md:w-[200px] md:h-[300px] rounded-lg overflow-hidden shadow-xl mx-auto md:mx-0 -mt-20 md:-mt-32">
               <Image
                 src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${selectedRec.media?.poster_path}`}
                 alt={selectedRec.title}
@@ -57,35 +57,49 @@ export function RecommendationModal({
             </div>
 
             {/* Details */}
-            <div className="flex-1 min-w-0 space-y-3 mt-4 sm:mt-0">
-              <h2 className="text-xl sm:text-2xl font-semibold text-white text-center sm:text-left">
+            <div className="flex-1 min-w-0 space-y-4 mt-4 md:mt-0">
+              <h2 className="text-xl md:text-3xl font-semibold text-white text-center md:text-left">
                 {selectedRec.title}
               </h2>
               
-              <div className="flex items-center justify-center sm:justify-start gap-3 text-sm text-zinc-300">
+              <div className="flex items-center justify-center md:justify-start gap-4 text-sm md:text-base text-zinc-300">
                 <span>{selectedRec.media?.release_date?.split("-")[0]}</span>
                 {selectedRec.media?.vote_average && (
-                  <div className="flex items-center gap-1">
-                    <IoStar className="text-amber-400" />
+                  <div className="flex items-center gap-1.5">
+                    <IoStar className="text-amber-400 w-5 h-5" />
                     <span>{selectedRec.media.vote_average.toFixed(1)}</span>
                   </div>
                 )}
               </div>
               
-              <p className="text-sm text-zinc-300 leading-relaxed text-center sm:text-left">
+              <p className="text-sm md:text-base text-zinc-300 leading-relaxed text-center md:text-left">
                 {selectedRec.reason}
               </p>
+
+              {/* Save Button - Desktop */}
+              <div className="hidden md:block mt-8">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSave(selectedRec);
+                  }}
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-violet-600/10 hover:bg-violet-500/20 rounded-xl transition-colors duration-300"
+                >
+                  <IoBookmarkOutline className="w-5 h-5 text-violet-400" />
+                  <span className="text-violet-400 text-sm font-medium">Save to History</span>
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Save Button - Fixed at Bottom */}
-          <div className="p-4 bg-zinc-900 border-t border-zinc-800 sm:relative sm:border-0 sm:bg-transparent sm:mt-8">
+          {/* Save Button - Mobile */}
+          <div className="p-4 bg-zinc-900 border-t border-zinc-800 md:hidden fixed bottom-0 left-0 right-0">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onSave(selectedRec);
               }}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-violet-600/20 hover:bg-violet-500 rounded-xl transition-colors duration-300 sm:max-w-xs sm:mx-auto"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-violet-600/20 hover:bg-violet-500 rounded-xl transition-colors duration-300"
             >
               <IoBookmarkOutline className="w-5 h-5 text-white" />
               <span className="text-white text-sm font-medium">Save to History</span>

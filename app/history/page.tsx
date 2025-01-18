@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { IoTrashOutline, IoStarOutline, IoStar, IoAnalytics, IoClose } from 'react-icons/io5';
+import { IoTrashOutline, IoStarOutline, IoStar, IoAnalytics, IoClose, IoBookmarkOutline } from 'react-icons/io5';
 import { RiRobot2Line } from "react-icons/ri";
 import Card from '@/components/shared/Card';
 import { useHistory } from '@/context/historyContext';
@@ -111,10 +111,10 @@ export default function HistoryPage() {
             )}
 
             {selectedItem && (
-                <div className="fixed -top-10 min-h-screen inset-0 z-50 flex items-end justify-center">
+                <div className="fixed -top-10 min-h-screen inset-0 z-50 flex items-end md:items-center justify-center">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedItem(null)} />
                     
-                    <div className="relative w-full bg-zinc-900 rounded-t-2xl max-h-[85vh] overflow-y-auto">
+                    <div className="relative w-full md:w-[800px] bg-zinc-900 rounded-t-2xl md:rounded-2xl max-h-[85vh] overflow-y-auto">
                         <div className="relative h-[200px] sm:h-[300px]">
                             <Image
                                 src={`${process.env.NEXT_PUBLIC_TMDB_BACKDROP_URL}${selectedItem.data.backdrop_path}`}
@@ -135,9 +135,9 @@ export default function HistoryPage() {
                             </button>
                         </div>
 
-                        <div className="px-4 pb-8 sm:p-6 relative">
-                            <div className="flex flex-col sm:flex-row sm:gap-6">
-                                <div className="relative w-[140px] h-[210px] sm:w-[180px] sm:h-[270px] rounded-lg overflow-hidden shadow-xl mx-auto sm:mx-0">
+                        <div className="px-4 pb-8 sm:p-8 relative">
+                            <div className="flex flex-col md:flex-row md:gap-8">
+                                <div className="relative w-[140px] h-[210px] md:w-[200px] md:h-[300px] rounded-lg overflow-hidden shadow-xl mx-auto md:mx-0 -mt-20 md:-mt-32">
                                     <Image
                                         src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${selectedItem.data.poster_path}`}
                                         alt={selectedItem.data.title}
@@ -147,54 +147,52 @@ export default function HistoryPage() {
                                     />
                                 </div>
 
-                                <div className="flex-1 min-w-0 space-y-3 mt-4 sm:mt-0">
-                                    <h2 className="text-xl sm:text-2xl font-semibold text-white text-center sm:text-left">
+                                <div className="flex-1 min-w-0 space-y-4 mt-4 md:mt-0">
+                                    <h2 className="text-xl md:text-3xl font-semibold text-white text-center md:text-left">
                                         {selectedItem.data.title}
                                     </h2>
                                     
-                                    <div className="flex items-center justify-center sm:justify-start gap-3 text-sm text-zinc-300">
+                                    <div className="flex items-center justify-center md:justify-start gap-4 text-sm md:text-base text-zinc-300">
                                         {selectedItem.data.release_date && (
                                             <span>{new Date(selectedItem.data.release_date).getFullYear()}</span>
                                         )}
                                         {selectedItem.data.vote_average && (
-                                            <div className="flex items-center gap-1">
-                                                <IoStar className="text-amber-400" />
+                                            <div className="flex items-center gap-1.5">
+                                                <IoStar className="text-amber-400 w-5 h-5" />
                                                 <span>{selectedItem.data.vote_average.toFixed(1)}</span>
                                             </div>
                                         )}
                                     </div>
                                     
-                                    <p className="text-sm text-zinc-300 leading-relaxed text-center sm:text-left">
+                                    <p className="text-sm md:text-base text-zinc-300 leading-relaxed text-center md:text-left">
                                         {selectedItem.reason}
                                     </p>
 
-                                    <div className="pt-3 sm:pt-4 border-t border-zinc-800">
-                                        <p className="text-xs sm:text-sm text-zinc-400">Recommended from</p>
-                                        <p className="text-sm sm:text-base text-zinc-300 mt-1">
-                                            {typeof selectedItem.from === 'string' 
-                                                ? selectedItem.from === 'trakt' 
-                                                    ? 'Trakt Recommendation' 
-                                                    : 'AI Recommendation'
-                                                : selectedItem.from.title
-                                            }
-                                        </p>
-                                        <p className="text-[10px] sm:text-xs text-zinc-500 mt-2">
-                                            Added {new Date(selectedItem.timestamp).toLocaleDateString()}
-                                        </p>
+                                    <div className="hidden md:block mt-8">
+                                        <button
+                                            onClick={() => {
+                                                deleteFromHistory(selectedItem.id);
+                                                setSelectedItem(null);
+                                            }}
+                                            className="flex items-center justify-center gap-2 px-6 py-3 bg-red-500/10 hover:bg-red-500/20 rounded-xl transition-colors duration-300"
+                                        >
+                                            <IoTrashOutline className="w-5 h-5 text-red-400" />
+                                            <span className="text-red-400 text-sm font-medium">Remove from History</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="p-4 bg-zinc-900 border-t border-zinc-800 sm:relative sm:border-0 sm:bg-transparent sm:mt-8">
+                            <div className="p-4 bg-zinc-900 border-t border-zinc-800 md:hidden fixed bottom-0 left-0 right-0">
                                 <button
                                     onClick={() => {
                                         deleteFromHistory(selectedItem.id);
                                         setSelectedItem(null);
                                     }}
-                                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-red-600/20 hover:bg-red-500 rounded-xl transition-colors duration-300 sm:max-w-xs sm:mx-auto"
+                                    className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-red-500/10 hover:bg-red-500/20 rounded-xl transition-colors duration-300"
                                 >
-                                    <IoTrashOutline className="w-5 h-5 text-white" />
-                                    <span className="text-white text-sm font-medium">Remove from History</span>
+                                    <IoTrashOutline className="w-5 h-5 text-red-400" />
+                                    <span className="text-red-400 text-sm font-medium">Remove from History</span>
                                 </button>
                             </div>
                         </div>
