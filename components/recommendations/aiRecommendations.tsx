@@ -20,17 +20,7 @@ interface AIRecommendationsProps {
     handleSubmitPrompt: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
 }
 
-export default function AIRecommendations({ 
-    isAiLoading, 
-    aiRecommendations, 
-    saveToHistory, 
-    alert, 
-    toggleChat, 
-    showChat, 
-    setPrompt, 
-    prompt, 
-    handleSubmitPrompt 
-}: AIRecommendationsProps) {
+export default function AIRecommendations({ isAiLoading, aiRecommendations, saveToHistory, alert, toggleChat, showChat, setPrompt, prompt, handleSubmitPrompt }: AIRecommendationsProps) {
     const pathname = usePathname();
     const [isDefaultRecs, setIsDefaultRecs] = useState(true);
     const [selectedRec, setSelectedRec] = useState<AIRecommendation | null>(null);
@@ -42,47 +32,27 @@ export default function AIRecommendations({
     }, [pathname]);
 
     return (
-        <div className="space-y-8 border-t border-zinc-800 pt-10">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0">
+        <div className="space-y-6 border-t border-zinc-800 pt-4">
+            <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
                 <h2 className="text-xl sm:text-2xl font-semibold text-white">Similar Recommendations</h2>
                 {!isDefaultRecs && (
-                    <button 
-                        onClick={toggleChat} 
-                        className="text-zinc-400 text-sm font-light hover:text-zinc-300 transition-colors duration-300"
-                    >
+                    <button onClick={toggleChat} className="text-zinc-400 text-sm font-light hover:text-violet-400 transition-colors duration-300">
                         {showChat ? "Do you like these? Hide Chat" : "Don't Like These? Chat here"}
                     </button>
                 )}
             </div>
 
             {showChat && !isDefaultRecs && (
-                <form onSubmit={handleSubmitPrompt} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                <form onSubmit={handleSubmitPrompt} className="mb-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <div className="relative flex-grow">
-                        <input
-                            value={prompt}
-                            onChange={(e) => setPrompt(e.target.value)}
-                            type="text"
-                            placeholder="What kind of recommendations are you looking for?"
-                            className="w-full p-4 sm:p-5 rounded-xl bg-zinc-900 text-zinc-100 border border-violet-500/20 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 placeholder:text-zinc-500 transition-all duration-300 text-sm sm:text-base"
-                        />
+                        <input value={prompt} onChange={(e) => setPrompt(e.target.value)} type="text" placeholder="What kind of recommendations are you looking for?" className="w-full p-4 sm:p-5 rounded-xl bg-zinc-900 text-zinc-100 border border-violet-500/20 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 placeholder:text-zinc-500 transition-all duration-300 text-sm sm:text-base"/>
                         {prompt.length > 0 && (
-                            <button
-                                type="button"
-                                onClick={() => setPrompt('')}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
-                            >
+                            <button type="button" onClick={() => setPrompt('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors">
                                 <IoClose size={18} />
                             </button>
                         )}
                     </div>
-                    <button
-                        disabled={isAiLoading || !prompt.trim()}
-                        type="submit"
-                        className={`px-6 py-4 sm:py-5 bg-violet-600 rounded-xl text-white font-medium transition-all duration-300 flex items-center justify-center gap-2 flex-shrink-0 text-sm sm:text-base shadow-lg shadow-violet-600/10
-                            ${isAiLoading || !prompt.trim()
-                                ? 'opacity-50 cursor-not-allowed bg-violet-600/50'
-                                : 'hover:bg-violet-700 hover:shadow-lg hover:shadow-violet-600/20 active:scale-95'}`}
-                    >
+                    <button disabled={isAiLoading || !prompt.trim()} type="submit" className={`px-6 py-4 sm:py-5 bg-violet-600 rounded-xl text-white font-medium transition-all duration-300 flex items-center justify-center gap-2 flex-shrink-0 text-sm sm:text-base shadow-lg shadow-violet-600/10 ${isAiLoading || !prompt.trim() ? 'opacity-50 cursor-not-allowed bg-violet-600/50' : 'hover:bg-violet-700 hover:shadow-lg hover:shadow-violet-600/20 active:scale-95'}`}>
                         {isAiLoading ? (
                             <>
                                 <div className="animate-spin h-4 w-4 sm:h-5 sm:w-5 border-2 border-white border-t-transparent rounded-full"></div>
@@ -98,24 +68,20 @@ export default function AIRecommendations({
                 </form>
             )}
 
-            <div className="mx-auto md:mx-8 lg:mx-10 grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-3 gap-2 sm:gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-3 gap-3 sm:gap-4">
                 {isAiLoading ? (
                     Array(6).fill(0).map((_, index) => (
-                        <CardSkeleton key={index} index={index} />
+                        <CardSkeleton key={index + Math.random()} index={index} />
                     ))
                 ) : (
                     Array.isArray(aiRecommendations) && aiRecommendations.map((rec, index) => (
-                        <RecommendationCard key={index} recommendation={rec} onSelect={setSelectedRec} onSave={saveToHistory} />
+                        <RecommendationCard key={index + Math.random()} index={index} recommendation={rec} onSelect={setSelectedRec} onSave={saveToHistory} />
                     ))
                 )}
             </div>
 
             {selectedRec && (
-                <RecommendationModal
-                    recommendation={selectedRec}
-                    onClose={() => setSelectedRec(null)}
-                    onSave={saveToHistory}
-                />
+                <RecommendationModal recommendation={selectedRec} onClose={() => setSelectedRec(null)} onSave={saveToHistory} />
             )}
 
             {alert && (
@@ -126,4 +92,4 @@ export default function AIRecommendations({
             )}
         </div>
     );
-} 
+}

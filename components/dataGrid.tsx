@@ -35,10 +35,12 @@ export default function DataGrid({
   const data = activeTab === "movies" ? movies : shows;
   const [filteredData, setFilteredData] = useState<(MappedShow | MappedMovie)[]>(data);
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const itemsPerPage = 20;
+  const [displayCount, setDisplayCount] = useState<number>(10);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     setPage(1);
+    setDisplayCount(10);
   }, [activeTab, setPage]);
 
   useEffect(() => {
@@ -47,8 +49,7 @@ export default function DataGrid({
 
   const handleLoadMore = async () => {
     if (!isLoading) {
-      const nextPage = page + 1;
-      setPage(nextPage);
+      setDisplayCount(prev => prev + itemsPerPage);
     }
   };
 
@@ -135,17 +136,17 @@ export default function DataGrid({
             <LoadingSkeleton key={index} />
           ))
         ) : isWithSearch ? (
-          filteredData.map((item) => (
+          filteredData.slice(0, displayCount).map((item) => (
             <MediaCard key={item.id + item.title + Math.random()} item={item} activeTab={activeTab} />
           ))
         ) : (
-          data.map((item) => (
+          data.slice(0, displayCount).map((item) => (
             <MediaCard key={item.id + item.title + Math.random()} item={item} activeTab={activeTab} />
           ))
         )}
       </div>
 
-      {(
+      {((!isWithSearch && data.length > displayCount) || (isWithSearch && filteredData.length > displayCount)) && (
         <div className="mt-20 mb-16 flex justify-center">
           <button
             onClick={handleLoadMore}
@@ -156,7 +157,7 @@ export default function DataGrid({
                              hover:shadow-lg hover:shadow-zinc-800/25"
           >
             <div className="relative flex items-center space-x-2">
-              {isLoading ? (
+              {isLoading && data.length > 0 ? (
                 <>
                   <svg
                     className="animate-spin h-4 w-4 text-zinc-300"

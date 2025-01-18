@@ -6,21 +6,36 @@ interface RecommendationCardProps {
   recommendation: AIRecommendation;
   onSelect: (rec: AIRecommendation) => void;
   onSave: (rec: AIRecommendation) => void;
+  index: number;
 }
 
 export function RecommendationCard({
   recommendation: rec,
   onSelect,
   onSave,
+  index,
 }: RecommendationCardProps) {
   return (
     <div
       onClick={() => onSelect(rec)}
-      className="mx-auto group relative w-[100px] md:w-[180px] lg:w-[180px] cursor-pointer mb-10"
+      className="mt-10 mx-auto group relative w-[100px] md:w-[180px] lg:w-[180px] cursor-pointer"
     >
       <div className="mx-auto w-full flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg">
         <div className="relative">
-          <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
+          <div className="absolute -left-4 -top-4 md:-top-6 z-20">
+            <span className="text-5xl sm:text-6xl md:text-6xl font-black opacity-90
+              bg-gradient-to-br from-violet-300/80 to-violet-500/80 bg-clip-text text-transparent
+              [text-shadow:4px_4px_0px_#000,
+                          -2px_-2px_0px_#000,
+                          2px_-2px_0px_#000,
+                          -2px_2px_0px_#000,
+                          2px_2px_0px_#000,
+                          0_0_8px_rgba(0,0,0,0.8)]
+              tracking-tighter">
+              {index + 1}
+            </span>
+          </div>
+          <div className="relative aspect-[2/3] rounded-lg overflow-hidden z-10">
             {rec.media?.poster_path && (
               <Image
                 src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${rec.media.poster_path}`}
@@ -30,10 +45,9 @@ export function RecommendationCard({
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
               />
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0" />
           </div>
 
-          <div className="mt-4 space-y-2 flex justify-between items-center">
+          <div className="mt-2 space-y-1 flex justify-between items-center">
             <h3 className="text-xs sm:text-sm md:text-base lg:text-md font-medium line-clamp-1 text-left text-zinc-400">
               {rec.title}
             </h3>

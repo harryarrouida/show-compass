@@ -202,7 +202,6 @@ export default function HistoryPage() {
                                             {typeof selectedItem.from === 'string' ? selectedItem.from : selectedItem.from.title}
                                         </span>
                                     </div>
-
                                     <div className="hidden md:block mt-10">
                                         <button
                                             onClick={() => {

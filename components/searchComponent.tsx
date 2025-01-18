@@ -14,7 +14,7 @@ export default function SearchComponent() {
     const [results, setResults] = useState<(MappedMovie | MappedShow)[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [suggestions] = useState(['Arcane', 'Attack on Titan', 'Monster']);
+    const [suggestions] = useState(['Arcane', 'Attack on Titan', 'Frieren']);
 
     useEffect(() => {
         const handleSearch = async () => {
@@ -136,12 +136,12 @@ export default function SearchComponent() {
 
                     {/* Suggestions */}
                     {!results.length && !isLoading && (
-                        <div className="mt-6 text-base text-gray-500 text-center">
+                        <div className="mt-6 text-base text-zinc-400 text-center">
                             Try: {suggestions.map((suggestion, index) => (
                                 <span key={suggestion}>
                                     <button
                                         onClick={() => setQuery(suggestion)}
-                                        className="text-gray-400 hover:text-gray-300 underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-gray-700 rounded px-2 transition-colors duration-300"
+                                        className="text-violet-400 hover:text-violet-300 underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-violet-500/20 rounded px-2 transition-colors duration-300"
                                     >
                                         {suggestion}
                                     </button>

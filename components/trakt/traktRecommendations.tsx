@@ -23,7 +23,7 @@ const TraktRecommendations = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recommendations, setRecommendations] = useState<any[]>([]);
-  const [mediaType, setMediaType] = useState<MediaType>("movies");
+  const [mediaType, setMediaType] = useState<MediaType>("shows");
   const [numRecommendations, setNumRecommendations] = useState<5 | 10>(5);
   const [recommendationsDetails, setRecommendationsDetails] = useState<any[]>(
     []
@@ -155,7 +155,7 @@ const TraktRecommendations = () => {
           {
             role: "system",
             content:
-              "you are a movie and tv show recommendation bot. you will be given a list of movies and tv shows that the user has watched. you will then generate a list of recommendations based on the user's watch history. you will then return a json object with a 'recommendations' array containing objects with 'title' and 'reason' properties. never include additional text or explanations.",
+              "You are a movie and TV show recommendation bot. You will be given a list of movies and TV shows that the user has watched. Generate recommendations based on their watch history. IMPORTANT: Your response must be a valid JSON object with this exact format: {\"recommendations\": [{\"title\": \"Movie Title\", \"reason\": \"Reason for recommendation\"}]}",
           },
           {
             role: "user",
@@ -418,6 +418,7 @@ const TraktRecommendations = () => {
             {recommendationsDetails.map((rec, index) => (
               <RecommendationCard
                 key={index}
+                index={index}
                 recommendation={rec}
                 onSelect={setSelectedRecommendation}
                 onSave={handleSaveToHistory}

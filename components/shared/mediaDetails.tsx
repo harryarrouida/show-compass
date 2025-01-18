@@ -20,9 +20,9 @@ interface MediaDetailsProps {
 
 export default function MediaDetails({ details, showAllSeasons, setShowAllSeasons, aiRecommendations, isAiLoading, saveToHistory, alert, toggleChat, showChat, setPrompt, prompt, handleSubmitPrompt }: MediaDetailsProps) {
     return (
-        <div className="flex flex-col md:grid md:grid-cols-[320px_1fr] gap-6 md:gap-14 mb-8 md:mb-16">
+        <div className="flex flex-col md:grid md:grid-cols-[320px_1fr] gap-4 md:gap-8 mb-6 md:mb-12">
             {/* Left Column */}
-            <div className="space-y-6 md:space-y-8">
+            <div className="space-y-4 md:space-y-6 bg-zinc-900/50 rounded-lg border border-zinc-800/50 backdrop-blur p-4 w-full">
                 {/* Poster with responsive sizing */}
                 <div className="relative aspect-[2/3] w-[180px] md:w-[280px] mx-auto md:max-w-none rounded-lg overflow-hidden bg-zinc-900/40">
                     <Image
@@ -36,7 +36,7 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
                 </div>
 
                 {/* Quick info section */}
-                <div className="space-y-4 md:space-y-8 px-4 md:px-0">
+                <div className="space-y-3 md:space-y-6 px-4 md:px-0">
                     {/* Rating & Year */}
                     <div className="flex items-center justify-center md:justify-start gap-3 text-sm md:text-base text-zinc-300">
                         <span className="text-amber-400">★</span>
@@ -140,13 +140,13 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
             </div>
 
             {/* Right Column */}
-            <div className="space-y-6 md:space-y-8 px-4 md:px-0">
+            <div className="space-y-4 md:space-y-6 px-4 md:px-0">
                 <div>
-                    <h1 className="text-2xl md:text-4xl font-semibold text-white mb-4 md:mb-6 text-center md:text-left">{details.title}</h1>
-                    <p className="text-base md:text-lg text-zinc-300 leading-relaxed text-center md:text-left bg-zinc-900/50 p-4 md:p-6 rounded-xl border border-zinc-800/50">{details.overview}</p>
+                    <h1 className="text-2xl md:text-4xl font-semibold text-white mb-3 md:mb-4 text-center md:text-left">{details.title}</h1>
+                    <p className="text-base md:text-lg text-zinc-300 leading-relaxed text-center md:text-left bg-zinc-900/50 p-4 md:p-5 rounded-xl border border-zinc-800/50">{details.overview}</p>
                 </div>
                 
-                <div className="mt-8 md:mt-12">
+                <div className="mt-6 md:mt-8">
                     <AIRecommendations
                         isAiLoading={isAiLoading}
                         aiRecommendations={aiRecommendations}
