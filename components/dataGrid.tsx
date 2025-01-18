@@ -67,7 +67,7 @@ export default function DataGrid({
                 </div>
             </div>
 
-            <div className="mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
+            <div className="sm:mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
                 {data.map((item) => (
                     <MediaCard key={item.id} item={item} activeTab={activeTab} />
                 ))}

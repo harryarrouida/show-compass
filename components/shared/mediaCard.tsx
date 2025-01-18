@@ -34,11 +34,11 @@ export default function MediaCard({
   const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
 
   return (
-    <div className="mx-auto relative w-[140px] md:w-[180px] lg:w-[200px] mb-10 cursor-pointer group">
+    <div className="mx-auto relative w-[140px] md:w-[150px] lg:w-[180px] mb-10 cursor-pointer group">
       <Link
         href={`/recommendation/${item.id}/${mediaType}`}
         key={item.id}
-        className="mx-auto w-full md:w-[180px] lg:w-[200px] group flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg"
+        className="mx-auto w-full md:w-full lg:w-full group flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg"
       >
         <div className="group relative">
           <div className="relative aspect-[2/3] rounded-lg overflow-hidden">

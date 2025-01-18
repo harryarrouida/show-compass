@@ -23,7 +23,7 @@ const TraktRecommendations = () => {
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [mediaType, setMediaType] = useState<MediaType>("movies");
-  const [numRecommendations, setNumRecommendations] = useState<5 | 10>(10);
+  const [numRecommendations, setNumRecommendations] = useState<5 | 10>(5);
   const [recommendationsDetails, setRecommendationsDetails] = useState<any[]>(
     []
   );
@@ -321,7 +321,7 @@ const TraktRecommendations = () => {
                   className="w-full sm:w-auto bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-zinc-200 
                             focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20
                             appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
-                            bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all"
+                            bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all lg:px-2 lg:gap-2"
                 >
                   <option value="movies">Movies</option>
                   <option value="shows">TV Shows</option>
@@ -335,9 +335,9 @@ const TraktRecommendations = () => {
                   className="w-full sm:w-auto bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-zinc-200 
                             focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20
                             appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
-                            bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all"
+                            bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all lg:px-2 lg:gap-2"
                 >
-                  <option value={5}>5 Recommendations</option>
+                  <option value={5} defaultChecked>5 Recommendations</option>
                   <option value={10}>10 Recommendations</option>
                 </select>
 
