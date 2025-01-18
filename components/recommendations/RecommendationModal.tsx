@@ -1,19 +1,21 @@
 import Image from "next/image";
-import { IoStar, IoClose, IoTime } from "react-icons/io5";
+import { IoStar, IoClose, IoTime, IoBookmarkOutline } from "react-icons/io5";
 import { AIRecommendation } from "@/types/types";
 
 interface RecommendationModalProps {
   recommendation: AIRecommendation;
   onClose: () => void;
+  onSave: (rec: AIRecommendation) => void;
 }
 
 export function RecommendationModal({
   recommendation: selectedRec,
   onClose,
+  onSave,
 }: RecommendationModalProps) {
   return (
-    <div className="fixed inset-0 -top-10 min-h-screen z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 backdrop-blur-lg" onClick={onClose} />
+    <div className="fixed -top-10 min-h-screen inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative bg-zinc-900 w-full sm:rounded-lg sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <button
           onClick={onClose}
@@ -61,6 +63,19 @@ export function RecommendationModal({
                 {selectedRec.reason}
               </p>
             </div>
+          </div>
+
+          <div className="mt-6 sm:mt-8 flex justify-center">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSave(selectedRec);
+              }}
+              className="flex items-center gap-2 px-6 py-3 bg-zinc-800 hover:bg-zinc-700 rounded-full transition-colors duration-300"
+            >
+              <IoBookmarkOutline className="w-5 h-5 text-zinc-300" />
+              <span className="text-zinc-300 text-sm font-medium">Save to History</span>
+            </button>
           </div>
         </div>
       </div>

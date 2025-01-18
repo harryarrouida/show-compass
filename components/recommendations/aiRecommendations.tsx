@@ -103,6 +103,7 @@ export default function AIRecommendations({
                 <RecommendationModal
                     recommendation={selectedRec}
                     onClose={() => setSelectedRec(null)}
+                    onSave={saveToHistory}
                 />
             )}
 

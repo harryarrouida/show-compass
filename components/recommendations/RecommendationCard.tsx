@@ -54,7 +54,7 @@ export function RecommendationCard({
           e.stopPropagation();
           onSave(rec);
         }}
-        className="absolute z-10 top-2 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300 opacity-0 group-hover:opacity-100 focus:opacity-100"
+        className="absolute z-10 top-2 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
         aria-label="Save recommendation"
       >
         <IoBookmarkOutline className="w-5 h-5 text-white" />

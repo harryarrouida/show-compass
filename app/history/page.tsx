@@ -28,41 +28,18 @@ export default function HistoryPage() {
         setShowAll(!showAll);
     }
 
-    const getFromTitle = (from: MappedMovie | MappedShow | string) => {
-        if (typeof from === 'string') {
-            if (from === 'trakt') {
-                return 'Trakt Recommendation';
-            }
-            if (from === 'Unknown') {
-                return 'AI Recommendation';
-            }
-        }
-        return (from as MappedMovie).title || (from as MappedShow).title || 'Unknown';
-    }
-
-    const getFromPosterPath = (from: MappedMovie | MappedShow | string) => {
-        if (typeof from === 'string') {
-            if (from === 'trakt') {
-                return <div className="relative w-16 h-24 flex-shrink-0 rounded-lg overflow-hidden shadow-md bg-zinc-800 flex items-center justify-center">
-                    <IoAnalytics className="w-8 h-8 text-blue-400" />
-                </div>;
-            }
-            if (from === 'Unknown') {
-                return <div className="relative w-16 h-24 flex-shrink-0 rounded-lg overflow-hidden shadow-md bg-zinc-800 flex items-center justify-center">
-                    <IoAnalytics className="w-8 h-8 text-blue-400" />
-                </div>;
-            }
-        }
-        return (from as MappedMovie).poster_path || (from as MappedShow).poster_path;
-    }
-
-    const handleDelete = (id: number) => {
-        deleteFromHistory(id);
-    }
-
     return (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6 sm:mb-8">History</h1>
+            <div className="flex justify-between items-center mb-6 sm:mb-8">
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">History</h1>
+                <button
+                    onClick={clearHistory}
+                    className="flex items-center justify-center px-4 py-2 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-zinc-800/50 rounded-full transition-all sm:hidden"
+                >
+                    <IoTrashOutline className="w-4 h-4 mr-2" />
+                    Clear All
+                </button>
+            </div>
 
             {historyContext.length === 0 ? (
                 <Card className="p-6 sm:p-8 text-center bg-zinc-900/80 backdrop-blur">
@@ -124,7 +101,7 @@ export default function HistoryPage() {
                         </button>
                         <button
                             onClick={clearHistory}
-                            className="w-full sm:w-auto flex items-center justify-center px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-zinc-800/50 rounded-full transition-all"
+                            className="hidden sm:flex w-full sm:w-auto items-center justify-center px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-zinc-800/50 rounded-full transition-all"
                         >
                             <IoTrashOutline className="w-4 h-4 mr-2" />
                             Clear History
@@ -199,6 +176,19 @@ export default function HistoryPage() {
                                         </p>
                                     </div>
                                 </div>
+                            </div>
+
+                            <div className="mt-6 flex justify-center border-t border-zinc-800 pt-6">
+                                <button
+                                    onClick={() => {
+                                        deleteFromHistory(selectedItem.id);
+                                        setSelectedItem(null);
+                                    }}
+                                    className="flex items-center justify-center px-6 py-3 text-red-400 hover:text-red-300 hover:bg-zinc-800/50 rounded-full transition-all"
+                                >
+                                    <IoTrashOutline className="w-5 h-5 mr-2" />
+                                    Remove from History
+                                </button>
                             </div>
                         </div>
                     </div>
