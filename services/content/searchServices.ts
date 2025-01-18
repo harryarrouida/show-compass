@@ -1,6 +1,5 @@
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
-const BASE_URL = "https://api.themoviedb.org/3";
-import { Show, Movie } from "@/types/types";
+const BASE_URL = process.env.NEXT_PUBLIC_TMDB_BASE_URL;
 
 export const searchMovies = async (query: string) => {
   const response= await fetch(

@@ -7,6 +7,7 @@ import { searchMovies } from '@/services/content/movieServices';
 import { searchShows } from '@/services/content/showServices';
 import MediaCard from './shared/mediaCard';
 import { CardSkeleton } from './shared/LoadingSkeleton';
+import { IoClose } from 'react-icons/io5';
 
 export default function SearchComponent() {
     const [query, setQuery] = useState('');
@@ -81,7 +82,7 @@ export default function SearchComponent() {
                                     className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
                                     aria-label="Clear search"
                                 >
-                                    ✕
+                                    <IoClose size={20} />
                                 </button>
                             )}
                         </div>

@@ -21,6 +21,16 @@ export default function HistoryPage() {
     const [showAll, setShowAll] = useState(false);
     const [selectedItem, setSelectedItem] = useState<HistoryItem | null>(null);
     const { history: historyContext, clearHistory, deleteFromHistory } = useHistory();
+    const [showFullReason, setShowFullReason] = useState(false);
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsVisible(true);
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, []);
 
     const displayHistory = showAll ? historyContext : historyContext.slice(0, 10);
 
@@ -29,7 +39,7 @@ export default function HistoryPage() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
+        <div className={`max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 transition-opacity duration-500 ease-in-out ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex justify-between items-center mb-6 sm:mb-8">
                 <h1 className="text-2xl sm:text-3xl font-bold text-white">History</h1>
                 <button
@@ -54,7 +64,7 @@ export default function HistoryPage() {
                             <div
                                 key={item.id}
                                 onClick={() => setSelectedItem(item as HistoryItem)}
-                                className="mx-auto group relative w-[100px] md:w-[180px] lg:w-[200px] cursor-pointer"
+                                className="mx-auto group relative w-[100px] md:w-[150px] lg:w-[180px] cursor-pointer"
                             >
                                 <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
                                     <Image
@@ -84,7 +94,7 @@ export default function HistoryPage() {
                                         e.stopPropagation();
                                         deleteFromHistory(item.id);
                                     }}
-                                    className="absolute z-10 top-1 sm:top-2 right-1 sm:right-2 p-1.5 sm:p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300 opacity-0 group-hover:opacity-100"
+                                    className="hidden sm:block md:block absolute z-10 top-1 sm:top-2 right-1 sm:right-2 p-1.5 sm:p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300 opacity-0 group-hover:opacity-100"
                                 >
                                     <IoTrashOutline className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
                                 </button>
@@ -111,10 +121,17 @@ export default function HistoryPage() {
             )}
 
             {selectedItem && (
-                <div className="fixed -top-10 min-h-screen inset-0 z-50 flex items-end md:items-center justify-center">
+                <div className="fixed -top-10 min-h-screen inset-0 z-50 flex items-end md:items-center justify-center 
+                ">
                     <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedItem(null)} />
                     
-                    <div className="relative w-full md:w-[800px] bg-zinc-900 rounded-t-2xl md:rounded-2xl max-h-[85vh] overflow-y-auto">
+                    <div className="relative w-full md:w-[800px] bg-zinc-900 rounded-t-2xl md:rounded-2xl max-h-[85vh] overflow-y-auto
+                        [&::-webkit-scrollbar]:w-2
+                        [&::-webkit-scrollbar-track]:bg-zinc-800
+                        [&::-webkit-scrollbar-thumb]:bg-zinc-600
+                        [&::-webkit-scrollbar-thumb]:rounded-full
+                        [&::-webkit-scrollbar-thumb]:border-2
+                        [&::-webkit-scrollbar-thumb]:border-zinc-800">
                         <div className="relative h-[200px] sm:h-[300px]">
                             <Image
                                 src={`${process.env.NEXT_PUBLIC_TMDB_BACKDROP_URL}${selectedItem.data.backdrop_path}`}
@@ -164,9 +181,27 @@ export default function HistoryPage() {
                                         )}
                                     </div>
                                     
-                                    <p className="text-sm md:text-base text-zinc-300 leading-relaxed text-center md:text-left line-clamp-5 mb-10">
-                                        {selectedItem.reason}
-                                    </p>
+                                    <div className="text-sm md:text-base text-zinc-300 leading-relaxed text-center md:text-left mb-10">
+                                        <p className={showFullReason ? '' : 'line-clamp-3'}>
+                                            {selectedItem.reason}
+                                        </p>
+                                        <button 
+                                            onClick={() => setShowFullReason(!showFullReason)}
+                                            className="text-zinc-400 hover:text-zinc-200 text-sm mt-2 transition-colors"
+                                        >
+                                            {showFullReason ? 'Show Less' : 'Show More'}
+                                        </button>
+                                    </div>
+
+                                    <div className="flex items-center justify-center md:justify-start gap-2 mt-2 px-4 py-3 bg-zinc-800/50 rounded-lg border border-zinc-700/50 backdrop-blur">
+                                        <div className="flex items-center gap-2">
+                                            <RiRobot2Line className="w-5 h-5 text-zinc-400" />
+                                            <span className="text-zinc-400 text-sm">Recommended from:</span>
+                                        </div>
+                                        <span className="text-zinc-200 text-sm font-medium">
+                                            {typeof selectedItem.from === 'string' ? selectedItem.from : selectedItem.from.title}
+                                        </span>
+                                    </div>
 
                                     <div className="hidden md:block mt-10">
                                         <button

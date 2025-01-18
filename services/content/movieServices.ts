@@ -5,21 +5,45 @@ import { Movie, MappedMovie, MovieDetails } from "@/types/types";
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const BASE_URL = "https://api.themoviedb.org/3";
 
+// Cache configuration
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const cache = new Map<string, { data: any; timestamp: number }>();
+
+/**
+ * Helper function to get or set cached data
+ */
+function getCachedData<T>(key: string, fetchFn: () => Promise<T>): Promise<T> {
+  const cached = cache.get(key);
+  const now = Date.now();
+
+  if (cached && now - cached.timestamp < CACHE_DURATION) {
+    return Promise.resolve(cached.data);
+  }
+
+  return fetchFn().then((data) => {
+    cache.set(key, { data, timestamp: now });
+    return data;
+  });
+}
+
 /**
  * Fetches trending movies for the week
  * @param page - Page number for pagination
  * @returns Promise containing array of mapped movie data
  */
 export async function getTrendingMovies(page: number = 1): Promise<MappedMovie[]> {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/trending/movie/week?api_key=${TMDB_API_KEY}&include_adult=false&page=${page}`
-    );
-    
-    return mapMovieResults(response.data.results);
-  } catch (error) {
-    return [];
-  }
+  const cacheKey = `trending-movies-${page}`;
+  
+  return getCachedData(cacheKey, async () => {
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/trending/movie/week?api_key=${TMDB_API_KEY}&include_adult=false&page=${page}`
+      );
+      return mapMovieResults(response.data.results);
+    } catch (error) {
+      return [];
+    }
+  });
 }
 
 /**
@@ -28,20 +52,24 @@ export async function getTrendingMovies(page: number = 1): Promise<MappedMovie[]
  * @returns Promise containing array of movie data
  */
 export async function getPopularMovies(page: number = 1): Promise<Movie[]> {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/movie/popular?api_key=${TMDB_API_KEY}&page=${page}&include_adult=false`
-    );
-    
-    return response.data.results
-      .filter((item: Movie) => item.poster_path !== null)
-      .map((item: Movie) => ({
-        ...item,
-        type: "movie"
-      }));
-  } catch (error) {
-    return [];
-  }
+  const cacheKey = `popular-movies-${page}`;
+
+  return getCachedData(cacheKey, async () => {
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/movie/popular?api_key=${TMDB_API_KEY}&page=${page}&include_adult=false`
+      );
+      
+      return response.data.results
+        .filter((item: Movie) => item.poster_path !== null)
+        .map((item: Movie) => ({
+          ...item,
+          type: "movie"
+        }));
+    } catch (error) {
+      return [];
+    }
+  });
 }
 
 /**
@@ -51,15 +79,19 @@ export async function getPopularMovies(page: number = 1): Promise<Movie[]> {
  * @returns Promise containing array of mapped movie data
  */
 export async function searchMovies(query: string, page: number = 1): Promise<MappedMovie[]> {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=${page}&include_adult=false`
-    );
-    
-    return mapMovieResults(response.data.results, true);
-  } catch (error) {
-    return [];
-  }
+  const cacheKey = `search-movies-${query}-${page}`;
+
+  return getCachedData(cacheKey, async () => {
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&page=${page}&include_adult=false`
+      );
+      
+      return mapMovieResults(response.data.results, true);
+    } catch (error) {
+      return [];
+    }
+  });
 }
 
 /**
@@ -68,18 +100,22 @@ export async function searchMovies(query: string, page: number = 1): Promise<Map
  * @returns Promise containing movie details or null
  */
 export async function getMovieDetails(movieId: number): Promise<MovieDetails | null> {
-  try {
-    const response = await axios.get(
-      `${BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&include_adult=false`
-    );
-    
-    return {
-      ...response.data,
-      type: "movie"
-    };
-  } catch (error) {
-    return null;
-  }
+  const cacheKey = `movie-details-${movieId}`;
+
+  return getCachedData(cacheKey, async () => {
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&include_adult=false`
+      );
+      
+      return {
+        ...response.data,
+        type: "movie"
+      };
+    } catch (error) {
+      return null;
+    }
+  });
 }
 
 /**

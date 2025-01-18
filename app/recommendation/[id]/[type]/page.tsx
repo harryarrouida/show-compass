@@ -32,7 +32,7 @@ export default function RecommendationPage() {
 
     useEffect(() => {
         // Check if this is first visit
-        const hasVisited = localStorage.getItem('hasVisitedRecommendationsTest');
+        const hasVisited = localStorage.getItem('hasVisitedRecommendations');
         if (!hasVisited && initialLoadComplete) {
             setShowIntroModal(true);
             // Auto-close modal after 30 seconds

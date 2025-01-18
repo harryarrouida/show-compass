@@ -1,6 +1,27 @@
 import axios from "axios";
 
-const baseUrl = "https://api.trakt.tv";
+const baseUrl = process.env.NEXT_PUBLIC_TRAKT_BASE_URL;
+
+// Cache configuration for static data
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const cache = new Map<string, { data: any; timestamp: number }>();
+
+/**
+ * Helper function to get or set cached data
+ */
+function getCachedData<T>(key: string, fetchFn: () => Promise<T>): Promise<T> {
+  const cached = cache.get(key);
+  const now = Date.now();
+
+  if (cached && now - cached.timestamp < CACHE_DURATION) {
+    return Promise.resolve(cached.data);
+  }
+
+  return fetchFn().then((data) => {
+    cache.set(key, { data, timestamp: now });
+    return data;
+  });
+}
 
 export const traktToken = async (code: string) => {
   const response = await axios.post("/api/trakt/token", { code });
@@ -27,7 +48,6 @@ export const traktWatched = async (token: string) => {
 
 export const traktWatchlist = async (token: string) => {
   const watchlist = await axios.get(`${baseUrl}/users/me/watchlist/movies`, {
-    //   const watchlist = await axios.get("/api/trakt/watched", {
     headers: {
       Authorization: `Bearer ${token}`,
       "trakt-api-key": process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID,
@@ -51,41 +71,47 @@ export const traktHistory = async (token: string) => {
 };
 
 export const moviesWatched = async (token: string) => {
-  const moviesWatched = await axios.get(`${baseUrl}/users/me/watched/movies`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "trakt-api-key": process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID,
-      "trakt-api-version": "2",
-      "Content-Type": "application/json",
-    },
+  const cacheKey = `movies-watched-${token}`;
+  return getCachedData(cacheKey, async () => {
+    const moviesWatched = await axios.get(`${baseUrl}/users/me/watched/movies`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "trakt-api-key": process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID,
+        "trakt-api-version": "2",
+        "Content-Type": "application/json",
+      },
+    });
+    const mappedMoviesWatched = moviesWatched.data.map((movie: any) => {
+      return {
+        title: movie.movie.title,
+        tmdbId: movie.movie.ids.tmdb,
+        type: "movie",
+      };
+    });
+    return mappedMoviesWatched;
   });
-  const mappedMoviesWatched = moviesWatched.data.map((movie: any) => {
-    return {
-      title: movie.movie.title,
-      tmdbId: movie.movie.ids.tmdb,
-      type: "movie",
-    };
-  });
-  return mappedMoviesWatched;
 };
 
 export const showsWatched = async (token: string) => {
-  const showsWatched = await axios.get(`${baseUrl}/users/me/watched/shows`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "trakt-api-key": process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID,
-      "trakt-api-version": "2",
-      "Content-Type": "application/json",
-    },
+  const cacheKey = `shows-watched-${token}`;
+  return getCachedData(cacheKey, async () => {
+    const showsWatched = await axios.get(`${baseUrl}/users/me/watched/shows`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "trakt-api-key": process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID,
+        "trakt-api-version": "2",
+        "Content-Type": "application/json",
+      },
+    });
+    const mappedShowsWatched = showsWatched.data.map((show: any) => {
+      return {
+        title: show.show.title,
+        tmdbId: show.show.ids.tmdb,
+        type: "show",
+      };
+    });
+    return mappedShowsWatched;
   });
-  const mappedShowsWatched = showsWatched.data.map((show: any) => {
-    return {
-      title: show.show.title,
-      tmdbId: show.show.ids.tmdb,
-      type: "show",
-    };
-  });
-  return mappedShowsWatched;
 };
 
 export const getUserWatchlist = async (token: string, type: string) => {
