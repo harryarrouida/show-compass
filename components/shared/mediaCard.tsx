@@ -34,7 +34,7 @@ export default function MediaCard({
   const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
 
   return (
-    <div className="mx-auto relative w-[140px] md:w-[150px] lg:w-[180px] mb-10 cursor-pointer group">
+    <div className="mx-auto relative w-[100px] md:w-[150px] lg:w-[180px] mb-10 cursor-pointer group">
       <Link
         href={`/recommendation/${item.id}/${mediaType}`}
         key={item.id}
@@ -53,12 +53,12 @@ export default function MediaCard({
           </div>
 
           <div className="mt-2 space-y-0.5 sm:space-y-1 flex justify-between items-center">
-            <h3 className="text-xs sm:text-sm font-medium text-zinc-300 line-clamp-1">
+            <h3 className="text-xs sm:text-sm md:text-base lg:text-md font-medium text-zinc-300 line-clamp-1">
               {title}
             </h3>
             {rating && (
-              <span className="flex items-center">
-                <IoStar className="text-amber-400 mx-0.5 sm:mx-1" size={10} />
+              <span className="flex items-center text-xs sm:text-sm md:text-base">
+                <IoStar className="text-amber-400 mx-0.5 sm:mx-1 w-3 h-3 sm:w-4 sm:h-4" />
                 {rating}
               </span>
             )}

@@ -18,7 +18,13 @@ export function RecommendationModal({
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       
       {/* Modal Container */}
-      <div className="relative w-full md:w-[800px] bg-zinc-900 rounded-t-2xl md:rounded-2xl max-h-[85vh] overflow-y-auto">
+      <div className="relative w-full md:w-[800px] bg-zinc-900 rounded-t-2xl md:rounded-2xl max-h-[85vh] overflow-y-auto
+        [&::-webkit-scrollbar]:w-2
+        [&::-webkit-scrollbar-track]:bg-zinc-800
+        [&::-webkit-scrollbar-thumb]:bg-zinc-600
+        [&::-webkit-scrollbar-thumb]:rounded-full
+        [&::-webkit-scrollbar-thumb]:border-2
+        [&::-webkit-scrollbar-thumb]:border-zinc-800">
         {/* Backdrop Image */}
         <div className="relative h-[200px] sm:h-[300px]">
           <Image
@@ -72,7 +78,7 @@ export function RecommendationModal({
                 )}
               </div>
               
-              <p className="text-sm md:text-base text-zinc-300 leading-relaxed text-center md:text-left">
+              <p className="text-sm md:text-base text-zinc-300 leading-relaxed text-center md:text-left line-clamp-none">
                 {selectedRec.reason}
               </p>
 
@@ -93,7 +99,7 @@ export function RecommendationModal({
           </div>
 
           {/* Save Button - Mobile */}
-          <div className="p-4 bg-zinc-900 border-t border-zinc-800 md:hidden fixed bottom-0 left-0 right-0">
+          <div className="p-4 bg-zinc-900 border-t border-zinc-800 md:hidden mt-10">
             <button
               onClick={(e) => {
                 e.stopPropagation();

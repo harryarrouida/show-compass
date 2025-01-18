@@ -21,12 +21,14 @@ type MediaType = "movies" | "shows";
 const TraktRecommendations = () => {
   // Core state management
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [mediaType, setMediaType] = useState<MediaType>("movies");
   const [numRecommendations, setNumRecommendations] = useState<5 | 10>(5);
   const [recommendationsDetails, setRecommendationsDetails] = useState<any[]>(
     []
   );
+  const [generateDisabled, setGenerateDisabled] = useState(false);
 
   // UI state management
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
@@ -52,6 +54,7 @@ const TraktRecommendations = () => {
     setRecommendations([]);
     setRecommendationsDetails([]);
     setSelectedReason(null);
+    setError(null);
   }, [mediaType]);
 
   // Helper function to clean AI responses and ensure valid JSON
@@ -86,7 +89,7 @@ const TraktRecommendations = () => {
       setWatchlist(watchlistItems);
     } catch (error) {
       console.error("Error fetching watchlist:", error);
-      return "";
+      throw new Error("Failed to fetch watchlist");
     }
 
     return generateWatchlistPrompt(
@@ -99,9 +102,21 @@ const TraktRecommendations = () => {
 
   // Main function to handle recommendation generation
   const handleRecommendations = async () => {
+    if (generateDisabled) {
+      setError("Please wait 5 minutes between generating recommendations");
+      return;
+    }
+
     setLoading(true);
+    setError(null);
     setRecommendations([]);
     setRecommendationsDetails([]);
+    setGenerateDisabled(true);
+
+    // Set 5 minute timeout
+    setTimeout(() => {
+      setGenerateDisabled(false);
+    }, 5 * 60 * 1000);
 
     try {
       // Get watched content from cache or fetch new
@@ -115,7 +130,7 @@ const TraktRecommendations = () => {
           : await getUserWatchedShows();
 
       if (!watchedContent || watchedContent.length === 0) {
-        throw new Error(`No watched ${mediaType} found`);
+        throw new Error(`No watched ${mediaType} found in your history`);
       }
 
       const groq = new Groq({
@@ -140,7 +155,7 @@ const TraktRecommendations = () => {
           {
             role: "system",
             content:
-              "You are a JSON-only response bot. Always respond with valid JSON matching the exact format requested. Your response should be a JSON object with a 'recommendations' array containing objects with 'title' and 'reason' properties. Never include additional text or explanations.",
+              "you are a movie and tv show recommendation bot. you will be given a list of movies and tv shows that the user has watched. you will then generate a list of recommendations based on the user's watch history. you will then return a json object with a 'recommendations' array containing objects with 'title' and 'reason' properties. never include additional text or explanations.",
           },
           {
             role: "user",
@@ -150,6 +165,8 @@ const TraktRecommendations = () => {
         model: "llama-3.3-70b-versatile",
         temperature: 0.7,
         top_p: 0.9,
+        max_tokens: 4096,
+        response_format: { type: "json_object" },
       });
 
       const response = completion.choices[0]?.message?.content || "";
@@ -160,6 +177,9 @@ const TraktRecommendations = () => {
         const recommendationsDetails = await Promise.all(
           parsed.recommendations.map(async (rec: any) => {
             const searchResults = await search(rec.title);
+            if (!searchResults.length) {
+              throw new Error(`Could not find media details for ${rec.title}`);
+            }
             const mediaMatch = searchResults[0];
             return {
               ...rec,
@@ -172,11 +192,13 @@ const TraktRecommendations = () => {
         );
         setRecommendationsDetails(recommendationsDetails);
       } catch (error) {
-        console.error("Failed to parse AI response:", error);
-        setRecommendations([]);
+        throw new Error("Failed to process recommendations");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating recommendations:", error);
+      setError(error.message || "An unexpected error occurred while generating recommendations");
+      setRecommendations([]);
+      setRecommendationsDetails([]);
     } finally {
       setLoading(false);
     }
@@ -313,6 +335,12 @@ const TraktRecommendations = () => {
               approaches.
             </p>
 
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-300 text-sm">
+                {error}
+              </div>
+            )}
+
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1">
                 <select
@@ -356,7 +384,7 @@ const TraktRecommendations = () => {
 
               <button
                 onClick={handleRecommendations}
-                disabled={loading}
+                disabled={loading || generateDisabled}
                 className="group flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 
                           bg-gradient-to-r from-violet-600 to-violet-500 
                           hover:from-violet-500 hover:to-violet-400
@@ -386,7 +414,7 @@ const TraktRecommendations = () => {
       {/* Recommendations Grid */}
       {recommendations.length > 0 && (
         <div className="space-y-4 sm:space-y-6 mx-2 sm:mx-4">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 mx-auto">
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 mx-auto">
             {recommendationsDetails.map((rec, index) => (
               <RecommendationCard
                 key={index}

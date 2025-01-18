@@ -152,6 +152,7 @@ const Trakt = () => {
           setPage={setPage}
           isLoading={isLoading}
           setIsLoading={setIsLoading}
+          isWithSearch={true}
         />
     </PageLayout>
   );

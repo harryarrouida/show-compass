@@ -49,12 +49,12 @@ export default function HistoryPage() {
                 </Card>
             ) : (
                 <>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                         {displayHistory.map((item) => (
                             <div
                                 key={item.id}
                                 onClick={() => setSelectedItem(item as HistoryItem)}
-                                className="mx-auto group relative w-[140px] md:w-[180px] lg:w-[200px] cursor-pointer"
+                                className="mx-auto group relative w-[100px] md:w-[180px] lg:w-[200px] cursor-pointer"
                             >
                                 <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
                                     <Image
@@ -164,11 +164,11 @@ export default function HistoryPage() {
                                         )}
                                     </div>
                                     
-                                    <p className="text-sm md:text-base text-zinc-300 leading-relaxed text-center md:text-left">
+                                    <p className="text-sm md:text-base text-zinc-300 leading-relaxed text-center md:text-left line-clamp-5 mb-10">
                                         {selectedItem.reason}
                                     </p>
 
-                                    <div className="hidden md:block mt-8">
+                                    <div className="hidden md:block mt-10">
                                         <button
                                             onClick={() => {
                                                 deleteFromHistory(selectedItem.id);
@@ -183,7 +183,7 @@ export default function HistoryPage() {
                                 </div>
                             </div>
 
-                            <div className="p-4 bg-zinc-900 border-t border-zinc-800 md:hidden fixed bottom-0 left-0 right-0">
+                            <div className="p-4 bg-zinc-900 border-t border-zinc-800 md:hidden mt-10">
                                 <button
                                     onClick={() => {
                                         deleteFromHistory(selectedItem.id);

@@ -26,9 +26,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={quicksand.variable}>
-      <body className="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col antialiased font-sans relative">
-        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-800/20 via-zinc-900/20 to-zinc-950 pointer-events-none" />
-        <div className="fixed inset-0 bg-[url('/noise.png')] opacity-[0.02] pointer-events-none" />
+      <body className="bg-zinc-925 text-zinc-100 min-h-screen flex flex-col antialiased font-sans relative">
+        <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-800/20 via-zinc-850/20 to-zinc-925 pointer-events-none" />
+        <div className="fixed inset-0 bg-[url('/noise.png')] opacity-[0.025] pointer-events-none" />
         <ToastProvider>
           <TraktProvider>
             <HistoryProvider>

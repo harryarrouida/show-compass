@@ -1,102 +1,168 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { MappedShow, MappedMovie } from '@/types/types';
-import MediaCard from '@/components/shared/mediaCard';
+import { useState, useEffect } from "react";
+import { MappedShow, MappedMovie } from "@/types/types";
+import MediaCard from "@/components/shared/mediaCard";
+import { IoClose } from "react-icons/io5";
 
 interface DataGridProps {
-    activeTab: string;
-    setActiveTab: (tab: string) => void;
-    shows: MappedShow[];
-    setShows: (shows: MappedShow[]) => void;
-    movies: MappedMovie[];
-    setMovies: (movies: MappedMovie[]) => void;
-    page: number;
-    setPage: (page: number) => void;
-    isLoading: boolean;
-    setIsLoading: (loading: boolean) => void;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  shows: MappedShow[];
+  setShows: (shows: MappedShow[]) => void;
+  movies: MappedMovie[];
+  setMovies: (movies: MappedMovie[]) => void;
+  page: number;
+  setPage: (page: number) => void;
+  isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
+  isWithSearch: boolean;
 }
 
 export default function DataGrid({
-    activeTab,
-    setActiveTab,
-    shows,
-    setShows,
-    movies,
-    setMovies,
-    page,
-    setPage,
-    isLoading,
-    setIsLoading
+  activeTab,
+  setActiveTab,
+  shows,
+  setShows,
+  movies,
+  setMovies,
+  page,
+  setPage,
+  isLoading,
+  setIsLoading,
+  isWithSearch = false,
 }: DataGridProps) {
-    const data = activeTab === 'movies' ? movies : shows;
+  const data = activeTab === "movies" ? movies : shows;
+  const [filteredData, setFilteredData] =
+    useState<(MappedShow | MappedMovie)[]>(data);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
-    useEffect(() => {
-        setPage(1);
-    }, [activeTab, setPage]);
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab, setPage]);
 
-    const handleLoadMore = () => {
-        const nextPage = page + 1;
-        setPage(nextPage);
-    };
+  useEffect(() => {
+    setFilteredData(data);
+  }, [data]);
 
-    return (
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-            <div className="flex justify-center mb-16">
-                <div className="inline-flex space-x-12 border-b border-zinc-800/50 backdrop-blur-sm">
-                    <button
-                        onClick={() => setActiveTab('shows')}
-                        className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${
-                            activeTab === 'shows'
-                                ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-zinc-400 after:to-zinc-600'
-                                : 'text-zinc-500 hover:text-zinc-400'
-                        }`}
-                    >
-                        Shows
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('movies')}
-                        className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${
-                            activeTab === 'movies'
-                                ? 'text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-zinc-400 after:to-zinc-600'
-                                : 'text-zinc-500 hover:text-zinc-400'
-                        }`}
-                    >
-                        Movies
-                    </button>
-                </div>
-            </div>
+  const handleLoadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+  };
 
-            <div className="sm:mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-8">
-                {data.map((item) => (
-                    <MediaCard key={item.id} item={item} activeTab={activeTab} />
-                ))}
-            </div>
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    const searchTerm = e.target.value.toLowerCase();
+    const filteredData = data.filter((item) =>
+      item.title.toLowerCase().includes(searchTerm)
+    );
+    setFilteredData(filteredData as (MappedShow | MappedMovie)[]);
+  };
 
-            <div className="mt-20 mb-16 flex justify-center">
-                <button
-                    onClick={handleLoadMore}
-                    disabled={isLoading}
-                    className="group relative px-8 py-3 bg-gradient-to-r from-zinc-700 to-zinc-800 
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    setFilteredData(data);
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+      {isWithSearch ? (
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-16 gap-6 sm:gap-0">
+          <div className="inline-flex space-x-12 border-b border-zinc-800/50 backdrop-blur-sm">
+            <button
+              onClick={() => setActiveTab("shows")}
+              className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${
+                activeTab === "shows"
+                  ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-zinc-400 after:to-zinc-600"
+                  : "text-zinc-500 hover:text-zinc-400"
+              }`}
+            >
+              Shows
+            </button>
+            <button
+              onClick={() => setActiveTab("movies")}
+              className={`pb-4 px-3 text-base font-medium transition-all duration-300 relative ${
+                activeTab === "movies"
+                  ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-gradient-to-r after:from-zinc-400 after:to-zinc-600"
+                  : "text-zinc-500 hover:text-zinc-400"
+              }`}
+            >
+              Movies
+            </button>
+          </div>
+
+          <div className="relative w-full sm:w-auto">
+            <input
+              value={searchTerm}
+              onChange={handleSearch}
+              type="text"
+              placeholder="Search..."
+              className="w-full sm:w-64 px-4 py-2 bg-zinc-900/50 border border-zinc-800 rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors"
+            />
+            {searchTerm.length > 0 && (
+              <button
+                onClick={handleClearSearch}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+              >
+                <IoClose size={18} />
+              </button>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="sm:mx-auto grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-8">
+        {isWithSearch ? (
+          filteredData.map((item) => (
+            <MediaCard key={item.id} item={item} activeTab={activeTab} />
+          ))
+        ) : (
+          data.map((item) => (
+            <MediaCard key={item.id} item={item} activeTab={activeTab} />
+          ))
+        )}
+      </div>
+
+      <div className="mt-20 mb-16 flex justify-center">
+        <button
+          onClick={handleLoadMore}
+          disabled={isLoading}
+          className="group relative px-8 py-3 bg-gradient-to-r from-zinc-700 to-zinc-800 
                              disabled:from-zinc-900 disabled:to-zinc-900 disabled:cursor-not-allowed
                              text-white text-sm rounded-full transition-all duration-300
                              hover:shadow-lg hover:shadow-zinc-800/25"
+        >
+          <div className="relative flex items-center space-x-2">
+            {isLoading ? (
+              <>
+                <svg
+                  className="animate-spin h-4 w-4 text-zinc-300"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
                 >
-                    <div className="relative flex items-center space-x-2">
-                        {isLoading ? (
-                            <>
-                                <svg className="animate-spin h-4 w-4 text-zinc-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                <span className="text-zinc-300">Loading...</span>
-                            </>
-                        ) : (
-                            <span className="text-zinc-300">Load More</span>
-                        )}
-                    </div>
-                </button>
-            </div>
-        </div>
-    );
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <span className="text-zinc-300">Loading...</span>
+              </>
+            ) : (
+              <span className="text-zinc-300">Load More</span>
+            )}
+          </div>
+        </button>
+      </div>
+    </div>
+  );
 }

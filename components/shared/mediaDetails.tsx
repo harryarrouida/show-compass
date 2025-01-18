@@ -24,21 +24,21 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
             {/* Left Column */}
             <div className="space-y-6 md:space-y-8">
                 {/* Poster with responsive sizing */}
-                <div className="relative aspect-[2/3] w-full max-w-[280px] mx-auto md:max-w-none rounded-lg overflow-hidden bg-zinc-900/40">
+                <div className="relative aspect-[2/3] w-[180px] md:w-[280px] mx-auto md:max-w-none rounded-lg overflow-hidden bg-zinc-900/40">
                     <Image
                         src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${details.poster_path}`}
                         alt={details.title}
                         fill
                         className="object-cover"
                         priority
-                        sizes="(max-width: 768px) 280px, 320px"
+                        sizes="(max-width: 768px) 180px, 280px"
                     />
                 </div>
 
                 {/* Quick info section */}
-                <div className="space-y-6 md:space-y-8 px-4 md:px-0">
+                <div className="space-y-4 md:space-y-8 px-4 md:px-0">
                     {/* Rating & Year */}
-                    <div className="flex items-center justify-center md:justify-start gap-3 text-base text-zinc-300">
+                    <div className="flex items-center justify-center md:justify-start gap-3 text-sm md:text-base text-zinc-300">
                         <span className="text-amber-400">★</span>
                         <span>{details.vote_average?.toFixed(1)}</span>
                         <span className="text-zinc-500">•</span>
@@ -51,7 +51,7 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
 
                     {/* Runtime */}
                     {'runtime' in details && details.runtime && (
-                        <div className="text-sm text-center md:text-left text-zinc-400">
+                        <div className="text-xs md:text-sm text-center md:text-left text-zinc-400">
                             {Math.floor(details.runtime / 60)}h {details.runtime % 60}m
                         </div>
                     )}
@@ -59,11 +59,11 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
                     {/* Genres */}
                     {details.genres && (
                         <div className="overflow-x-auto scrollbar-hide -mx-4 md:mx-0 px-4 md:px-0">
-                            <div className="flex flex-wrap md:flex-wrap gap-2 min-w-min justify-center md:justify-start">
+                            <div className="flex flex-wrap md:flex-wrap gap-1.5 md:gap-2 min-w-min justify-center md:justify-start">
                                 {details.genres.map((genre) => (
                                     <span
                                         key={genre.id}
-                                        className="px-4 py-1.5 bg-zinc-800/70 hover:bg-zinc-700/70 rounded-full text-sm text-zinc-200 whitespace-nowrap"
+                                        className="px-3 md:px-4 py-1 md:py-1.5 bg-zinc-800/70 hover:bg-zinc-700/70 rounded-full text-xs md:text-sm text-zinc-200 whitespace-nowrap"
                                     >
                                         {genre.name}
                                     </span>
@@ -74,18 +74,18 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
 
                     {/* Show Specific Details - Seasons */}
                     {'seasons' in details && details.seasons && (
-                        <div className="space-y-4 hidden md:block lg:block">
+                        <div className="space-y-3 md:space-y-4 hidden md:block">
                             <h3 className="text-sm font-medium text-zinc-300 text-center md:text-left">Seasons</h3>
-                            <div className="space-y-3">
+                            <div className="space-y-2 md:space-y-3">
                                 {details.seasons
                                     .slice(0, showAllSeasons ? undefined : 4)
                                     .map((season) => (
                                         <div
                                             key={season.id}
-                                            className="bg-zinc-800/30 rounded-lg p-4 space-y-2"
+                                            className="bg-zinc-800/30 rounded-lg p-3 md:p-4 space-y-1.5 md:space-y-2"
                                         >
                                             <div className="flex justify-between items-start">
-                                                <span className="text-sm font-medium">{season.name}</span>
+                                                <span className="text-xs md:text-sm font-medium">{season.name}</span>
                                                 {season.vote_average > 0 && (
                                                     <div className="flex items-center gap-1">
                                                         <span className="text-amber-400/90 text-xs">★</span>
@@ -95,7 +95,7 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="text-xs text-zinc-500">
+                                            <div className="text-[10px] md:text-xs text-zinc-500">
                                                 {season.episode_count} Episodes • {new Date(season.air_date).getFullYear()}
                                             </div>
                                         </div>
@@ -103,7 +103,7 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
                                 {details.seasons.length > 4 && (
                                     <button
                                         onClick={() => setShowAllSeasons(!showAllSeasons)}
-                                        className="w-full text-center text-sm text-zinc-500 hover:text-zinc-400 transition-colors"
+                                        className="w-full text-center text-xs md:text-sm text-zinc-500 hover:text-zinc-400 transition-colors"
                                     >
                                         {showAllSeasons ? 'Show Less' : `Show All ${details.seasons.length} Seasons`}
                                     </button>
@@ -113,13 +113,13 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
                     )}
 
                     {/* Languages */}
-                    <div className="space-y-3">
-                        <h3 className="text-sm font-medium text-zinc-300 text-center md:text-left">Languages</h3>
-                        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                    <div className="space-y-2 md:space-y-3">
+                        <h3 className="text-xs md:text-sm font-medium text-zinc-300 text-center md:text-left">Languages</h3>
+                        <div className="flex flex-wrap gap-1.5 md:gap-2 justify-center md:justify-start">
                             {details.spoken_languages?.map((lang) => (
                                 <span
                                     key={lang.iso_639_1}
-                                    className="text-xs text-zinc-400 bg-zinc-800/30 px-3 py-1.5 rounded-full"
+                                    className="text-[10px] md:text-xs text-zinc-400 bg-zinc-800/30 px-2 md:px-3 py-1 md:py-1.5 rounded-full"
                                 >
                                     {lang.english_name}
                                 </span>
@@ -129,9 +129,9 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
 
                     {/* Production Companies */}
                     {details.production_companies && details.production_companies.length > 0 && (
-                        <div className="space-y-3 hidden md:block lg:block">
+                        <div className="space-y-2 md:space-y-3 hidden md:block">
                             <h3 className="text-sm font-medium text-zinc-300 text-center md:text-left">Production</h3>
-                            <div className="text-sm text-zinc-400 text-center md:text-left">
+                            <div className="text-xs md:text-sm text-zinc-400 text-center md:text-left">
                                 {details.production_companies.map(company => company.name).join(', ')}
                             </div>
                         </div>
@@ -143,7 +143,7 @@ export default function MediaDetails({ details, showAllSeasons, setShowAllSeason
             <div className="space-y-6 md:space-y-8 px-4 md:px-0">
                 <div>
                     <h1 className="text-2xl md:text-4xl font-semibold text-white mb-4 md:mb-6 text-center md:text-left">{details.title}</h1>
-                    <p className="text-base md:text-lg text-zinc-300 leading-relaxed text-center md:text-left">{details.overview}</p>
+                    <p className="text-base md:text-lg text-zinc-300 leading-relaxed text-center md:text-left bg-zinc-900/50 p-4 md:p-6 rounded-xl border border-zinc-800/50">{details.overview}</p>
                 </div>
                 
                 <div className="mt-8 md:mt-12">

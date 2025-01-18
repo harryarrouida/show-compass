@@ -12,6 +12,9 @@ import { generateDefaultPrompt, generateCustomPrompt } from '@/constants/aiPromp
 import { search } from "@/services/content/sharedServices";
 import { useHistory } from '@/context/historyContext';
 import Loading from "@/components/shared/loading";
+import { IoClose } from "react-icons/io5";
+import { RiRobot2Line, RiQuestionLine, RiHistoryLine, RiChat1Line } from "react-icons/ri";
+import { BsChatDots } from "react-icons/bs";
 
 export default function RecommendationPage() {
     const [details, setDetails] = useState<ShowDetails | MovieDetails | null>(null);
@@ -24,6 +27,27 @@ export default function RecommendationPage() {
     const [showChat, setShowChat] = useState(false);
     const [prompt, setPrompt] = useState("");
     const { saveToHistory: saveToHistoryContext } = useHistory();
+    const [showIntroModal, setShowIntroModal] = useState(false);
+    const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
+    useEffect(() => {
+        // Check if this is first visit
+        const hasVisited = localStorage.getItem('hasVisitedRecommendationsTest');
+        if (!hasVisited && initialLoadComplete) {
+            setShowIntroModal(true);
+            // Auto-close modal after 30 seconds
+            const timer = setTimeout(() => {
+                setShowIntroModal(false);
+                localStorage.setItem('hasVisitedRecommendations', 'true');
+            }, 60000);
+            return () => clearTimeout(timer);
+        }
+    }, [initialLoadComplete]);
+
+    const closeIntroModal = () => {
+        setShowIntroModal(false);
+        localStorage.setItem('hasVisitedRecommendations', 'true');
+    };
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -114,6 +138,7 @@ export default function RecommendationPage() {
             } finally {
                 setIsLoading(false);
                 setIsAiLoading(false);
+                setInitialLoadComplete(true);
             }
         };
 
@@ -241,6 +266,55 @@ export default function RecommendationPage() {
                                 prompt={prompt}
                                 handleSubmitPrompt={handleSubmitPrompt}
                             />
+
+                            {/* Intro Modal */}
+                            {showIntroModal && (
+                                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                                    <div className="bg-zinc-900 rounded-xl p-6 max-w-md w-full relative border border-violet-500/20 mx-4 sm:mx-0">
+                                        <button 
+                                            onClick={closeIntroModal}
+                                            className="absolute top-3 right-3 p-1.5 text-zinc-400 hover:text-white rounded-lg bg-zinc-800/50 hover:bg-zinc-800 transition-colors"
+                                        >
+                                            <IoClose size={20} />
+                                        </button>
+                                        
+                                        <h2 className="text-xl sm:text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                                            <RiRobot2Line className="text-violet-400" />
+                                            <span className="text-sm sm:text-base text-zinc-300 uppercase">Welcome to AI Recommendations!</span>
+                                        </h2>
+                                        
+                                        <div className="space-y-5">
+                                            <div className="flex items-start sm:items-center gap-3 text-zinc-300">
+                                                <RiQuestionLine className="text-violet-400 text-xl flex-shrink-0 mt-1 sm:mt-0" />
+                                                <p className="text-sm sm:text-base">Get personalized recommendations based on your selected movie or show</p>
+                                            </div>
+                                            
+                                            <div className="flex items-start sm:items-center gap-3 text-zinc-300">
+                                                <BsChatDots className="text-violet-400 text-xl flex-shrink-0 mt-1 sm:mt-0" />
+                                                <p className="text-sm sm:text-base">Ask specific questions to refine recommendations to your taste</p>
+                                            </div>
+                                            
+                                            <div className="flex items-start sm:items-center gap-3 text-zinc-300">
+                                                <RiHistoryLine className="text-violet-400 text-xl flex-shrink-0 mt-1 sm:mt-0" />
+                                                <p className="text-sm sm:text-base">Save recommendations to your history for later (click on a recommendation to open modal)</p>
+                                            </div>
+
+                                            {/* click to open modal */}
+                                            {/* <div className="flex justify-center">
+                                                <RiChat1Line className="text-violet-400 text-xl flex-shrink-0 mt-1 sm:mt-0" />
+                                                <p className="text-sm sm:text-base text-zinc-300">Click on a recommendation to open modal</p>
+                                            </div> */}
+                                        </div>
+                                        
+                                        <button
+                                            onClick={closeIntroModal}
+                                            className="mt-8 w-full bg-violet-600 hover:bg-violet-700 text-white font-medium py-3 px-4 rounded-xl transition-colors text-sm sm:text-base"
+                                        >
+                                            Get Started
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </>
                     )}
                 </>

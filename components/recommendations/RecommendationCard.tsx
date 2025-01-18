@@ -16,7 +16,7 @@ export function RecommendationCard({
   return (
     <div
       onClick={() => onSelect(rec)}
-      className="mx-auto group relative w-[140px] md:w-[180px] lg:w-[180px] cursor-pointer mb-10"
+      className="mx-auto group relative w-[100px] md:w-[180px] lg:w-[180px] cursor-pointer mb-10"
     >
       <div className="mx-auto w-full flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg">
         <div className="relative">
@@ -34,13 +34,13 @@ export function RecommendationCard({
           </div>
 
           <div className="mt-4 space-y-2 flex justify-between items-center">
-            <h3 className="text-lg font-medium line-clamp-1 text-left text-sm text-zinc-400">
+            <h3 className="text-xs sm:text-sm md:text-base lg:text-md font-medium line-clamp-1 text-left text-zinc-400">
               {rec.title}
             </h3>
             {rec.media?.vote_average && (
               <div className="flex items-center gap-2 text-sm text-zinc-400">
-                <span className="flex items-center">
-                  <IoStar className="text-amber-400 mr-1" />
+                <span className="flex items-center text-xs sm:text-sm md:text-base lg:text-md">
+                  <IoStar className="text-amber-400 mr-1 text-xs sm:text-sm md:text-base lg:text-md" />
                   {rec.media.vote_average.toFixed(1)}
                 </span>
               </div>
@@ -49,7 +49,7 @@ export function RecommendationCard({
         </div>
       </div>
 
-      <button
+      {/* <button
         onClick={(e) => {
           e.stopPropagation();
           onSave(rec);
@@ -58,7 +58,7 @@ export function RecommendationCard({
         aria-label="Save recommendation"
       >
         <IoBookmarkOutline className="w-5 h-5 text-white" />
-      </button>
+      </button> */}
     </div>
   );
 }

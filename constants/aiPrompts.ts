@@ -4,7 +4,10 @@ export const RECOMMENDATION_RULES = {
     "Avoid mentioning ratings, reviews, or popularity.",
     "Focus on thematic, stylistic, or emotional connections that align with user preferences.", 
     "Include at least one title released in the last 5 years.",
-    "Avoid plot summaries and franchise titles unless the connection is exceptionally strong."
+    "Avoid plot summaries and franchise titles unless the connection is exceptionally strong.",
+    "Avoid mentioning the user's watch history.",
+    "Avoid mentioning the user's favorite genres.", 
+    "each reason must be unique and not repeat the same reason for different titles, with 2 sentences max"
   ],
   connectionTypes: [
     "Shared themes or philosophical questions.",
