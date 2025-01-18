@@ -403,6 +403,7 @@ const TraktRecommendations = () => {
         <RecommendationModal
           recommendation={selectedRecommendation}
           onClose={() => setSelectedRecommendation(null)}
+          onSave={handleSaveToHistory}
         />
       )}
     </div>

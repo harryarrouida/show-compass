@@ -18,7 +18,6 @@ export async function getTrendingMovies(page: number = 1): Promise<MappedMovie[]
     
     return mapMovieResults(response.data.results);
   } catch (error) {
-    console.error("Error fetching trending movies:", error);
     return [];
   }
 }
@@ -41,7 +40,6 @@ export async function getPopularMovies(page: number = 1): Promise<Movie[]> {
         type: "movie"
       }));
   } catch (error) {
-    console.error("Error fetching popular movies:", error);
     return [];
   }
 }
@@ -60,7 +58,6 @@ export async function searchMovies(query: string, page: number = 1): Promise<Map
     
     return mapMovieResults(response.data.results, true);
   } catch (error) {
-    console.error("Error searching movies:", error);
     return [];
   }
 }
@@ -81,7 +78,6 @@ export async function getMovieDetails(movieId: number): Promise<MovieDetails | n
       type: "movie"
     };
   } catch (error) {
-    console.error("Error fetching movie details:", error);
     return null;
   }
 }

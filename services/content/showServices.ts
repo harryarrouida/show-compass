@@ -24,7 +24,6 @@ export async function getTrendingShows(
       overview: item.overview,
     };
   });
-  console.log("mappedData from getTrendingShows", mappedData);
   return mappedData;
 }
 
@@ -105,7 +104,6 @@ export async function getShowDetails(
     };
     return mappedData;
   } catch (error) {
-    console.error("Error fetching show details:", error);
     return null;
   }
 }
