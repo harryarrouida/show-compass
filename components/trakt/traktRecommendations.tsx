@@ -345,13 +345,13 @@ const TraktRecommendations = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 mt-4 sm:mt-8 mb-20">
-      <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800/50 rounded-2xl p-6 sm:p-8 mx-auto mb-8 sm:mb-12 shadow-xl">
+    <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-4 sm:mt-8">
+      <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800/50 rounded-2xl p-4 sm:p-8 mx-auto shadow-xl">
         <div className="flex flex-col gap-4 sm:gap-6">
           {/* Header Section */}
           <div className="flex items-center gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-zinc-800/50">
             <div className="p-2 sm:p-3 bg-gradient-to-br from-violet-500/10 to-violet-500/5 rounded-xl border border-violet-500/10">
-              <RiRobot2Line className="w-5 h-5 sm:w-6 sm:h-6 text-violet-400" />
+              <RiRobot2Line className="w-4 sm:w-5 h-4 sm:h-5 text-violet-400" />
             </div>
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-white">
@@ -462,8 +462,8 @@ const TraktRecommendations = () => {
 
       {/* Recommendations Grid */}
       {recommendations.length > 0 && (
-        <div className="space-y-4 sm:space-y-6 mx-2 sm:mx-4">
-          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
+        <div className="mt-4 sm:mt-8">
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 sm:gap-6">
             {recommendationsDetails.map((rec, index) => (
               <RecommendationCard
                 key={index}
