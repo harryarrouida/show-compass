@@ -31,6 +31,14 @@ export default [
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-this-alias': 'off',
       'import/no-anonymous-default-export': 'off',
+      'react/jsx-no-useless-fragment': 'off',
+      'react/jsx-no-constructed-context-values': 'off',
+      'react/jsx-no-bind': 'off',
+      'react/jsx-no-duplicate-props': 'off',
+      'react/jsx-no-target-blank': 'off',
+      'react/jsx-no-script-url': 'off',
+      'react/jsx-no-useless-fragment': 'off',
     },
   },
 ];
+

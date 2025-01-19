@@ -120,7 +120,7 @@ const TraktRecommendations = () => {
 
     try {
       // Get watched content from cache or fetch new
-      let watchedContent =
+      const watchedContent =
         mediaType === "movies"
           ? watchedMoviesCache.length > 0
             ? watchedMoviesCache
