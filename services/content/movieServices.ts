@@ -7,11 +7,7 @@ import { getCachedData } from '@/utils/cache';
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const BASE_URL = process.env.NEXT_PUBLIC_TMDB_BASE_URL;
 
-/**
- * Fetches trending movies for the week
- * @param page - Page number for pagination
- * @returns Promise containing array of mapped movie data
- */
+
 export async function getTrendingMovies(page: number = 1): Promise<MappedMovie[]> {
   const cacheKey = `trending-movies-${page}`;
   
@@ -23,11 +19,6 @@ export async function getTrendingMovies(page: number = 1): Promise<MappedMovie[]
   }).catch(() => []);
 }
 
-/**
- * Fetches popular movies
- * @param page - Page number for pagination
- * @returns Promise containing array of movie data
- */
 export async function getPopularMovies(page: number = 1): Promise<Movie[]> {
   const cacheKey = `popular-movies-${page}`;
 
@@ -45,12 +36,6 @@ export async function getPopularMovies(page: number = 1): Promise<Movie[]> {
   }).catch(() => []);
 }
 
-/**
- * Searches movies by query string
- * @param query - Search query
- * @param page - Page number for pagination
- * @returns Promise containing array of mapped movie data
- */
 export async function searchMovies(query: string, page: number = 1): Promise<MappedMovie[]> {
   const cacheKey = `search-movies-${query}-${page}`;
 
@@ -63,11 +48,6 @@ export async function searchMovies(query: string, page: number = 1): Promise<Map
   }).catch(() => []);
 }
 
-/**
- * Fetches detailed information for a specific movie
- * @param movieId - TMDB movie ID
- * @returns Promise containing movie details or null
- */
 export async function getMovieDetails(movieId: number): Promise<MovieDetails | null> {
   const cacheKey = `movie-details-${movieId}`;
 
@@ -87,7 +67,7 @@ export async function getMovieDetails(movieId: number): Promise<MovieDetails | n
       poster_path: data.poster_path,
       vote_average: data.vote_average,
       overview: data.overview,
-      type: "movie",
+      type: "movie" as const,
       popularity: data.popularity,
       vote_count: data.vote_count,
       backdrop_path: data.backdrop_path || null,
@@ -104,12 +84,6 @@ export async function getMovieDetails(movieId: number): Promise<MovieDetails | n
   });
 }
 
-/**
- * Helper function to map movie results to consistent format
- * @param results - Raw movie results from API
- * @param includeExtra - Include additional fields like popularity and vote_count
- * @returns Array of mapped movie data
- */
 function mapMovieResults(results: any[], includeExtra: boolean = false): MappedMovie[] {
   return results
     .filter((item: Movie) => item.poster_path !== null)

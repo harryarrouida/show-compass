@@ -1,6 +1,6 @@
 import { IoStar, IoClose, IoBookmarkOutline } from "react-icons/io5";
 import { AIRecommendation } from "@/types/types";
-import Image from "next/image";
+import OptimizedImage from "../shared/optimizedImage";
 
 interface RecommendationModalProps {
   recommendation: AIRecommendation;
@@ -21,10 +21,9 @@ export function RecommendationModal({
       <div className="relative w-full md:w-[800px] bg-zinc-900 rounded-t-2xl md:rounded-2xl max-h-[85vh] overflow-y-auto">
         {/* Backdrop Image */}
         <div className="relative h-[200px] sm:h-[300px]">
-          <Image
+          <OptimizedImage
             src={`${process.env.NEXT_PUBLIC_TMDB_ORIGINAL_URL}${selectedRec.media?.backdrop_path}`}
             alt={selectedRec.title}
-            fill
             sizes="(max-width: 768px) 100vw, 800px"
             priority={true}
             className="object-cover"
@@ -50,14 +49,14 @@ export function RecommendationModal({
           <div className="flex flex-col md:flex-row md:gap-8">
             {/* Poster */}
             <div className="relative w-[140px] h-[210px] md:w-[200px] md:h-[300px] rounded-lg overflow-hidden mx-auto md:mx-0 -mt-20 md:-mt-32">
-              <Image
+              <OptimizedImage
                 src={`${process.env.NEXT_PUBLIC_TMDB_ORIGINAL_URL}${selectedRec.media?.poster_path}`}
                 alt={selectedRec.title}
-                fill
                 className="object-cover opacity-90"
                 priority={true}
                 loading="eager"
                 quality={75}
+                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
               />
             </div>
 

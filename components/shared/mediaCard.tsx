@@ -1,8 +1,8 @@
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { MappedMovie, MappedShow } from "@/types/types";
 import { IoBookmarkOutline, IoStar } from "react-icons/io5";
+import OptimizedImage from "./optimizedImage";
 
 interface MediaCardProps {
   item: MappedMovie | MappedShow;
@@ -27,34 +27,34 @@ export default function MediaCard({
     ? (item as MappedMovie).release_date
     : (item as MappedShow).release_date;
   const mediaType = isMovie ? "movie" : "show";
-  const posterUrl = item.poster_path
-    ? `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${item.poster_path}`
-    : "/placeholder-poster.png";
+  // const posterUrl = item.poster_path
+  //   ? `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${item.poster_path}`
+  //   : "";
   const rating = item.vote_average.toFixed(1);
-  const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
+  // const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
 
   return (
     <div
       className="relative w-[100px] md:w-[150px] lg:w-[180px] mb-10 cursor-pointer group"
-      key={item.id + Math.random()}
+      key={item.id}
     >
       <Link
-        key={item.id + Math.random()}
+        key={item.id}
         href={`/recommendation/${item.id}/${mediaType}`}
         className="mx-auto w-full md:w-full lg:w-full group flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg"
       >
         <div className="group relative">
           <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
-            <Image
-              src={posterUrl}
+            <OptimizedImage
+              src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${item.poster_path}`}
               alt={title}
-              fill
               className="object-cover transform transition-transform duration-500 group-hover:scale-105"
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
               priority={item.id < 2 ? true : false}
               quality={75}
+              loading="lazy"
+              id={item.id}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0" />
           </div>
 
           <div className="mt-2 space-y-0.5 sm:space-y-1 flex justify-between items-center">
@@ -78,9 +78,9 @@ export default function MediaCard({
             e.stopPropagation();
             onSave();
           }}
-          className="absolute top-2 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300"
+          className="absolute top-2 right-4 p-2 bg-zinc-800/50 hover:bg-zinc-700/70 rounded-full transition-colors duration-300"
         >
-          <IoBookmarkOutline className="w-5 h-5 text-white" />
+          <IoBookmarkOutline className="w-5 h-5 text-zinc-300" />
         </button>
       )}
     </div>
