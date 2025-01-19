@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { MappedShow, MappedMovie } from "@/types/types";
-import MediaCard from "@/components/shared/mediaCard";
+import MediaCard from "@/components/bigData/mediaCard";
 import { IoClose } from "react-icons/io5";
-import CardSkeleton from "./shared/CardSkeleton";
+import CardSkeleton from "../shared/CardSkeleton";
 
 interface DataGridProps {
   activeTab: string;
@@ -157,12 +157,15 @@ export default function DataGrid({
         {(isWithSearch ? filteredData : data)
           .slice(0, isWithSearch ? displayCount : undefined)
           .map((item) => (
-            <div key={item.id} className="w-full flex justify-center">
+            <div
+              key={`grid-${item.id + Math.floor(Math.random() * 1000)}`}
+              className="w-full flex justify-center"
+            >
               <div className="animate-fadeIn">
                 {isLoading ? (
                   <CardSkeleton index={item.id} />
                 ) : (
-                  <MediaCard item={item} key={item.id} activeTab={activeTab} />
+                  <MediaCard item={item} activeTab={activeTab} />
                 )}
               </div>
             </div>

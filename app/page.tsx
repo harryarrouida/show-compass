@@ -1,9 +1,8 @@
 "use client";
 
 import PageLayout from "@/components/layout/PageLayout";
-import SearchComponent from "@/components/searchComponent";
-import DataGrid from "@/components/dataGrid";
-import Loading from "@/components/shared/loading";
+import SearchComponent from "@/components/bigData/searchComponent";
+import DataGrid from "@/components/bigData/dataGrid";
 import { useState, useEffect } from "react";
 import { getTrendingShows } from "@/services/content/showServices";
 import { getTrendingMovies } from "@/services/content/movieServices";

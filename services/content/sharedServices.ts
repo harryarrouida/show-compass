@@ -11,12 +11,12 @@ export const search = async (query: string) => {
       axios.get(
         `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(
           query
-        )}`
+        )}&language=en-US`
       ),
       axios.get(
         `${BASE_URL}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(
           query
-        )}`
+        )}&language=en-US`
       ),
     ]);
 

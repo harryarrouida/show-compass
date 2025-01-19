@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { MappedMovie, MappedShow } from '@/types/types';
 import { searchMovies } from '@/services/content/movieServices';
 import { searchShows } from '@/services/content/showServices';
-import MediaCard from './shared/mediaCard';
-import { CardSkeleton } from './shared/LoadingSkeleton';
+import MediaCard from '@/components/bigData/mediaCard';
+import CardSkeleton from '@/components/shared/CardSkeleton';
 import { IoClose } from 'react-icons/io5';
 
 export default function SearchComponent() {
@@ -105,17 +105,7 @@ export default function SearchComponent() {
                         <div className="mt-10">
                             <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-8">
                                 {[...Array(4)].map((_, index) => (
-                                    // <div key={index} className="animate-pulse">
-                                    //     <div className="aspect-[2/3] rounded-lg bg-zinc-900/50" />
-                                    //     <div className="mt-5 space-y-3">
-                                    //         <div className="h-5 bg-zinc-900/50 rounded w-3/4" />
-                                    //         <div className="flex items-center space-x-4">
-                                    //             <div className="h-6 bg-zinc-900/50 rounded-full w-20" />
-                                    //             <div className="h-6 bg-zinc-900/50 rounded w-16" />
-                                    //         </div>
-                                    //     </div>
-                                    // </div>
-                                    <CardSkeleton key={index} />
+                                    <CardSkeleton index={index} />
                                 ))}
                             </div>
                         </div>

@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { MappedMovie, MappedShow } from "@/types/types";
 import { IoBookmarkOutline, IoStar } from "react-icons/io5";
-import OptimizedImage from "./optimizedImage";
+import OptimizedImage from "../shared/optimizedImage";
 
 interface MediaCardProps {
   item: MappedMovie | MappedShow;

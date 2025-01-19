@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { RiBookmarkLine, RiLoginCircleLine, RiMenuLine, RiCloseLine } from "react-icons/ri";
 import { SiTrakt } from 'react-icons/si';
-import { useTraktContext } from '@/context/traktContext';
+import { useTraktContext } from '@/contexts/traktContext';
 import { usePathname } from 'next/navigation';
 
 export default function Navbar() {

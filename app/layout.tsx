@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Quicksand } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/shared/navbar";
-import Footer from '@/components/shared/footer';
-import { TraktProvider } from '@/context/traktContext';
-import { HistoryProvider } from '@/context/historyContext';
-import { ToastProvider } from '@/context/toastContext';
+import Navbar from "@/components/layout/navbar";
+import Footer from '@/components/layout/footer';
+import { TraktProvider } from '@/contexts/traktContext';
+import { HistoryProvider } from '@/contexts/historyContext';
+import { ToastProvider } from '@/contexts/toastContext';
 import { Suspense } from 'react';
 import Loading from '@/components/shared/loading';
 
@@ -27,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${quicksand.variable} [scrollbar-width:thin] [scrollbar-color:rgb(161_161_170)_transparent]`}>
-      <body className="bg-neutral-950 min-h-screen flex flex-col antialiased font-sans relative [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-violet-400 [&::-webkit-scrollbar-thumb]:rounded-full">
+    <html lang="en" className={`${quicksand.variable} [scrollbar-width:none]`}>
+      <body className="bg-neutral-950 min-h-screen flex flex-col antialiased font-sans relative [&::-webkit-scrollbar]:hidden">
         <ToastProvider>
           <TraktProvider>
             <HistoryProvider>

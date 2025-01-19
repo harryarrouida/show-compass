@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { ShowDetails, MovieDetails } from "@/types/types";
-import AIRecommendations from "@/components/recommendations/aiRecommendations";
+import AIRecommendations from "@/components/AIRecommendations/aiRecommendations";
 import { AIRecommendation } from "@/types/types";
 import { useState } from "react";
 import { IoTime, IoCalendar, IoLanguage, IoBusinessSharp, IoChevronDown, IoChevronUp } from "react-icons/io5";

@@ -1,6 +1,6 @@
 import { IoTv, IoFilm, IoTime, IoLogOut } from "react-icons/io5";
 import { SiTrakt } from "react-icons/si";
-import { useTraktContext } from "@/context/traktContext";
+import { useTraktContext } from "@/contexts/traktContext";
 import { useRouter } from 'next/navigation';
 
 interface WatchHistoryOverviewProps {

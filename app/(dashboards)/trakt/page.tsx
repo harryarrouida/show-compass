@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTraktContext } from "@/context/traktContext";
+import { useTraktContext } from "@/contexts/traktContext";
 import { getMovieDetails } from "@/services/content/movieServices";
 import { getShowDetails } from "@/services/content/showServices";
 import { useRouter } from "next/navigation";
-import WatchHistoryOverview from "@/components/WatchHistoryOverview";
+import WatchHistoryOverview from "@/components/trakt/WatchHistoryOverview";
 import TraktRecommendations from "@/components/trakt/traktRecommendations";
-import { useHistory } from "@/context/historyContext";
-import DataGrid from "@/components/dataGrid";
+import { useHistory } from "@/contexts/historyContext";
+import DataGrid from "@/components/bigData/dataGrid";
 import PageLayout from "@/components/layout/PageLayout";
 import Loading from "@/components/shared/loading";
 

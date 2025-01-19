@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MappedMovie, MappedShow, MovieDetails, ShowDetails } from '@/types/types';
-import { useToast } from '@/context/toastContext';
+import { useToast } from '@/contexts/toastContext';
 
 interface HistoryItem {
     id: number;

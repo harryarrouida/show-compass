@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { IoTrashOutline, IoStarOutline, IoStar, IoAnalytics, IoClose, IoBookmarkOutline } from 'react-icons/io5';
 import { RiRobot2Line } from "react-icons/ri";
 import Card from '@/components/shared/Card';
-import { useHistory } from '@/context/historyContext';
+import { useHistory } from '@/contexts/historyContext';
 import { MappedMovie, MappedShow } from '@/types/types';
 
 interface HistoryItem {

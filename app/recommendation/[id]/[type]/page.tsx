@@ -10,15 +10,14 @@ import {
   MappedShow,
 } from "@/types/types";
 import Groq from "groq-sdk";
-import { searchMovies, searchShows } from "@/services/content/searchServices";
-import MediaDetails from "@/components/shared/mediaDetails";
+import MediaDetails from "@/components/AIRecommendations/mediaDetails";
 import { AIRecommendation } from "@/types/types";
 import {
   generateDefaultPrompt,
   generateCustomPrompt,
 } from "@/constants/aiPrompts";
 import { search } from "@/services/content/sharedServices";
-import { useHistory } from "@/context/historyContext";
+import { useHistory } from "@/contexts/historyContext";
 import Loading from "@/components/shared/loading";
 import { IoClose } from "react-icons/io5";
 import {

@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react";
 import { RiRobot2Line } from "react-icons/ri";
 import { IoChevronForwardOutline } from "react-icons/io5";
-import { useTraktContext } from "@/context/traktContext";
+import { useTraktContext } from "@/contexts/traktContext";
 import Groq from "groq-sdk";
 import { search } from "@/services/content/sharedServices";
-import MediaCard from "@/components/shared/mediaCard";
-import { useHistory } from "@/context/historyContext";
+import { useHistory } from "@/contexts/historyContext";
 import {
   generateTraktRecommendationsPrompt,
   generateWatchlistPrompt,
 } from "@/constants/aiPrompts";
-import { RecommendationCard } from "@/components/recommendations/RecommendationCard";
-import { RecommendationModal } from "@/components/recommendations/RecommendationModal";
+import { RecommendationCard } from "@/components/AIRecommendations/RecommendationCard";
+import { RecommendationModal } from "@/components/AIRecommendations/RecommendationModal";
 import { getUserWatchlist } from "@/services/trakt/traktServices";
 import PageLayout from "../layout/PageLayout";
 
