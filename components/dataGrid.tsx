@@ -36,7 +36,18 @@ export default function DataGrid({
   const [filteredData, setFilteredData] = useState<(MappedShow | MappedMovie)[]>(data);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [displayCount, setDisplayCount] = useState<number>(10);
-  const itemsPerPage = window.innerWidth > 768 ? 10 : 9;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  useEffect(() => {
+    setItemsPerPage(window.innerWidth > 768 ? 10 : 9);
+
+    const handleResize = () => {
+      setItemsPerPage(window.innerWidth > 768 ? 10 : 9);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     setPage(1);

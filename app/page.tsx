@@ -14,14 +14,21 @@ export default function Home() {
   const [movies, setMovies] = useState<MappedMovie[]>([]);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+    
     if (activeTab === "movies") {
       fetchMovies(page);
     } else {
       fetchShows(page);
     }
-  }, [activeTab, page]);
+  }, [activeTab, page, isMounted]);
 
   const fetchShows = async (pageNum: number) => {
     setIsLoading(true);
@@ -55,6 +62,10 @@ export default function Home() {
     }
   };
 
+  if (!isMounted) {
+    return null; // or return a loading spinner
+  }
+
   return (
     <PageLayout>
       <div className="space-y-16">
@@ -79,5 +90,3 @@ export default function Home() {
     </PageLayout>
   );
 }
-
-// build with love by @harryarrouida
