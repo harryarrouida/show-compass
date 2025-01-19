@@ -1,33 +1,36 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
 import { FlatCompat } from "@eslint/eslintrc";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const compat = new FlatCompat();
 
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
+export default [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
-    extends: ['next'],
+    files: ["**/*.ts", "**/*.tsx", "**/*.jsx"],
+    languageOptions: {
+      parserOptions: {
+        ecmaVersion: 2021,
+        sourceType: "module",
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
     rules: {
-      'react/no-unescaped-entities': 'off',
-      '@next/next/no-page-custom-font': 'off',
-      '@next/next/no-img-element': 'off',
-      '@next/next/no-head-element': 'off',
-      '@next/next/no-script-component-in-head': 'off',
-      '@next/next/no-sync-scripts': 'off',
-      '@next/next/no-before-interactive-script-outside-document': 'off',
-      '@next/next/no-document-import-in-page': 'off',
-      '@next/next/no-script-tag-for-ids': 'off',
-      '@next/next/no-script-tag-for-ids': 'off',
-      'next/core-web-vitals': 'off',
-
-    }
-  }
+      "react/no-unescaped-entities": "off",
+      "@next/next/no-page-custom-font": "off",
+      "@next/next/no-img-element": "off",
+      "@next/next/no-head-element": "off",
+      "@next/next/no-script-component-in-head": "off",
+      "@next/next/no-sync-scripts": "off",
+      "@next/next/no-before-interactive-script-outside-document": "off",
+      "@next/next/no-document-import-in-page": "off",
+      "@next/next/no-script-tag-for-ids": "off",
+      "next/core-web-vitals": "off",
+      '@typescript-eslint/no-unused-expressions': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-this-alias': 'off',
+      'import/no-anonymous-default-export': 'off',
+    },
+  },
 ];
-
-export default eslintConfig;
