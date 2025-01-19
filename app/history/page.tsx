@@ -39,7 +39,7 @@ export default function HistoryPage() {
     }
 
     return (
-        <div className={`max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 transition-opacity duration-500 ease-in-out ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`min-h-screen max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 transition-opacity duration-500 ease-in-out ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
             <div className="flex justify-between items-center mb-6 sm:mb-8">
                 <h1 className="text-2xl sm:text-3xl font-bold text-white">History</h1>
                 <button
@@ -198,7 +198,7 @@ export default function HistoryPage() {
                                             <RiRobot2Line className="w-5 h-5 text-zinc-400" />
                                             <span className="text-zinc-400 text-sm">Recommended from:</span>
                                         </div>
-                                        <span className="text-zinc-200 text-sm font-medium">
+                                        <span className="text-violet-200 text-sm font-medium">
                                             {typeof selectedItem.from === 'string' ? selectedItem.from : selectedItem.from.title}
                                         </span>
                                     </div>

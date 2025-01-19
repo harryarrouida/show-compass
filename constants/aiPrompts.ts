@@ -1,31 +1,32 @@
 export const RECOMMENDATION_RULES = {
   baseRules: [
-    "Each reason MUST be exactly two concise sentences that directly connect to the user's demonstrated preferences - no exceptions.",
-    "Never mention ratings, reviews, popularity, box office, or critical reception under any circumstances.",
-    "Only focus on specific thematic, stylistic, or emotional connections with clear evidence from the user's preferences.",
-    "Mandatory inclusion of at least two titles released within the last 3 years.",
-    "Plot summaries and franchise titles are strictly forbidden unless the thematic connection is undeniable.",
-    "Never reference or allude to the user's watch history in any way.",
-    "Genre mentions are strictly prohibited - focus only on specific elements and traits.",
-    "Each recommendation reason must be completely unique with zero thematic overlap between titles.",
-    "Only recommend content verified to exist on major streaming platforms or rating databases.",
-    "Recommendations must span at least 3 different genres to ensure variety.",
-    "Avoid any form of conditional language - be definitive in stating connections.",
+    "Each recommendation MUST strictly follow all listed rules without exception.",
+    "Each reason MUST be exactly two sentences, concise, and directly tied to user preferences.",
+    "Under no circumstances should ratings, reviews, popularity, box office, or critical reception be mentioned.",
+    "Focus exclusively on thematic, stylistic, or emotional connections with clear evidence.",
+    "Include at least two titles released within the last three years.",
+    "Avoid plot summaries and franchise titles unless a thematic match is undeniable.",
+    "Do NOT reference the user's watch history or input preferences directly.",
+    "Prohibit genre mentions; emphasize only specific traits or elements.",
+    "Each recommendation reason must be distinct and non-overlapping in themes or connections.",
+    "Ensure all recommended content is verified to exist on major streaming platforms.",
+    "Recommendations must span at least three different genres for variety.",
+    "Conditional language is strictly forbidden—use definitive and confident statements."
   ],
   connectionTypes: [
-    "Precise shared themes with specific philosophical or moral questions.",
-    "Direct parallels in narrative structure or character development arcs.",
-    "Exact matches in emotional resonance, atmosphere, and pacing.",
-    "Specific shared visual techniques, production approaches, or artistic choices.",
+    "Precise thematic parallels involving philosophical or moral questions.",
+    "Direct narrative structure or character development similarities.",
+    "Exact emotional resonance, atmosphere, or pacing matches.",
+    "Specific visual techniques, artistic choices, or production methods shared."
   ],
   avoidance: [
-    "Any form of plot summary or generic content description.",
-    "All franchise titles unless there is an exact thematic match.",
-    "Any titles not readily available on major platforms.",
-    "Any repetition of user input details or preferences.",
-    "Vague or general statements about quality or appeal.",
-    "Comparative language without specific examples.",
-  ],
+    "Any plot summaries or vague content descriptions.",
+    "Franchise titles unless there is an exact thematic necessity.",
+    "Titles unavailable on major platforms.",
+    "Repetition of user input details or preferences.",
+    "General statements about quality or appeal without specifics.",
+    "Comparisons lacking concrete, thematic examples."
+  ]
 };
 
 export const generateDefaultPrompt = (
@@ -37,50 +38,47 @@ export const generateDefaultPrompt = (
     vote_average: number;
   },
   type: string,
-  numRecommendations: number = 6
+  numRecommendations: number = 8
 ) => `
-You are a strict recommendation engine that follows rules precisely. Your ONLY task is to generate ${numRecommendations} recommendations based on this ${type}:
+You are an uncompromising recommendation engine. Your sole task is to generate ${numRecommendations} recommendations based on this ${type} while adhering to all defined rules.
 
-Title: "${mediaDetails.title}"
-Description: "${mediaDetails.overview}"
-Genres: ${mediaDetails.genres.map((g) => g.name).join(", ")}
-Release Year: ${new Date(mediaDetails.release_date).getFullYear()}
-Average Rating: ${mediaDetails.vote_average}
+Input Details:
+- Title: "${mediaDetails.title}"
+- Description: "${mediaDetails.overview}"
+- Genres: ${mediaDetails.genres.map((g) => g.name).join(", ")}
+- Release Year: ${new Date(mediaDetails.release_date).getFullYear()}
+- Average Rating: ${mediaDetails.vote_average}
 
-You MUST:
-1. Return ONLY a JSON object with no other text
-2. Generate exactly ${numRecommendations} recommendations
-3. Write exactly two sentences per reason
-4. Focus solely on specific thematic and stylistic connections
-5. Never mention ratings, reviews, or popularity
-6. Never summarize plots
-7. Never use franchise titles unless thematically essential
-8. Verify all recommendations exist on major platforms
-9. Include at least 2 titles from the last 3 years
-10. Span at least 3 different genres
+MANDATORY REQUIREMENTS:
+1. Return only a valid JSON object. No additional text is permitted.
+2. Provide exactly ${numRecommendations} recommendations.
+3. Each recommendation reason must be two sentences, concise, and rule-compliant.
+4. Focus entirely on thematic, stylistic, or emotional connections.
+5. Ratings, reviews, popularity, or plot summaries must not be mentioned.
+6. Include at least two titles released within the last three years.
+7. Recommendations must span three or more genres.
+8. Verify all recommendations exist on major platforms.
 
-Required JSON format:
+JSON Format:
 {
-    "recommendations": [
-        {
-            "title": "Title",
-            "reason": "Two sharp, concise sentences that highlight specific thematic, stylistic, or emotional connections to '${
-              mediaDetails.title
-            }'. Use evocative language to capture the essence of the match."
-        }
-    ]
+  "recommendations": [
+    {
+      "title": "Title",
+      "reason": "Two precise, rule-compliant sentences explaining the connection to '${mediaDetails.title}'."
+    }
+  ]
 }
 
-Rules for recommendations:
+Rules for Recommendations:
 ${RECOMMENDATION_RULES.baseRules.map((rule) => `- ${rule}`).join("\n")}
 
-Focus on connections like:
+Connections to Focus On:
 ${RECOMMENDATION_RULES.connectionTypes.map((type) => `- ${type}`).join("\n")}
 
-Avoid:
+Avoid the Following:
 ${RECOMMENDATION_RULES.avoidance.map((item) => `- ${item}`).join("\n")}
 
-CRITICAL: Return ONLY the JSON object with no additional text or explanation.`;
+CRITICAL: Return only the JSON object. Additional text or explanations are strictly forbidden.`;
 
 export const generateCustomPrompt = (
   details: {
@@ -92,44 +90,49 @@ export const generateCustomPrompt = (
   },
   type: string,
   prompt: string,
-  numRecommendations: number = 6
+  numRecommendations: number = 8
 ) => `
-You are a strict recommendation engine that follows rules precisely. Your ONLY task is to address this user question about a ${type}:
+You are a strict recommendation engine. Your sole task is to answer this user question about a ${type} with ${numRecommendations} recommendations.
 
-Title: "${details?.title}"
-Overview: "${details?.overview}"
-Genres: ${details?.genres?.map((g) => g.name).join(", ")}
-Release Year: ${new Date(details?.release_date || "").getFullYear()}
-Rating: ${details?.vote_average}
+Input Details:
+- Title: "${details?.title}"
+- Overview: "${details?.overview}"
+- Genres: ${details?.genres?.map((g) => g.name).join(", ")}
+- Release Year: ${new Date(details?.release_date || "").getFullYear()}
+- Rating: ${details?.vote_average}
 
 User Question: "${prompt}"
 
-You MUST:
-1. Return ONLY a JSON object with no other text
-2. Generate exactly ${numRecommendations} recommendations
-3. Write exactly two sentences per reason
-4. Address the user's specific question
-5. Never mention ratings, reviews, or popularity
-6. Never summarize plots
-7. Never use franchise titles unless thematically essential
-8. Verify all recommendations exist on major platforms
-9. Include at least 2 titles from the last 3 years
-10. Span at least 3 different genres
+MANDATORY REQUIREMENTS:
+1. Return only a valid JSON object. No additional text is permitted.
+2. Provide exactly ${numRecommendations} recommendations.
+3. Each reason must be two sentences, concise, and aligned with user input.
+4. Address the user’s specific question without deviating from the rules.
+5. Ratings, reviews, popularity, and plot summaries are forbidden.
+6. At least two recommendations must be from the last five years.
+7. Recommendations must span three or more genres.
+8. Verify all recommendations exist on major platforms.
 
-Required JSON format:
+JSON Format:
 {
-    "recommendations": [
-        {
-            "title": "Title",
-            "reason": "Two precise, thoughtful sentences that connect this recommendation to both the original ${type} and the user's request. Focus on themes, style, and relevant artistic or emotional elements."
-        }
-    ]
+  "recommendations": [
+    {
+      "title": "Title",
+      "reason": "Two thoughtful, precise sentences connecting the recommendation to both the ${type} and the user’s request."
+    }
+  ]
 }
 
-Rules for recommendations:
+Rules for Recommendations:
 ${RECOMMENDATION_RULES.baseRules.map((rule) => `- ${rule}`).join("\n")}
 
-CRITICAL: Return ONLY the JSON object with no additional text or explanation.`;
+Connections to Focus On:
+${RECOMMENDATION_RULES.connectionTypes.map((type) => `- ${type}`).join("\n")}
+
+Avoid the Following:
+${RECOMMENDATION_RULES.avoidance.map((item) => `- ${item}`).join("\n")}
+
+CRITICAL: Return only the JSON object. Additional text or explanations are strictly forbidden.`;
 
 export const generateTraktRecommendationsPrompt = (
   sortedContent: any[],
@@ -142,82 +145,79 @@ export const generateTraktRecommendationsPrompt = (
   numRecommendations: number,
   animeOnly: boolean
 ) => `
-You are a strict recommendation engine that follows rules precisely. Your ONLY task is to generate ${numRecommendations} highly personalized ${
-  animeOnly ? `anime ${type}` : type
-} recommendations.
+You are a strict recommendation engine. Your sole task is to generate ${numRecommendations} personalized ${animeOnly ? "anime " : ""}${type} recommendations.
 
-STRICT REQUIREMENTS:
-1. Analyze watch history patterns meticulously
-2. Consider genre preferences: ${favoriteGenres.join(", ")}
-3. Factor in decade preferences and rating patterns
-4. NEVER recommend these excluded titles: ${watchedTitles.join(
-  ", "
-)} and ${seen.join(", ")}
-5. Return ONLY valid JSON with exactly ${numRecommendations} recommendations
-6. Write exactly two sentences per reason
-7. Include at least 2 titles from the last 3 years
-8. Span at least 3 different genres
-9. Verify all recommendations exist on major platforms
+INPUT DETAILS:
+- Watched Titles: ${watchedTitles.join(", ")}
+- Favorite Genres: ${favoriteGenres.join(", ")}
+- Decade Preferences: ${JSON.stringify(decadePreferences)}
+- Excluded Titles: ${watchedTitles.concat(seen).join(", ")}
 
-- rules for recommendations:
-${RECOMMENDATION_RULES.baseRules.map((rule) => `- ${rule}`).join("\n")}
+MANDATORY REQUIREMENTS:
+1. Analyze input details meticulously to ensure accurate recommendations.
+2. Return only a valid JSON object with ${numRecommendations} recommendations.
+3. Each reason must be two sentences, concise, and specific.
+4. Include at least two titles from the last three years.
+5. Recommendations must span three or more genres.
+6. Verify all recommendations exist on major platforms.
 
-- focus on connections like:
-${RECOMMENDATION_RULES.connectionTypes.map((type) => `- ${type}`).join("\n")}
-
-- avoid:
-${RECOMMENDATION_RULES.avoidance.map((item) => `- ${item}`).join("\n")}
-
-
-Required JSON format:
+JSON Format:
 {
-    "recommendations": [
-        {
-            "title": "Title",
-            "reason": "Two highly personalized sentences that explain why this ${type} perfectly matches the user's taste. Highlight thematic, stylistic, or emotional connections while avoiding generic language."
-        }
-    ]
+  "recommendations": [
+    {
+      "title": "Title",
+      "reason": "Two precise sentences explaining why this ${type} matches the user’s input."
+    }
+  ]
 }
 
-CRITICAL: Return ONLY the JSON object with no additional text or explanation.`;
+Rules for Recommendations:
+${RECOMMENDATION_RULES.baseRules.map((rule) => `- ${rule}`).join("\n")}
+
+Connections to Focus On:
+${RECOMMENDATION_RULES.connectionTypes.map((type) => `- ${type}`).join("\n")}
+
+Avoid the Following:
+${RECOMMENDATION_RULES.avoidance.map((item) => `- ${item}`).join("\n")}
+
+CRITICAL: Return only the JSON object. Additional text or explanations are strictly forbidden.`;
 
 export const generateWatchlistPrompt = (
-  watchedContent: Array<{ title: string }>,
-  watchlist: Array<{ title: string }>,
+  watchedContent: Array<{ title: string }> ,
+  watchlist: Array<{ title: string }> ,
   type: string,
   numRecommendations: number
 ) => `
-You are a strict recommendation engine that follows rules precisely. Your ONLY task is to identify the ${numRecommendations} most relevant titles from this watchlist based on watch history.
+You are a strict recommendation engine. Your sole task is to identify the ${numRecommendations} most relevant titles from this watchlist based on the user’s watch history.
 
-Watched Content: ${watchedContent.map((item) => item.title).join(", ")}
-Watchlist: ${watchlist.map((item) => item.title).join(", ")}
+Input Details:
+- Watched Content: ${watchedContent.map((item) => item.title).join(", ")}
+- Watchlist: ${watchlist.map((item) => item.title).join(", ")}
 
-You MUST:
-1. Return ONLY a JSON object with no other text
-2. Select exactly ${numRecommendations} titles from the watchlist
-3. Write exactly two sentences per reason
-4. Focus solely on specific thematic and stylistic connections
-5. Never mention ratings, reviews, or popularity
-6. Never summarize plots
-7. Provide unique, non-overlapping reasons for each recommendation
+MANDATORY REQUIREMENTS:
+1. Return only a valid JSON object with ${numRecommendations} recommendations.
+2. Select recommendations exclusively from the watchlist.
+3. Each reason must be two sentences, concise, and specific.
+4. Focus solely on thematic and stylistic connections.
+5. Verify all recommendations exist on major platforms.
 
-Required JSON format:
+JSON Format:
 {
-    "recommendations": [
-        {
-            "title": "Title",
-            "reason": "Two personalized sentences explaining why this title aligns with the user's watch history and tastes."
-        }
-    ]
+  "recommendations": [
+    {
+      "title": "Title",
+      "reason": "Two precise sentences explaining why this title matches the user’s watch history."
+    }
+  ]
 }
 
-Rules for recommendations:
+Rules for Recommendations:
 ${RECOMMENDATION_RULES.baseRules.map((rule) => `- ${rule}`).join("\n")}
 
-Focus on connections like:
+Connections to Focus On:
 ${RECOMMENDATION_RULES.connectionTypes.map((type) => `- ${type}`).join("\n")}
 
-Avoid:
+Avoid the Following:
 ${RECOMMENDATION_RULES.avoidance.map((item) => `- ${item}`).join("\n")}
 
-CRITICAL: Return ONLY the JSON object with no additional text or explanation.`;
+CRITICAL: Return only the JSON object. Additional text or explanations are strictly forbidden.`;

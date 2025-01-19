@@ -6,6 +6,8 @@ import Footer from '@/components/shared/footer';
 import { TraktProvider } from '@/context/traktContext';
 import { HistoryProvider } from '@/context/historyContext';
 import { ToastProvider } from '@/context/toastContext';
+import { Suspense } from 'react';
+import Loading from '@/components/shared/loading';
 
 const quicksand = Quicksand({ 
   subsets: ['latin'],
@@ -25,14 +27,16 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={quicksand.variable}>
-      <body className="bg-neutral-950 min-h-screen flex flex-col antialiased font-sans relative">
+    <html lang="en" className={`${quicksand.variable} [scrollbar-width:thin] [scrollbar-color:rgb(161_161_170)_transparent]`}>
+      <body className="bg-neutral-950 min-h-screen flex flex-col antialiased font-sans relative [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-violet-400 [&::-webkit-scrollbar-thumb]:rounded-full">
         <ToastProvider>
           <TraktProvider>
             <HistoryProvider>
               <Navbar />
               <main className="flex-grow mb-16 relative">
-                {children}
+                <Suspense fallback={<Loading text="Loading..." size="large" />}>
+                  {children}
+                </Suspense>
               </main>
               <Footer />
             </HistoryProvider>

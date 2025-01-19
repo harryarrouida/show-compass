@@ -5,7 +5,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="mt-auto border-t border-zinc-800/50">
+    <footer className="mt-auto border-t border-zinc-800/50 bg-neutral-950/90">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
           {/* About Section */}
@@ -65,7 +65,7 @@ export default function Footer() {
             <div className="space-y-4">
               <h3 className="text-zinc-100 font-semibold">Legal</h3>
               <ul className="space-y-3">
-                <li>
+                {/* <li>
                   <Link
                     href="/privacy"
                     className="text-sm text-zinc-400 hover:text-zinc-300 transition-colors"
@@ -80,7 +80,7 @@ export default function Footer() {
                   >
                     Terms of Service
                   </Link>
-                </li>
+                </li> */}
                 <li className="flex items-center gap-2">
                   <img
                     src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_1-5bdc75aaebeb75dc7ae79426ddd9be3b2be1e342510f8202baf6bffa71d7f5c4.svg"

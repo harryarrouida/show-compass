@@ -157,7 +157,9 @@ const TraktRecommendations = () => {
           {
             role: "system",
             content:
-              'You are a movie and TV show recommendation bot. You will be given a list of movies and TV shows that the user has watched. Generate recommendations based on their watch history. IMPORTANT: Your response must be a valid JSON object with this exact format: {"recommendations": [{"title": "Movie Title", "reason": "Reason for recommendation"}]}',
+            "You are a helpful assistant that provides recommendations. Your responses must be valid JSON with a 'recommendations' array containing objects with 'title' and 'reason' fields. response only in JSON format",
+
+              // 'You are a movie and TV show recommendation bot. You will be given a list of movies and TV shows that the user has watched. Generate recommendations based on their watch history. IMPORTANT: Your response must be a valid JSON object with this exact format: {"recommendations": [{"title": "Movie Title", "reason": "Reason for recommendation"}]}. response only in JSON format',
           },
           {
             role: "user",
@@ -301,33 +303,33 @@ const TraktRecommendations = () => {
       item.title.toLowerCase()
     );
 
-    console.log(
-      "all params",
-      sortedContent,
-      watchedTitles,
-      favoriteGenres,
-      decadePreferences,
-      ratingDistribution,
-      seen,
-      type,
-      numRecommendations,
-      animeOnly
-    );
+    // console.log(
+    //   "all params",
+    //   sortedContent,
+    //   watchedTitles,
+    //   favoriteGenres,
+    //   decadePreferences,
+    //   ratingDistribution,
+    //   seen,
+    //   type,
+    //   numRecommendations,
+    //   animeOnly
+    // );
 
-    console.log(
-      "prompt",
-      generateTraktRecommendationsPrompt(
-        sortedContent,
-        watchedTitles,
-        favoriteGenres,
-        decadePreferences,
-        ratingDistribution,
-        seen,
-        type,
-        numRecommendations,
-        animeOnly
-      )
-    );
+    // console.log(
+    //   "prompt",
+    //   generateTraktRecommendationsPrompt(
+    //     sortedContent,
+    //     watchedTitles,
+    //     favoriteGenres,
+    //     decadePreferences,
+    //     ratingDistribution,
+    //     seen,
+    //     type,
+    //     numRecommendations,
+    //     animeOnly
+    //   )
+    // );
 
     return generateTraktRecommendationsPrompt(
       sortedContent,
@@ -343,7 +345,7 @@ const TraktRecommendations = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-4 sm:mt-8 mb-20">
+    <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 mt-4 sm:mt-8 mb-20">
       <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800/50 rounded-2xl p-6 sm:p-8 mx-auto mb-8 sm:mb-12 shadow-xl">
         <div className="flex flex-col gap-4 sm:gap-6">
           {/* Header Section */}
@@ -461,7 +463,7 @@ const TraktRecommendations = () => {
       {/* Recommendations Grid */}
       {recommendations.length > 0 && (
         <div className="space-y-4 sm:space-y-6 mx-2 sm:mx-4">
-          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4 mx-auto">
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
             {recommendationsDetails.map((rec, index) => (
               <RecommendationCard
                 key={index}

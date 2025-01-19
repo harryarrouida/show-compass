@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { RiHistoryLine, RiLoginCircleLine, RiMenuLine, RiBookmarkLine, RiCloseLine } from "react-icons/ri";
+import { RiBookmarkLine, RiLoginCircleLine, RiMenuLine, RiCloseLine } from "react-icons/ri";
 import { SiTrakt } from 'react-icons/si';
 import { useTraktContext } from '@/context/traktContext';
 import { usePathname } from 'next/navigation';
@@ -18,9 +18,7 @@ export default function Navbar() {
                 <div className="flex items-center h-20 justify-between">
                     {/* Logo */}
                     <Link href="/" className="group">
-                        <h1 className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-white via-violet-400 to-white 
-                                     bg-clip-text text-transparent transition-all duration-500 
-                                     group-hover:via-violet-500 group-hover:scale-[1.02]">
+                        <h1 className="text-2xl sm:text-3xl font-extrabold text-violet-400 transition-colors duration-300 hover:text-violet-300">
                             Show Compass
                         </h1>
                     </Link>
@@ -29,11 +27,10 @@ export default function Navbar() {
                     <div className="hidden sm:flex items-center gap-4">
                         <Link
                             href="/history"
-                            className={`flex items-center gap-2.5 px-5 py-2.5 
+                            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-lg transition-colors duration-300 font-medium
                                      ${pathname === '/history' 
-                                        ? 'bg-zinc-800/80 text-white' 
-                                        : 'text-zinc-300 hover:text-white hover:bg-zinc-800/50'} 
-                                     rounded-xl transition-all duration-300 font-medium`}
+                                        ? 'bg-zinc-800 text-white' 
+                                        : 'text-zinc-300 hover:text-white hover:bg-zinc-800'}`}
                         >
                             <RiBookmarkLine className="text-xl" />
                             <span>Saved</span>
@@ -42,11 +39,10 @@ export default function Navbar() {
                         {isAuthenticated ? (
                             <Link 
                                 href="/trakt"
-                                className={`flex items-center gap-2.5 px-5 py-2.5 
+                                className={`flex items-center gap-2.5 px-5 py-2.5 rounded-lg transition-colors duration-300 font-medium
                                          ${pathname === '/trakt'
-                                            ? 'bg-violet-500/20 text-violet-200 border border-violet-500/30'
-                                            : 'bg-violet-500/10 text-violet-300 border border-violet-500/20 hover:bg-violet-500/20 hover:border-violet-500/30'}
-                                         rounded-xl transition-all duration-300 font-medium`}
+                                            ? 'bg-violet-500/20 text-violet-300'
+                                            : 'bg-violet-500/10 text-violet-300 hover:bg-violet-500/20'}`}
                             >
                                 <SiTrakt className="text-xl" />
                                 <span>Trakt Account</span>
@@ -54,12 +50,9 @@ export default function Navbar() {
                         ) : (
                             <button 
                                 onClick={login}
-                                className="flex items-center gap-2.5 px-5 py-2.5
-                                         bg-gradient-to-r from-violet-600 to-violet-500
-                                         hover:from-violet-500 hover:to-violet-400
-                                         text-white rounded-xl transition-all duration-300 
-                                         font-medium shadow-lg shadow-violet-500/20
-                                         hover:shadow-violet-500/30 hover:scale-[1.02]"
+                                className="flex items-center gap-2.5 px-5 py-2.5 rounded-lg font-medium
+                                         bg-violet-600 text-white transition-colors duration-300 
+                                         hover:bg-violet-500"
                             >
                                 <RiLoginCircleLine className="text-xl" />
                                 <span>Login With Trakt</span>
@@ -71,7 +64,7 @@ export default function Navbar() {
                     <button 
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         className="sm:hidden p-2.5 text-zinc-300 hover:text-white 
-                                 hover:bg-zinc-800/50 rounded-xl transition-all duration-300"
+                                 hover:bg-zinc-800 rounded-lg transition-colors duration-300"
                         aria-label="Toggle menu"
                     >
                         {isMenuOpen ? (
@@ -84,28 +77,26 @@ export default function Navbar() {
 
                 {/* Mobile Navigation */}
                 {isMenuOpen && (
-                    <div className="sm:hidden py-3 border-t border-zinc-800/50 space-y-1">
+                    <div className="sm:hidden py-3 border-t border-zinc-800 space-y-2">
                         <Link
                             href="/history"
-                            className={`flex items-center gap-3 px-4 py-3.5 
+                            className={`flex items-center gap-3 px-4 py-3.5 rounded-lg transition-colors duration-300
                                      ${pathname === '/history'
-                                        ? 'bg-zinc-800/80 text-white'
-                                        : 'text-zinc-300 hover:text-white hover:bg-zinc-800/30'}
-                                     rounded-xl transition-all duration-300`}
+                                        ? 'bg-zinc-800 text-white'
+                                        : 'text-zinc-300 hover:text-white hover:bg-zinc-800'}`}
                             onClick={() => setIsMenuOpen(false)}
                         >
                             <RiBookmarkLine className="text-xl" />
-                            <span className="font-medium">History</span>
+                            <span className="font-medium">Saved</span>
                         </Link>
 
                         {isAuthenticated ? (
                             <Link
                                 href="/trakt"
-                                className={`flex items-center gap-3 px-4 py-3.5
+                                className={`flex items-center gap-3 px-4 py-3.5 rounded-lg transition-colors duration-300
                                          ${pathname === '/trakt'
-                                            ? 'bg-violet-500/20 text-violet-200'
-                                            : 'bg-violet-500/10 text-violet-300 hover:bg-violet-500/20'}
-                                         rounded-xl transition-all duration-300`}
+                                            ? 'bg-violet-500/20 text-violet-300'
+                                            : 'bg-violet-500/10 text-violet-300 hover:bg-violet-500/20'}`}
                                 onClick={() => setIsMenuOpen(false)}
                             >
                                 <SiTrakt className="text-xl" />
@@ -117,11 +108,9 @@ export default function Navbar() {
                                     login();
                                     setIsMenuOpen(false);
                                 }}
-                                className="flex items-center gap-3 px-4 py-3.5 w-full text-left
-                                         bg-gradient-to-r from-violet-600 to-violet-500
-                                         hover:from-violet-500 hover:to-violet-400 
-                                         text-white rounded-xl transition-all duration-300
-                                         font-medium shadow-lg shadow-violet-500/20"
+                                className="flex items-center gap-3 px-4 py-3.5 w-full rounded-lg
+                                         bg-violet-600 text-white transition-colors duration-300
+                                         hover:bg-violet-500 font-medium"
                             >
                                 <RiLoginCircleLine className="text-xl" />
                                 <span>Login With Trakt</span>

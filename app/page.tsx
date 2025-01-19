@@ -3,6 +3,7 @@
 import PageLayout from "@/components/layout/PageLayout";
 import SearchComponent from "@/components/searchComponent";
 import DataGrid from "@/components/dataGrid";
+import Loading from "@/components/shared/loading";
 import { useState, useEffect } from "react";
 import { getTrendingShows } from "@/services/content/showServices";
 import { getTrendingMovies } from "@/services/content/movieServices";
@@ -14,21 +15,14 @@ export default function Home() {
   const [movies, setMovies] = useState<MappedMovie[]>([]);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isMounted) return;
-    
     if (activeTab === "movies") {
       fetchMovies(page);
     } else {
       fetchShows(page);
     }
-  }, [activeTab, page, isMounted]);
+  }, [activeTab, page]);
 
   const fetchShows = async (pageNum: number) => {
     setIsLoading(true);
@@ -61,10 +55,6 @@ export default function Home() {
       setIsLoading(false);
     }
   };
-
-  if (!isMounted) {
-    return null; // or return a loading spinner
-  }
 
   return (
     <PageLayout>
