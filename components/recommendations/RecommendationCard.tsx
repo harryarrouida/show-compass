@@ -1,6 +1,7 @@
-import Image from "next/image";
 import { IoBookmarkOutline, IoStar } from "react-icons/io5";
 import { AIRecommendation } from "@/types/types";
+import { useState } from "react";
+import Image from "next/image";
 
 interface RecommendationCardProps {
   recommendation: AIRecommendation;
@@ -23,28 +24,29 @@ export function RecommendationCard({
       <div className="mx-auto w-full flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg">
         <div className="relative">
           <div className="absolute -left-2 -top-4 md:-top-6 z-20">
-            <span className="text-5xl sm:text-6xl md:text-6xl font-black opacity-90
-              bg-gradient-to-br from-violet-300/80 to-violet-500/80 bg-clip-text text-transparent
-              [text-shadow:4px_4px_0px_#000,
-                          -2px_-2px_0px_#000,
-                          2px_-2px_0px_#000,
-                          -2px_2px_0px_#000,
-                          2px_2px_0px_#000,
-                          0_0_8px_rgba(0,0,0,0.8)]
-              tracking-tighter">
+            <span
+              className="text-4xl sm:text-5xl md:text-5xl font-black opacity-90
+              bg-gradient-to-br from-violet-400 to-violet-600 bg-clip-text text-transparent
+              [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)] tracking-tight"
+            >
               {index + 1}
             </span>
           </div>
-          <div className="relative aspect-[2/3] rounded-lg overflow-hidden z-10">
-            {rec.media?.poster_path && (
-              <Image
-                src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${rec.media.poster_path}`}
-                alt={rec.title}
-                fill
-                className="object-cover transform transition-transform duration-500 group-hover:scale-105"
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-              />
-            )}
+
+          <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-zinc-900/50">
+            <Image
+              src={
+                rec.media?.poster_path
+                  ? `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${rec.media.poster_path}`
+                  : "/placeholder-poster.png"
+              }
+              alt={rec.title}
+              fill
+              sizes="(max-width: 768px) 100px, 180px"
+              className="object-cover"
+              priority={index < 2}
+              quality={75}
+            />
           </div>
 
           <div className="mt-2 space-y-1 flex justify-between items-center">

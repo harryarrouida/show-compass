@@ -48,12 +48,6 @@ const Trakt = () => {
     }
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchWatchedData();
-    }
-  }, [isAuthenticated]);
-
   const fetchWatchedData = async () => {
     setIsLoading(true);
     try {
@@ -118,11 +112,6 @@ const Trakt = () => {
       setIsLoading(false);
     }
   }, [page, isAuthenticated]);
-
-  const fetchWatchlist = async () => {
-    // const watchlist = await getUserWatchlist();
-    // setWatchlist(watchlist);
-  };
 
   if (!isAuthenticated) {
     return (

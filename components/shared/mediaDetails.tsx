@@ -44,9 +44,9 @@ export default function MediaDetails({
   return (
     <div className="flex flex-col md:grid md:grid-cols-[300px_1fr] gap-8 mb-12">
       {/* Left Column */}
-      <div className="space-y-8 bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-sm rounded-2xl border border-zinc-800/50 p-6 w-full shadow-2xl">
+      <div className="space-y-8 bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-sm rounded-2xl border border-zinc-800/50 p-6 w-full">
         {/* Poster */}
-        <div className="relative aspect-[2/3] w-[200px] sm:w-[240px] md:w-[260px] mx-auto rounded-xl overflow-hidden bg-zinc-900/40 shadow-2xl ring-1 ring-zinc-800/50">
+        <div className="relative aspect-[2/3] w-[200px] sm:w-[240px] md:w-[260px] mx-auto rounded-xl overflow-hidden bg-zinc-900/40 ring-1 ring-zinc-800/50">
           <Image
             src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${details.poster_path}`}
             alt={details.title}
@@ -201,7 +201,7 @@ export default function MediaDetails({
           <h1 className="text-2xl md:text-4xl font-bold text-white text-center md:text-left bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
             {details.title}
           </h1>
-          <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-sm rounded-2xl border border-zinc-800/50 p-6 shadow-2xl">
+          <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-sm rounded-2xl border border-zinc-800/50 p-6">
             <p className={`text-base md:text-lg text-zinc-300 leading-relaxed
               ${!isMobile || showAllOverview ? "line-clamp-none" : "line-clamp-3"}`}
             >

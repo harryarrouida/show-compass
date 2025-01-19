@@ -154,7 +154,7 @@ export default function HistoryPage() {
 
                         <div className="px-4 pb-8 sm:p-8 relative">
                             <div className="flex flex-col md:flex-row md:gap-8">
-                                <div className="relative w-[140px] h-[210px] md:w-[200px] md:h-[300px] rounded-lg overflow-hidden shadow-xl mx-auto md:mx-0 -mt-20 md:-mt-32">
+                                <div className="relative w-[140px] h-[210px] md:w-[200px] md:h-[300px] rounded-lg overflow-hidden mx-auto md:mx-0 -mt-20 md:-mt-32">
                                     <Image
                                         src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${selectedItem.data.poster_path}`}
                                         alt={selectedItem.data.title}

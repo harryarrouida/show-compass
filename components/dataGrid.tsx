@@ -163,8 +163,7 @@ export default function DataGrid({
           <button
             onClick={handleLoadMore}
             className="group relative px-8 py-3 bg-gradient-to-r from-zinc-700 to-zinc-800 
-                     text-white text-sm rounded-full transition-all duration-300
-                     hover:shadow-lg hover:shadow-zinc-800/25"
+                     text-white text-sm rounded-full transition-all duration-300"
           >
             <span className="text-zinc-300">Load More</span>
           </button>

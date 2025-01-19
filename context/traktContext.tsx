@@ -43,157 +43,236 @@ export function TraktProvider({ children }: { children: ReactNode }) {
   const [watchedShowsDetails, setWatchedShowsDetails] = useState<any[]>([]);
 
   const logout = () => {
-    setIsAuthenticated(false);
-    setAccessToken(null);
-    setUser(null);
-    localStorage.removeItem('traktToken');
-    // Clear cached data
-    localStorage.removeItem('watchedMoviesCache');
-    localStorage.removeItem('watchedShowsCache');
-    localStorage.removeItem('watchedMoviesCacheTimestamp');
-    localStorage.removeItem('watchedShowsCacheTimestamp');
+    try {
+      setIsAuthenticated(false);
+      setAccessToken(null);
+      setUser(null);
+      localStorage.removeItem('traktToken');
+      // Clear cached data
+      localStorage.removeItem('watchedMoviesCache');
+      localStorage.removeItem('watchedShowsCache');
+      localStorage.removeItem('watchedMoviesCacheTimestamp');
+      localStorage.removeItem('watchedShowsCacheTimestamp');
+      setWatchedMoviesCache([]);
+      setWatchedShowsCache([]);
+      setWatchedMoviesDetails([]);
+      setWatchedShowsDetails([]);
+    } catch (error) {
+      console.error('Error during logout:', error);
+      // Attempt force clear even if error
+      localStorage.clear();
+    }
   };
 
   const login = async () => {
     try {
-      // Get authorization URL and redirect user
+      if (isAuthenticated) {
+        console.warn('User is already authenticated');
+        return;
+      }
+      
       const authResponse = await axios.get('/api/trakt/authorize');
+      if (!authResponse?.data?.url) {
+        throw new Error('Invalid authorization response');
+      }
       window.location.href = authResponse.data.url;
     } catch (error) {
       console.error('Failed to initiate login:', error);
+      throw new Error('Login failed - please try again later');
     }
   };
 
   const handleToken = async (code: string) => {
-    if (code) {
-      try {
-        // Exchange code for token
-        const response = await fetch('/api/trakt/token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ code })
-        });
+    if (!code) {
+      throw new Error('No authorization code provided');
+    }
 
-        const data = await response.json();
+    try {
+      const response = await fetch('/api/trakt/token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code })
+      });
 
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to authenticate');
-        }
+      const data = await response.json();
 
-        if (data.access_token) {
-          localStorage.setItem('traktToken', data.access_token);
-          setAccessToken(data.access_token);
-          setIsAuthenticated(true);
-
-          // Fetch user data
-          const userResponse = await traktUser(data.access_token);
-          setUser(userResponse);
-        }
-
-        // Clean up URL
-        window.history.replaceState({}, document.title, window.location.pathname);
-      } catch (error) {
-        console.error('Authentication failed:', error);
-        logout(); // Clear any partial auth state
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to authenticate');
       }
+
+      if (!data.access_token) {
+        throw new Error('No access token received');
+      }
+
+      localStorage.setItem('traktToken', data.access_token);
+      setAccessToken(data.access_token);
+      setIsAuthenticated(true);
+
+      try {
+        const userResponse = await traktUser(data.access_token);
+        if (!userResponse) {
+          throw new Error('Failed to fetch user data');
+        }
+        setUser(userResponse);
+      } catch (userError) {
+        console.error('Error fetching user data:', userError);
+        logout();
+        throw new Error('Failed to fetch user data after authentication');
+      }
+
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } catch (error) {
+      console.error('Authentication failed:', error);
+      logout();
+      throw error;
     }
   }
 
   const getUserWatchedMovies = async () => {
-    if (accessToken) {
-      try {
-        const cachedMovies = localStorage.getItem('watchedMoviesCache');
-        const cacheTimestamp = localStorage.getItem('watchedMoviesCacheTimestamp');
-        const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
 
-        if (cachedMovies && cacheTimestamp) {
-          try {
-            const parsedMovies = JSON.parse(cachedMovies);
-            if (Date.now() - parseInt(cacheTimestamp) < CACHE_DURATION) {
-              setWatchedMoviesCache(parsedMovies);
-              return parsedMovies;
-            }
-          } catch (e) {
-            // Handle corrupt cache
-            localStorage.removeItem('watchedMoviesCache');
-            localStorage.removeItem('watchedMoviesCacheTimestamp');
+    try {
+      const cachedMovies = localStorage.getItem('watchedMoviesCache');
+      const cacheTimestamp = localStorage.getItem('watchedMoviesCacheTimestamp');
+      const CACHE_DURATION = 24 * 60 * 60 * 1000;
+
+      if (cachedMovies && cacheTimestamp) {
+        try {
+          const parsedMovies = JSON.parse(cachedMovies);
+          const timestamp = parseInt(cacheTimestamp);
+          
+          if (isNaN(timestamp)) {
+            throw new Error('Invalid cache timestamp');
           }
-        }
 
-        // If no cache or expired, fetch new data
-        const moviesWatchedData = await moviesWatched(accessToken);
-        setWatchedMoviesCache(moviesWatchedData);
-        
-        // Update cache
+          if (Date.now() - timestamp < CACHE_DURATION) {
+            setWatchedMoviesCache(parsedMovies);
+            return parsedMovies;
+          }
+        } catch (cacheError) {
+          console.error('Cache error:', cacheError);
+          localStorage.removeItem('watchedMoviesCache');
+          localStorage.removeItem('watchedMoviesCacheTimestamp');
+        }
+      }
+
+      const moviesWatchedData = await moviesWatched(accessToken);
+      if (!Array.isArray(moviesWatchedData)) {
+        throw new Error('Invalid movies data received');
+      }
+
+      setWatchedMoviesCache(moviesWatchedData);
+      
+      try {
         localStorage.setItem('watchedMoviesCache', JSON.stringify(moviesWatchedData));
         localStorage.setItem('watchedMoviesCacheTimestamp', Date.now().toString());
-        
-        return moviesWatchedData;
-      } catch (error) {
-        console.error('Error fetching watched movies:', error);
-        throw error;
+      } catch (storageError) {
+        console.error('Failed to cache movies data:', storageError);
       }
+      
+      return moviesWatchedData;
+    } catch (error) {
+      console.error('Error fetching watched movies:', error);
+      throw error;
     }
   }
 
   const getUserWatchedShows = async () => {
-    if (accessToken) {
-      // Check localStorage first
+    if (!accessToken) {
+      throw new Error('No access token available');
+    }
+
+    try {
       const cachedShows = localStorage.getItem('watchedShowsCache');
       const cacheTimestamp = localStorage.getItem('watchedShowsCacheTimestamp');
-      const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+      const CACHE_DURATION = 24 * 60 * 60 * 1000;
 
-      // If cache exists and is less than 24 hours old, use it
-      if (cachedShows && cacheTimestamp && 
-          Date.now() - parseInt(cacheTimestamp) < CACHE_DURATION) {
-        const parsedShows = JSON.parse(cachedShows);
-        setWatchedShowsCache(parsedShows);
-        return parsedShows;
+      if (cachedShows && cacheTimestamp) {
+        try {
+          const parsedShows = JSON.parse(cachedShows);
+          const timestamp = parseInt(cacheTimestamp);
+
+          if (isNaN(timestamp)) {
+            throw new Error('Invalid cache timestamp');
+          }
+
+          if (Date.now() - timestamp < CACHE_DURATION) {
+            setWatchedShowsCache(parsedShows);
+            return parsedShows;
+          }
+        } catch (cacheError) {
+          console.error('Cache error:', cacheError);
+          localStorage.removeItem('watchedShowsCache');
+          localStorage.removeItem('watchedShowsCacheTimestamp');
+        }
       }
 
-      // If no cache or expired, fetch new data
       const showsWatchedData = await showsWatched(accessToken);
+      if (!Array.isArray(showsWatchedData)) {
+        throw new Error('Invalid shows data received');
+      }
+
       setWatchedShowsCache(showsWatchedData);
       
-      // Update cache
-      localStorage.setItem('watchedShowsCache', JSON.stringify(showsWatchedData));
-      localStorage.setItem('watchedShowsCacheTimestamp', Date.now().toString());
+      try {
+        localStorage.setItem('watchedShowsCache', JSON.stringify(showsWatchedData));
+        localStorage.setItem('watchedShowsCacheTimestamp', Date.now().toString());
+      } catch (storageError) {
+        console.error('Failed to cache shows data:', storageError);
+      }
       
       return showsWatchedData;
+    } catch (error) {
+      console.error('Error fetching watched shows:', error);
+      throw error;
     }
   }
 
   const invalidateCache = () => {
-    localStorage.removeItem('watchedMoviesCache');
-    localStorage.removeItem('watchedShowsCache');
-    localStorage.removeItem('watchedMoviesCacheTimestamp');
-    localStorage.removeItem('watchedShowsCacheTimestamp');
-    setWatchedMoviesCache([]);
-    setWatchedShowsCache([]);
+    try {
+      localStorage.removeItem('watchedMoviesCache');
+      localStorage.removeItem('watchedShowsCache');
+      localStorage.removeItem('watchedMoviesCacheTimestamp');
+      localStorage.removeItem('watchedShowsCacheTimestamp');
+      setWatchedMoviesCache([]);
+      setWatchedShowsCache([]);
+    } catch (error) {
+      console.error('Error invalidating cache:', error);
+    }
   };
 
-  // Check for existing token on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('traktToken');
-    if (storedToken) {
+    try {
+      const storedToken = localStorage.getItem('traktToken');
+      if (!storedToken) {
+        return;
+      }
+
       setAccessToken(storedToken);
       setIsAuthenticated(true);
 
-      // Fetch user data when token exists
       const fetchUser = async () => {
         try {
           const userResponse = await traktUser(storedToken);
+          if (!userResponse) {
+            throw new Error('No user data received');
+          }
           setUser(userResponse);
         } catch (error) {
           console.error('Failed to fetch user data:', error);
-          // If token is invalid, logout user
           logout();
         }
       };
 
       fetchUser();
+    } catch (error) {
+      console.error('Error in initialization:', error);
+      logout();
     }
   }, []);
 

@@ -34,7 +34,10 @@ export default function MediaCard({
   const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
 
   return (
-    <div className="relative w-[100px] md:w-[150px] lg:w-[180px] mb-10 cursor-pointer group" key={item.id + Math.random()}>
+    <div
+      className="relative w-[100px] md:w-[150px] lg:w-[180px] mb-10 cursor-pointer group"
+      key={item.id + Math.random()}
+    >
       <Link
         key={item.id + Math.random()}
         href={`/recommendation/${item.id}/${mediaType}`}
@@ -48,6 +51,8 @@ export default function MediaCard({
               fill
               className="object-cover transform transition-transform duration-500 group-hover:scale-105"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+              priority={item.id < 2 ? true : false}
+              quality={75}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0" />
           </div>

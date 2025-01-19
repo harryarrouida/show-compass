@@ -1,9 +1,19 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   images: {
-    domains: ['image.tmdb.org'],
+    domains: [
+      'image.tmdb.org',
+      'wallup.net', // For the fallback image
+      'themoviedb.org'
+    ],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'image.tmdb.org',
+        pathname: '/t/p/**',
+      },
+    ],
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {

@@ -46,7 +46,7 @@ const WatchHistoryOverview = ({
 
     return (
         <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-4 sm:mt-8">
-            <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 rounded-2xl p-4 sm:p-8 border border-zinc-800/50 mx-auto shadow-xl">
+            <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 rounded-2xl p-4 sm:p-8 border border-zinc-800/50 mx-auto">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 mb-6 sm:mb-8">
                     <div className="flex items-center space-x-3 px-4 sm:px-5 py-2 sm:py-2.5 bg-zinc-800/30 rounded-full border border-zinc-700/50 w-full sm:w-auto">
                         <SiTrakt className="w-4 sm:w-5 h-4 sm:h-5 text-[#ED1C24]" />

@@ -93,35 +93,41 @@ export default function RecommendationPage() {
           setIsLoading(false);
           setIsAiLoading(true);
 
-          const groq = new Groq({
-            apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY!,
-            dangerouslyAllowBrowser: true,
-          });
-
-          const completion = await groq.chat.completions.create({
-            messages: [
-              {
-                role: "system",
-                content:
-                  "You are a helpful assistant that provides recommendations. Your responses must be valid JSON with a 'recommendations' array containing objects with 'title' and 'reason' fields. response only in JSON format",
-              },
-              {
-                role: "user",
-                content: generateDefaultPrompt(
-                  mediaDetails as any,
-                  type as string
-                ),
-              },
-            ],
-            model: "mixtral-8x7b-32768",
-            temperature: 0.1,
-            max_tokens: 1000,
-            response_format: { type: "json_object" },
-          });
-
-          const response = completion.choices[0]?.message?.content || "";
-
           try {
+            const groq = new Groq({
+              apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY!,
+              dangerouslyAllowBrowser: true,
+            });
+
+            const completion = await groq.chat.completions.create({
+              messages: [
+                {
+                  role: "system",
+                  content: `You are a helpful assistant that provides recommendations. Your responses must be valid JSON with a 'recommendations' array containing objects with 'title' and 'reason' fields. The JSON must be complete and properly formatted. Example format:
+                  {
+                    "recommendations": [
+                      {
+                        "title": "Movie Title",
+                        "reason": "Reason for recommendation"
+                      }
+                    ]
+                  }`
+                },
+                {
+                  role: "user",
+                  content: generateDefaultPrompt(
+                    mediaDetails as any,
+                    type as string
+                  ),
+                },
+              ],
+              model: "mixtral-8x7b-32768",
+              temperature: 0.2,
+              max_tokens: 1000,
+              response_format: { type: "json_object" },
+            });
+
+            const response = completion.choices[0]?.message?.content || "";
             const cleanResponse = response.trim();
             const parsed = JSON.parse(cleanResponse);
 
@@ -214,8 +220,15 @@ export default function RecommendationPage() {
         messages: [
           {
             role: "system",
-            content:
-              "You are a JSON-only response bot. Always respond with valid JSON matching the exact format requested. Never include additional text or explanations.",
+            content: `You are a JSON-only response bot. Always respond with valid JSON matching this exact format:
+            {
+              "recommendations": [
+                {
+                  "title": "Movie Title",
+                  "reason": "Reason for recommendation"
+                }
+              ]
+            }`
           },
           {
             role: "user",
@@ -359,12 +372,6 @@ export default function RecommendationPage() {
                           on a recommendation to open modal)
                         </p>
                       </div>
-
-                      {/* click to open modal */}
-                      {/* <div className="flex justify-center">
-                                                <RiChat1Line className="text-violet-400 text-xl flex-shrink-0 mt-1 sm:mt-0" />
-                                                <p className="text-sm sm:text-base text-zinc-300">Click on a recommendation to open modal</p>
-                                            </div> */}
                     </div>
 
                     <button

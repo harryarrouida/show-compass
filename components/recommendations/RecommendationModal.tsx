@@ -1,6 +1,6 @@
-import Image from "next/image";
-import { IoStar, IoClose, IoTime, IoBookmarkOutline } from "react-icons/io5";
+import { IoStar, IoClose, IoBookmarkOutline } from "react-icons/io5";
 import { AIRecommendation } from "@/types/types";
+import Image from "next/image";
 
 interface RecommendationModalProps {
   recommendation: AIRecommendation;
@@ -22,11 +22,14 @@ export function RecommendationModal({
         {/* Backdrop Image */}
         <div className="relative h-[200px] sm:h-[300px]">
           <Image
-            src={`${process.env.NEXT_PUBLIC_TMDB_BACKDROP_URL}${selectedRec.media?.backdrop_path}`}
+            src={`${process.env.NEXT_PUBLIC_TMDB_ORIGINAL_URL}${selectedRec.media?.backdrop_path}`}
             alt={selectedRec.title}
             fill
-            className="object-cover opacity-80"
-            priority
+            sizes="(max-width: 768px) 100vw, 800px"
+            priority={true}
+            className="object-cover"
+            loading="eager"
+            quality={75}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/70 to-transparent" />
         </div>
@@ -46,13 +49,15 @@ export function RecommendationModal({
           {/* Poster and Details Grid */}
           <div className="flex flex-col md:flex-row md:gap-8">
             {/* Poster */}
-            <div className="relative w-[140px] h-[210px] md:w-[200px] md:h-[300px] rounded-lg overflow-hidden shadow-xl mx-auto md:mx-0 -mt-20 md:-mt-32">
+            <div className="relative w-[140px] h-[210px] md:w-[200px] md:h-[300px] rounded-lg overflow-hidden mx-auto md:mx-0 -mt-20 md:-mt-32">
               <Image
-                src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${selectedRec.media?.poster_path}`}
+                src={`${process.env.NEXT_PUBLIC_TMDB_ORIGINAL_URL}${selectedRec.media?.poster_path}`}
                 alt={selectedRec.title}
                 fill
                 className="object-cover opacity-90"
-                priority
+                priority={true}
+                loading="eager"
+                quality={75}
               />
             </div>
 

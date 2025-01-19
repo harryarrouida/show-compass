@@ -1,27 +1,7 @@
 import axios from "axios";
+import { getCachedData } from '@/utils/cache';
 
 const baseUrl = process.env.NEXT_PUBLIC_TRAKT_BASE_URL;
-
-// Cache configuration for static data
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
-const cache = new Map<string, { data: any; timestamp: number }>();
-
-/**
- * Helper function to get or set cached data
- */
-function getCachedData<T>(key: string, fetchFn: () => Promise<T>): Promise<T> {
-  const cached = cache.get(key);
-  const now = Date.now();
-
-  if (cached && now - cached.timestamp < CACHE_DURATION) {
-    return Promise.resolve(cached.data);
-  }
-
-  return fetchFn().then((data) => {
-    cache.set(key, { data, timestamp: now });
-    return data;
-  });
-}
 
 export const traktToken = async (code: string) => {
   const response = await axios.post("/api/trakt/token", { code });

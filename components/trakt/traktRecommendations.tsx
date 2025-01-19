@@ -104,10 +104,11 @@ const TraktRecommendations = () => {
 
   // Main function to handle recommendation generation
   const handleRecommendations = async () => {
-    if (generateDisabled) {
-      setError("Please wait 5 minutes between generating recommendations");
-      return;
-    }
+    // TODO: add back in
+    // if (generateDisabled) {
+    //   setError("Please wait 5 minutes between generating recommendations");
+    //   return;
+    // }
 
     setLoading(true);
     setError(null);
@@ -157,9 +158,9 @@ const TraktRecommendations = () => {
           {
             role: "system",
             content:
-            "You are a helpful assistant that provides recommendations. Your responses must be valid JSON with a 'recommendations' array containing objects with 'title' and 'reason' fields. response only in JSON format",
+              "You are a helpful assistant that provides recommendations. Your responses must be valid JSON with a 'recommendations' array containing objects with 'title' and 'reason' fields. response only in JSON format",
 
-              // 'You are a movie and TV show recommendation bot. You will be given a list of movies and TV shows that the user has watched. Generate recommendations based on their watch history. IMPORTANT: Your response must be a valid JSON object with this exact format: {"recommendations": [{"title": "Movie Title", "reason": "Reason for recommendation"}]}. response only in JSON format',
+            // 'You are a movie and TV show recommendation bot. You will be given a list of movies and TV shows that the user has watched. Generate recommendations based on their watch history. IMPORTANT: Your response must be a valid JSON object with this exact format: {"recommendations": [{"title": "Movie Title", "reason": "Reason for recommendation"}]}. response only in JSON format',
           },
           {
             role: "user",
@@ -346,7 +347,7 @@ const TraktRecommendations = () => {
 
   return (
     <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-4 sm:mt-8">
-      <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800/50 rounded-2xl p-4 sm:p-8 mx-auto shadow-xl">
+      <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800/50 rounded-2xl p-4 sm:p-8 mx-auto">
         <div className="flex flex-col gap-4 sm:gap-6">
           {/* Header Section */}
           <div className="flex items-center gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-zinc-800/50">
@@ -433,7 +434,10 @@ const TraktRecommendations = () => {
 
               <button
                 onClick={handleRecommendations}
-                disabled={loading || generateDisabled}
+                disabled={
+                  loading
+                  // || generateDisabled
+                }
                 className="group flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 
                           bg-gradient-to-r from-violet-600 to-violet-500 
                           hover:from-violet-500 hover:to-violet-400

@@ -71,11 +71,11 @@ export default function AIRecommendations({ isAiLoading, aiRecommendations, save
                         disabled={isAiLoading || !prompt.trim()} 
                         type="submit" 
                         className={`px-4 sm:px-6 py-3 sm:py-4 rounded-xl text-white font-medium transition-all duration-300 
-                                  flex items-center justify-center gap-2 flex-shrink-0 text-sm sm:text-base shadow-lg 
-                                  shadow-violet-600/10 ${
+                                  flex items-center justify-center gap-2 flex-shrink-0 text-sm sm:text-base 
+                                  ${
                                     isAiLoading || !prompt.trim() 
                                     ? 'bg-violet-600/50 opacity-50 cursor-not-allowed' 
-                                    : 'bg-violet-600 hover:bg-violet-700 hover:shadow-lg hover:shadow-violet-600/20 active:scale-95'
+                                    : 'bg-violet-600 hover:bg-violet-700 active:scale-95'
                                   }`}
                         aria-label={isAiLoading ? "Loading..." : "Send message"}
                     >
