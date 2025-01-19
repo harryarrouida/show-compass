@@ -77,7 +77,7 @@ export default function DataGrid({
   };
 
   const LoadingSkeleton = () => (
-    <div className="animate-pulse w-[100px] md:w-[150px] lg:w-[180px] mb-10 mx-auto">
+    <div className="animate-pulse w-[100px] md:w-[150px] lg:w-[180px] mb-10 mx-auto" key={Math.random()}>
       <div className="bg-zinc-800 rounded-lg h-[300px] w-full"></div>
       <div className="mt-2 bg-zinc-800 h-4 w-3/4 rounded"></div>
       <div className="mt-1 bg-zinc-800 h-3 w-1/2 rounded"></div>
@@ -85,7 +85,7 @@ export default function DataGrid({
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
+    <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12" key={Math.random()}>
       <div className="mx-auto flex flex-col sm:flex-row justify-between items-center mb-16 gap-6 sm:gap-0">
         <div className={isWithSearch ? "inline-flex space-x-12 border-b border-zinc-800/50" : "mx-auto space-x-12 border-b border-zinc-800/50"}>
           <button
@@ -144,10 +144,10 @@ export default function DataGrid({
           <div key={item?.id + item?.title || `loading-${index}`} className="w-full flex justify-center">
             {item ? (
               <div className="animate-fadeIn" key={item.id + Math.random()}>
-                <MediaCard item={item} activeTab={activeTab} />
+                <MediaCard item={item} activeTab={activeTab} key={Math.random()} />
               </div>
             ) : (
-              <LoadingSkeleton />
+              <LoadingSkeleton key={Math.random()} />
             )}
           </div>
         ))}

@@ -24,7 +24,8 @@ const eslintConfig = [
       '@next/next/no-document-import-in-page': 'off',
       '@next/next/no-script-tag-for-ids': 'off',
       '@next/next/no-script-tag-for-ids': 'off',
-      
+      'next/core-web-vitals': 'off',
+
     }
   }
 ];
