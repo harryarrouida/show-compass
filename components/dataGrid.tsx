@@ -56,20 +56,15 @@ export default function DataGrid({
 
   useEffect(() => {
     setFilteredData(data);
-  }, [data, page]);
+  }, [data, activeTab]);
 
-  const handleLoadMore = async () => {
+  const handleLoadMore = () => {
     if (!isLoading) {
-      setIsLoading(true);
-      setPage((prev: number) => prev + 1);
-      
-      // Keep existing content visible while loading new items
-      const newDisplayCount = displayCount + itemsPerPage;
-      const existingItems = data.slice(0, displayCount);
-      const loadingItems = Array(itemsPerPage).fill(null);
-      
-      setFilteredData([...existingItems, ...loadingItems]);
-      setDisplayCount(newDisplayCount);
+      if (isWithSearch) {
+        setDisplayCount(prevCount => prevCount + itemsPerPage);
+      } else {
+        setPage(prev => prev + 1);
+      }
     }
   };
 
@@ -151,61 +146,30 @@ export default function DataGrid({
       </div>
 
       <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-8 place-items-center">
-        {(isWithSearch ? filteredData : data).slice(0, displayCount).map((item, index) => (
-          <div key={item?.id + item?.title || `loading-${index}`} className="w-full flex justify-center">
-            {item ? (
-              <div className="animate-fadeIn" key={item.id + Math.random()}>
-                <MediaCard item={item} activeTab={activeTab} key={Math.random()} />
+        {(isWithSearch ? filteredData : data)
+          .slice(0, isWithSearch ? displayCount : undefined)
+          .map((item) => (
+            <div key={item.id} className="w-full flex justify-center">
+              <div className="animate-fadeIn">
+                <MediaCard item={item} activeTab={activeTab} />
               </div>
-            ) : (
-              <LoadingSkeleton key={Math.random()} />
-            )}
-          </div>
-        ))}
+            </div>
+          ))}
       </div>
 
-      {((!isWithSearch && data.length > displayCount) || (isWithSearch && filteredData.length > displayCount)) && (
+      {(!isWithSearch && !isLoading) || 
+       (isWithSearch && ((filteredData.length > displayCount) || (data.length > displayCount))) ? (
         <div className="mt-20 mb-16 flex justify-center">
           <button
             onClick={handleLoadMore}
-            disabled={isLoading}
             className="group relative px-8 py-3 bg-gradient-to-r from-zinc-700 to-zinc-800 
-                             disabled:from-zinc-900 disabled:to-zinc-900 disabled:cursor-not-allowed
-                             text-white text-sm rounded-full transition-all duration-300
-                             hover:shadow-lg hover:shadow-zinc-800/25"
+                     text-white text-sm rounded-full transition-all duration-300
+                     hover:shadow-lg hover:shadow-zinc-800/25"
           >
-            <div className="relative flex items-center space-x-2">
-              {isLoading && data.length > 0 ? (
-                <>
-                  <svg
-                    className="animate-spin h-4 w-4 text-zinc-300"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  <span className="text-zinc-300">Loading...</span>
-                </>
-              ) : (
-                <span className="text-zinc-300">Load More</span>
-              )}
-            </div>
+            <span className="text-zinc-300">Load More</span>
           </button>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

@@ -57,56 +57,67 @@ const Trakt = () => {
   const fetchWatchedData = async () => {
     setIsLoading(true);
     try {
-      const moviesWatchedData = await getUserWatchedMovies();
-      const showsWatchedData = await getUserWatchedShows();
-      setWatchedMovies(moviesWatchedData);
-      setWatchedShows(showsWatchedData);
+      // Only fetch data if it's the first page or data hasn't been loaded yet
+      if (page === 1 || (!watchedMovies.length && !watchedShows.length)) {
+        const moviesWatchedData = await getUserWatchedMovies();
+        const showsWatchedData = await getUserWatchedShows();
+        setWatchedMovies(moviesWatchedData);
+        setWatchedShows(showsWatchedData);
 
-      let movieDetails: any[] = [];
-      let showDetails: any[] = [];
+        let movieDetails: any[] = [];
+        let showDetails: any[] = [];
 
-      // Wait for all movie details to resolve
-      if (moviesWatchedData && moviesWatchedData.length > 0) {
-        movieDetails = await Promise.all(
-          moviesWatchedData.map((movie: any) => getMovieDetails(movie.tmdbId))
-        );
-        setWatchedMoviesDetails(movieDetails);
+        // Wait for all movie details to resolve
+        if (moviesWatchedData && moviesWatchedData.length > 0) {
+          movieDetails = await Promise.all(
+            moviesWatchedData.map((movie: any) => getMovieDetails(movie.tmdbId))
+          );
+          setWatchedMoviesDetails(movieDetails);
+        }
+
+        // Wait for all show details to resolve
+        if (showsWatchedData.length > 0) {
+          showDetails = await Promise.all(
+            showsWatchedData.map((show: any) => getShowDetails(show.tmdbId))
+          );
+          setWatchedShowsDetails(showDetails);
+        }
+
+        const newMappedMovies = movieDetails.map((movie: any) => ({
+          id: movie.id,
+          vote_average: movie.vote_average,
+          title: movie.title,
+          release_date: movie.release_date,
+          poster_path: movie.poster_path,
+          type: "movie",
+        }));
+
+        const newMappedShows = showDetails.map((show: any) => ({
+          id: show.id,
+          vote_average: show.vote_average,
+          title: show.name,
+          release_date: show.first_air_date,
+          poster_path: show.poster_path,
+          type: "show",
+        }));
+
+        setMappedMovies(newMappedMovies);
+        setMappedShows(newMappedShows);
       }
-
-      // Wait for all show details to resolve
-      if (showsWatchedData.length > 0) {
-        showDetails = await Promise.all(
-          showsWatchedData.map((show: any) => getShowDetails(show.tmdbId))
-        );
-        setWatchedShowsDetails(showDetails);
-      }
-
-      const newMappedMovies = movieDetails.map((movie: any) => ({
-        id: movie.id,
-        vote_average: movie.vote_average,
-        title: movie.title,
-        release_date: movie.release_date,
-        poster_path: movie.poster_path,
-        type: "movie",
-      }));
-
-      const newMappedShows = showDetails.map((show: any) => ({
-        id: show.id,
-        vote_average: show.vote_average,
-        title: show.name,
-        release_date: show.first_air_date,
-        poster_path: show.poster_path,
-        type: "show",
-      }));
-
-      setMappedMovies(newMappedMovies);
-      setMappedShows(newMappedShows);
     } catch (error) {
       console.error("Error fetching watched data:", error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Add useEffect to handle page changes
+  useEffect(() => {
+    if (isAuthenticated && page > 1) {
+      // Don't reload data on page changes since we already have all the data
+      setIsLoading(false);
+    }
+  }, [page, isAuthenticated]);
 
   const fetchWatchlist = async () => {
     // const watchlist = await getUserWatchlist();

@@ -50,6 +50,8 @@ const TraktRecommendations = () => {
   const { saveToHistory: saveToHistoryContext } = useHistory();
   const { accessToken } = useTraktContext();
 
+  const [animeOnly, setAnimeOnly] = useState(false);
+
   useEffect(() => {
     setRecommendations([]);
     setRecommendationsDetails([]);
@@ -155,7 +157,7 @@ const TraktRecommendations = () => {
           {
             role: "system",
             content:
-              "You are a movie and TV show recommendation bot. You will be given a list of movies and TV shows that the user has watched. Generate recommendations based on their watch history. IMPORTANT: Your response must be a valid JSON object with this exact format: {\"recommendations\": [{\"title\": \"Movie Title\", \"reason\": \"Reason for recommendation\"}]}",
+              'You are a movie and TV show recommendation bot. You will be given a list of movies and TV shows that the user has watched. Generate recommendations based on their watch history. IMPORTANT: Your response must be a valid JSON object with this exact format: {"recommendations": [{"title": "Movie Title", "reason": "Reason for recommendation"}]}',
           },
           {
             role: "user",
@@ -196,7 +198,10 @@ const TraktRecommendations = () => {
       }
     } catch (error: any) {
       console.error("Error generating recommendations:", error);
-      setError(error.message || "An unexpected error occurred while generating recommendations");
+      setError(
+        error.message ||
+          "An unexpected error occurred while generating recommendations"
+      );
       setRecommendations([]);
       setRecommendationsDetails([]);
     } finally {
@@ -296,6 +301,34 @@ const TraktRecommendations = () => {
       item.title.toLowerCase()
     );
 
+    console.log(
+      "all params",
+      sortedContent,
+      watchedTitles,
+      favoriteGenres,
+      decadePreferences,
+      ratingDistribution,
+      seen,
+      type,
+      numRecommendations,
+      animeOnly
+    );
+
+    console.log(
+      "prompt",
+      generateTraktRecommendationsPrompt(
+        sortedContent,
+        watchedTitles,
+        favoriteGenres,
+        decadePreferences,
+        ratingDistribution,
+        seen,
+        type,
+        numRecommendations,
+        animeOnly
+      )
+    );
+
     return generateTraktRecommendationsPrompt(
       sortedContent,
       watchedTitles,
@@ -304,13 +337,14 @@ const TraktRecommendations = () => {
       ratingDistribution,
       seen,
       type,
-      numRecommendations
+      numRecommendations,
+      animeOnly
     );
   };
 
   return (
-    <div className="w-full mx-auto px-2 sm:px-6 lg:px-8 mt-4 sm:mt-8 mb-20">
-      <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800/50 rounded-2xl p-4 sm:p-8 max-w-4xl mx-auto mb-8 sm:mb-12 shadow-xl">
+    <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-4 sm:mt-8 mb-20">
+      <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800/50 rounded-2xl p-6 sm:p-8 mx-auto mb-8 sm:mb-12 shadow-xl">
         <div className="flex flex-col gap-4 sm:gap-6">
           {/* Header Section */}
           <div className="flex items-center gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-zinc-800/50">
@@ -365,7 +399,9 @@ const TraktRecommendations = () => {
                             appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
                             bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all lg:px-2 lg:gap-2"
                 >
-                  <option value={5} defaultChecked>5 Recommendations</option>
+                  <option value={5} defaultChecked>
+                    5 Recommendations
+                  </option>
                   <option value={10}>10 Recommendations</option>
                 </select>
 
@@ -379,6 +415,17 @@ const TraktRecommendations = () => {
                             }`}
                 >
                   {fromWatchlist ? "From Watchlist" : "General"}
+                </button>
+                <button
+                  onClick={() => setAnimeOnly(!animeOnly)}
+                  className={`w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
+                            ${
+                              animeOnly
+                                ? "bg-violet-500/10 text-violet-300 border border-violet-500/20"
+                                : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50 hover:bg-zinc-800/50 hover:border-zinc-600/50"
+                            }`}
+                >
+                  {animeOnly ? "Anime Only" : `All ${mediaType}`}
                 </button>
               </div>
 

@@ -45,56 +45,56 @@ const WatchHistoryOverview = ({
     };
 
     return (
-        <div className="space-y-12 mx-4 sm:mx-16 mt-8 sm:mt-12">
-            <div className="bg-zinc-900 rounded-2xl sm:rounded-3xl p-4 sm:p-8 border border-zinc-800/30 shadow-xl">
+        <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-4 sm:mt-8">
+            <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 rounded-2xl p-4 sm:p-8 border border-zinc-800/50 mx-auto shadow-xl">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 mb-6 sm:mb-8">
-                    <div className="flex items-center space-x-3 px-4 sm:px-5 py-2 sm:py-2.5 bg-zinc-800 rounded-full border border-zinc-700/30 w-full sm:w-auto">
+                    <div className="flex items-center space-x-3 px-4 sm:px-5 py-2 sm:py-2.5 bg-zinc-800/30 rounded-full border border-zinc-700/50 w-full sm:w-auto">
                         <SiTrakt className="w-4 sm:w-5 h-4 sm:h-5 text-[#ED1C24]" />
-                        <span className="text-base sm:text-lg font-medium bg-gradient-to-r from-white to-zinc-300 bg-clip-text text-transparent">
+                        <span className="text-base sm:text-lg font-medium text-white">
                             {user?.username || ''}
                         </span>
                     </div>
                     <button 
                         onClick={handleLogout} 
-                        className="flex items-center space-x-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-zinc-800 rounded-full border border-red-500/20 hover:bg-red-500/10 transition-all duration-300 group w-full sm:w-auto justify-center"
+                        className="flex items-center space-x-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-zinc-800/30 rounded-full border border-red-500/20 hover:bg-red-500/10 transition-all duration-300 group w-full sm:w-auto justify-center"
                     >
                         <IoLogOut className="w-4 sm:w-5 h-4 sm:h-5 text-red-400 group-hover:text-red-300 transition-colors" />
                         <span className="text-red-400 group-hover:text-red-300 transition-colors">Logout</span>
                     </button>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
-                    <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-zinc-800 border border-zinc-700/20 hover:border-zinc-700/40 transition-colors duration-300">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                    <div className="p-4 sm:p-6 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:border-zinc-600/50 transition-colors duration-300">
                         <div className="flex items-center space-x-3 text-zinc-400 mb-3 sm:mb-4">
                             <IoTv className="w-4 sm:w-5 h-4 sm:h-5 text-blue-400" />
                             <span className="text-sm font-medium">Series Watch Time</span>
                         </div>
-                        <p className="text-3xl sm:text-4xl font-light bg-gradient-to-r from-blue-300 to-blue-500 bg-clip-text text-transparent">
+                        <p className="text-3xl sm:text-4xl font-light text-white">
                             {`${showDays}d ${showHours}h`}
                         </p>
-                        <p className="text-xs sm:text-sm text-zinc-500 mt-2">{`${watchedShows.length} shows watched`}</p>
+                        <p className="text-xs sm:text-sm text-zinc-400 mt-2">{`${watchedShows.length} shows watched`}</p>
                     </div>
 
-                    <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-zinc-800 border border-zinc-700/20 hover:border-zinc-700/40 transition-colors duration-300">
+                    <div className="p-4 sm:p-6 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:border-zinc-600/50 transition-colors duration-300">
                         <div className="flex items-center space-x-3 text-zinc-400 mb-3 sm:mb-4">
                             <IoFilm className="w-4 sm:w-5 h-4 sm:h-5 text-purple-400" />
                             <span className="text-sm font-medium">Movies Watch Time</span>
                         </div>
-                        <p className="text-3xl sm:text-4xl font-light bg-gradient-to-r from-purple-300 to-purple-500 bg-clip-text text-transparent">
+                        <p className="text-3xl sm:text-4xl font-light text-white">
                             {`${movieDays}d ${movieHours}h`}
                         </p>
-                        <p className="text-xs sm:text-sm text-zinc-500 mt-2">{`${watchedMovies.length} movies watched`}</p>
+                        <p className="text-xs sm:text-sm text-zinc-400 mt-2">{`${watchedMovies.length} movies watched`}</p>
                     </div>
 
-                    <div className="p-4 sm:p-6 rounded-xl sm:rounded-2xl bg-zinc-800 border border-zinc-700/20 hover:border-zinc-700/40 transition-colors duration-300">
+                    <div className="p-4 sm:p-6 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:border-zinc-600/50 transition-colors duration-300">
                         <div className="flex items-center space-x-3 text-zinc-400 mb-3 sm:mb-4">
                             <IoTime className="w-4 sm:w-5 h-4 sm:h-5 text-emerald-400" />
                             <span className="text-sm font-medium">Total Time Watched</span>
                         </div>
-                        <p className="text-3xl sm:text-4xl font-light bg-gradient-to-r from-emerald-300 to-emerald-500 bg-clip-text text-transparent">
+                        <p className="text-3xl sm:text-4xl font-light text-white">
                             {`${totalDays}d ${totalHours}h`}
                         </p>
-                        <p className="text-xs sm:text-sm text-zinc-500 mt-2">Combined watch time</p>
+                        <p className="text-xs sm:text-sm text-zinc-400 mt-2">Combined watch time</p>
                     </div>
                 </div>
             </div>
