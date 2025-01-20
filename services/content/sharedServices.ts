@@ -22,8 +22,8 @@ export const search = async (query: string) => {
     const movies = movieResponse.data.results;
     const shows = showResponse.data.results;
 
-    console.log("movies", movies);
-    console.log("shows", shows);
+    // console.log("movies", movies);
+    // console.log("shows", shows);
 
     movies.filter(
       (movie: any) =>

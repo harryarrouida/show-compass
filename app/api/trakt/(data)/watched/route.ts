@@ -11,6 +11,6 @@ export async function GET(request: NextRequest) {
     const response = await axios.get(`${baseUrl}/users/me/watched`, {
         headers: { 'Authorization': `Bearer ${token}`, 'trakt-api-key': process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID, 'trakt-api-version': '2' }
     });
-    console.log(response.data);
+    // console.log(response.data);
     return Response.json(response.data);
 }

@@ -212,7 +212,7 @@ const TraktRecommendations = () => {
       animeOnly
     );
 
-    console.log("Watchlist Prompt:", prompt);
+    // console.log("Watchlist Prompt:", prompt);
 
     return prompt;
   };
@@ -258,7 +258,7 @@ const TraktRecommendations = () => {
           ? watchedShowsCache
           : await getUserWatchedShows();
 
-      console.log(`Total ${mediaType} watched:`, watchedContent.length);
+      // console.log(`Total ${mediaType} watched:`, watchedContent.length);
 
       if (!watchedContent || watchedContent.length === 0) {
         throw new Error(`No watched ${mediaType} found in your history`);

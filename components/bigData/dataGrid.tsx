@@ -144,13 +144,13 @@ export default function DataGrid({
         )}
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-8 place-items-center">
+      <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 sm:gap-8">
         {(isWithSearch ? filteredData : data)
           .slice(0, isWithSearch ? displayCount : undefined)
           .map((item) => (
             <div
               key={item.id}
-              className="w-full flex justify-center"
+              className="w-full aspect-[2/3]"
             >
               <MediaCard item={item} activeTab={activeTab} />
             </div>

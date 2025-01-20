@@ -5,7 +5,7 @@ const baseUrl = process.env.NEXT_PUBLIC_TRAKT_BASE_URL;
 
 export const traktToken = async (code: string) => {
   const response = await axios.post("/api/trakt/token", { code });
-  console.log(response.data);
+  // console.log(response.data);
   return response.data;
 };
 
@@ -18,7 +18,7 @@ export const traktUser = async (token: string) => {
 
 export const traktWatched = async (token: string) => {
   if (!token) {
-    return console.log("No token");
+    // return console.log("No token");
   }
   const watched = await axios.get(`${baseUrl}/users/me/watched/movies`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -34,7 +34,7 @@ export const traktWatchlist = async (token: string) => {
       "trakt-api-version": "2",
     },
   });
-  console.log(watchlist.data);
+  // console.log(watchlist.data);
   return watchlist;
 };
 

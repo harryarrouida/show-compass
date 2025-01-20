@@ -65,8 +65,8 @@ export default function OptimizedImage({
     className || ""
   } object-cover hover:scale-105 transition-transform duration-300`.trim();
 
-  console.log("src", src);
-  console.log("imageUrl", imageUrl);
+  // console.log("src", src);
+  // console.log("imageUrl", imageUrl);
   return (
     <Image
       key={id || src}
