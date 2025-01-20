@@ -1,8 +1,7 @@
 import axios from "axios";
-import { Movie, Show } from "@/types/types";
-
+import { GENRES } from "@/constants/constants";
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
-const BASE_URL = "https://api.themoviedb.org/3";
+const BASE_URL = process.env.NEXT_PUBLIC_TMDB_BASE_URL;
 
 export const search = async (query: string) => {
   try {
@@ -22,6 +21,9 @@ export const search = async (query: string) => {
 
     const movies = movieResponse.data.results;
     const shows = showResponse.data.results;
+
+    console.log("movies", movies);
+    console.log("shows", shows);
 
     movies.filter(
       (movie: any) =>
@@ -55,6 +57,11 @@ export const search = async (query: string) => {
         popularity: movie.popularity,
         type: "movie",
         backdrop_path: movie.backdrop_path,
+        genres:
+          movie.genre_ids?.map(
+            (id: number) => GENRES[id as keyof typeof GENRES]
+          ) || [],
+        overview: movie.overview,
       })),
       ...shows.map((show: any) => ({
         id: show.id,
@@ -65,8 +72,15 @@ export const search = async (query: string) => {
         popularity: show.popularity,
         type: "show",
         backdrop_path: show.backdrop_path,
+        genres:
+          show.genre_ids?.map(
+            (id: number) => GENRES[id as keyof typeof GENRES]
+          ) || [],
+        overview: show.overview,
       })),
     ];
+
+    // console.log("combinedResults", combinedResults);
 
     // Sort by title match and popularity
     const sortedResults = combinedResults
@@ -81,6 +95,8 @@ export const search = async (query: string) => {
         // Then sort by popularity
         return b.popularity - a.popularity;
       });
+
+    // console.log("Sample result:", combinedResults[0]); // This will help debug what data is coming from TMDB
 
     return sortedResults.slice(0, 5); // Return top 5 results
   } catch (error) {

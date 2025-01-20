@@ -162,11 +162,11 @@ export default function DataGrid({
               className="w-full flex justify-center"
             >
               <div className="animate-fadeIn">
-                {isLoading ? (
-                  <CardSkeleton index={item.id} />
-                ) : (
-                  <MediaCard item={item} activeTab={activeTab} />
-                )}
+                {/* {isLoading ? ( */}
+                {/* // <CardSkeleton index={item.id} /> */}
+                {/* // ) : ( */}
+                <MediaCard item={item} activeTab={activeTab} />
+                {/* // )} */}
               </div>
             </div>
           ))}

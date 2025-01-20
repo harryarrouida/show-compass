@@ -12,7 +12,6 @@ import {
 import { RecommendationCard } from "@/components/AIRecommendations/RecommendationCard";
 import { RecommendationModal } from "@/components/AIRecommendations/RecommendationModal";
 import { getUserWatchlist } from "@/services/trakt/traktServices";
-import PageLayout from "../layout/PageLayout";
 
 // Main component for AI-powered movie/show recommendations based on Trakt.tv data
 type MediaType = "movies" | "shows";
@@ -33,7 +32,6 @@ const TraktRecommendations = () => {
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [selectedRecommendation, setSelectedRecommendation] =
     useState<any>(null);
-  const [searchQuery, setSearchQuery] = useState("");
 
   // Watchlist related state
   const [fromWatchlist, setFromWatchlist] = useState<boolean>(false);
@@ -76,6 +74,74 @@ const TraktRecommendations = () => {
     }
   };
 
+  // Analyze viewing patterns and preferences
+  const analyzeViewingPatterns = async (watchedContent: any[]) => {
+    const recentContent = await Promise.all(
+      watchedContent.map(async (item) => {
+        const searchResults = await search(item.title);
+        const mediaMatch = searchResults[0];
+        return {
+          ...item,
+          media: {
+            title: mediaMatch?.title,
+            year: mediaMatch?.release_date ? new Date(mediaMatch.release_date).getFullYear() : null,
+            genres: mediaMatch?.genres || [],
+            rating: mediaMatch?.vote_average,
+            vote_average: mediaMatch?.vote_average,
+            overview: mediaMatch?.overview?.slice(0, 100) || "",
+            poster_path: mediaMatch?.poster_path,
+            backdrop_path: mediaMatch?.backdrop_path,
+          },
+        };
+      })
+    );
+
+    // Calculate viewing patterns from the cleaned data
+    const genreCounts = recentContent.reduce((acc: any, item) => {
+      item.media.genres?.forEach((genre: string) => {
+        acc[genre] = (acc[genre] || 0) + 1;
+      });
+      return acc;
+    }, {});
+
+    const favoriteGenres = Object.entries(genreCounts)
+      .sort(([, a]: any, [, b]: any) => b - a)
+      .slice(0, 10 || 3)
+      .map(([genre]) => genre);
+
+    const decadePreferences = recentContent.reduce((acc: any, item) => {
+      const decade = Math.floor(item.media.year / 10) * 10;
+      acc[decade] = (acc[decade] || 0) + 1;
+      return acc;
+    }, {});
+
+    const ratingDistribution = recentContent.reduce((acc: any, item) => {
+      if (item.media.vote_average) {
+        const ratingKey =
+          item.media.vote_average >= 8
+            ? "high"
+            : item.media.vote_average >= 6
+            ? "medium"
+            : "low";
+        acc[ratingKey] = (acc[ratingKey] || 0) + 1;
+      }
+      return acc;
+    }, {});
+
+    const watchedTitles = recentContent.map((item) => ({
+      title: item.title.toLowerCase(),
+      overview: item.media.overview || "",
+    }));
+
+    return {
+      favoriteGenres,
+      decadePreferences,
+      ratingDistribution,
+      watchedTitles,
+      recentContent,
+    };
+  };
+
   // Generates recommendations from user's watchlist
   const generatePromptFromWatchlist = async (
     type: MediaType,
@@ -93,12 +159,27 @@ const TraktRecommendations = () => {
       throw new Error("Failed to fetch watchlist");
     }
 
-    return generateWatchlistPrompt(
-      watchedContent,
+    const {
+      favoriteGenres,
+      decadePreferences,
+      ratingDistribution,
+      watchedTitles,
+    } = await analyzeViewingPatterns(watchedContent);
+
+    const prompt = generateWatchlistPrompt(
+      ratingDistribution,
+      decadePreferences,
+      favoriteGenres,
+      watchedTitles as any,
       watchlistItems,
       mediaType,
-      numRecommendations
+      numRecommendations,
+      animeOnly
     );
+
+    console.log("Watchlist Prompt:", prompt);
+
+    return prompt;
   };
 
   // Main function to handle recommendation generation
@@ -131,6 +212,8 @@ const TraktRecommendations = () => {
           ? watchedShowsCache
           : await getUserWatchedShows();
 
+      console.log(`Total ${mediaType} watched:`, watchedContent.length);
+
       if (!watchedContent || watchedContent.length === 0) {
         throw new Error(`No watched ${mediaType} found in your history`);
       }
@@ -151,6 +234,8 @@ const TraktRecommendations = () => {
       if (!prompt) {
         throw new Error("Failed to generate prompt");
       }
+
+      console.log("Generated Prompt:", prompt);
 
       const completion = await groq.chat.completions.create({
         messages: [
@@ -211,16 +296,6 @@ const TraktRecommendations = () => {
     }
   };
 
-  // Utility functions for UI interactions
-  const getFilteredContent = () => {
-    const content =
-      mediaType === "movies" ? watchedMoviesCache : watchedShowsCache;
-    if (!searchQuery) return [];
-    return content.filter((item: any) =>
-      item.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  };
-
   // Save recommendation to user history
   const handleSaveToHistory = (recommendation: any) => {
     if (!recommendation.media) return;
@@ -232,108 +307,16 @@ const TraktRecommendations = () => {
     );
   };
 
-  // Mark recommendation as seen and close modal
-  const handleSeen = (recommendation: any) => {
-    setSeen((prevSeen) => [...prevSeen, recommendation.title]);
-    setSelectedRecommendation(null);
-  };
-
   const generatePrompt = async (type: MediaType, watchedContent: any[]) => {
-    // Calculate viewing patterns and preferences
-    const recentContent = await Promise.all(
-      watchedContent.map(async (item) => {
-        const searchResults = await search(item.title);
-        const mediaMatch = searchResults[0];
-        return {
-          ...item,
-          media: {
-            title: mediaMatch.title,
-            year: new Date(mediaMatch.release_date).getFullYear(),
-            genres: mediaMatch.genres || [],
-            rating: mediaMatch.vote_average,
-            watched_at: item.watched_at,
-            vote_average: mediaMatch.vote_average,
-            overview: mediaMatch.overview,
-            poster_path: mediaMatch.poster_path,
-            backdrop_path: mediaMatch.backdrop_path,
-          },
-        };
-      })
-    );
-
-    // Calculate viewing patterns from the cleaned data
-    const genreCounts = recentContent.reduce((acc: any, item) => {
-      item.media.genres?.forEach((genre: string) => {
-        acc[genre] = (acc[genre] || 0) + 1;
-      });
-      return acc;
-    }, {});
-
-    const favoriteGenres = Object.entries(genreCounts)
-      .sort(([, a]: any, [, b]: any) => b - a)
-      .slice(0, 3)
-      .map(([genre]) => genre);
-
-    const decadePreferences = recentContent.reduce((acc: any, item) => {
-      const decade = Math.floor(item.media.year / 10) * 10;
-      acc[decade] = (acc[decade] || 0) + 1;
-      return acc;
-    }, {});
-
-    const ratingDistribution = recentContent.reduce((acc: any, item) => {
-      if (item.media.vote_average) {
-        const ratingKey =
-          item.media.vote_average >= 8
-            ? "high"
-            : item.media.vote_average >= 6
-            ? "medium"
-            : "low";
-        acc[ratingKey] = (acc[ratingKey] || 0) + 1;
-      }
-      return acc;
-    }, {});
-
-    // Sort by watch date for recent content
-    const sortedContent = [...recentContent].sort(
-      (a, b) =>
-        new Date(b.watched_at).getTime() - new Date(a.watched_at).getTime()
-    );
-
-    const watchedTitles = watchedContent.map((item) =>
-      item.title.toLowerCase()
-    );
-
-    // console.log(
-    //   "all params",
-    //   sortedContent,
-    //   watchedTitles,
-    //   favoriteGenres,
-    //   decadePreferences,
-    //   ratingDistribution,
-    //   seen,
-    //   type,
-    //   numRecommendations,
-    //   animeOnly
-    // );
-
-    // console.log(
-    //   "prompt",
-    //   generateTraktRecommendationsPrompt(
-    //     sortedContent,
-    //     watchedTitles,
-    //     favoriteGenres,
-    //     decadePreferences,
-    //     ratingDistribution,
-    //     seen,
-    //     type,
-    //     numRecommendations,
-    //     animeOnly
-    //   )
-    // );
-
-    return generateTraktRecommendationsPrompt(
-      sortedContent,
+    const {
+      favoriteGenres,
+      decadePreferences,
+      ratingDistribution,
       watchedTitles,
+    } = await analyzeViewingPatterns(watchedContent);
+
+    const prompt = generateTraktRecommendationsPrompt(
+      watchedTitles as any,
       favoriteGenres,
       decadePreferences,
       ratingDistribution,
@@ -342,6 +325,10 @@ const TraktRecommendations = () => {
       numRecommendations,
       animeOnly
     );
+
+    console.log("Generated Prompt:", prompt);
+
+    return prompt;
   };
 
   return (
