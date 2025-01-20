@@ -56,10 +56,8 @@ export default function SearchComponent() {
 
     return (
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-16">
-            <div className="text-center mb-20">
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-8 bg-gradient-to-r from-gray-100 via-gray-300 to-gray-100 bg-clip-text text-transparent animate-gradient tracking-tight">
-                    Discover Your Next Favorite Story
-                </h1>
+            <div className="text-center mb-20 gap-4">
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 bg-gradient-to-r from-gray-100 via-gray-300 to-gray-100 bg-clip-text text-transparent animate-gradient tracking-tight">Discover Your Next Favorite Story</h1>
                 <p className="text-gray-300 text-base md:text-lg max-w-3xl mx-auto mb-14 leading-relaxed">
                     Discover personalized entertainment recommendations that match your interests. From critically acclaimed masterpieces to hidden gems, find your next great watch.
                 </p>

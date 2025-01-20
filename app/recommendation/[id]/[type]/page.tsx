@@ -48,11 +48,9 @@ export default function RecommendationPage() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Check if this is first visit
     const hasVisited = localStorage.getItem("hasVisitedRecommendations");
     if (!hasVisited && initialLoadComplete) {
       setShowIntroModal(true);
-      // Auto-close modal after 30 seconds
       const timer = setTimeout(() => {
         setShowIntroModal(false);
         localStorage.setItem("hasVisitedRecommendations", "true");
@@ -64,7 +62,6 @@ export default function RecommendationPage() {
       setShowIntroModal(false);
     }
 
-    // check width of screen
     const width = window.innerWidth;
     if (width < 768) {
       setIsMobile(true);
@@ -329,9 +326,8 @@ export default function RecommendationPage() {
                 isMobile={isMobile}
               />
 
-              {/* Intro Modal */}
               {showIntroModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
                   <div className="bg-zinc-900 rounded-xl p-6 max-w-md w-full relative border border-violet-500/20 mx-4 sm:mx-0">
                     <button
                       onClick={closeIntroModal}

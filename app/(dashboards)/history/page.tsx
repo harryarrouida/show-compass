@@ -84,10 +84,9 @@ export default function HistoryPage() {
                 className="mx-auto group relative w-[100px] md:w-[150px] lg:w-[180px] cursor-pointer"
               >
                 <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
-                  <Image
-                    src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${item.data.poster_path}`}
+                  <OptimizedImage
+                    src={`${item.data.poster_path}`}
                     alt={item.data.title || ""}
-                    fill
                     className="object-cover transform transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 20vw"
                   />
@@ -151,13 +150,7 @@ export default function HistoryPage() {
           />
 
           <div
-            className="relative w-full md:w-[800px] bg-zinc-900 rounded-t-2xl md:rounded-2xl max-h-[85vh] overflow-y-auto
-                        [&::-webkit-scrollbar]:w-2
-                        [&::-webkit-scrollbar-track]:bg-zinc-800
-                        [&::-webkit-scrollbar-thumb]:bg-zinc-600
-                        [&::-webkit-scrollbar-thumb]:rounded-full
-                        [&::-webkit-scrollbar-thumb]:border-2
-                        [&::-webkit-scrollbar-thumb]:border-zinc-800"
+            className="relative w-full md:w-[800px] bg-zinc-900 rounded-t-2xl md:rounded-2xl h-[85vh] overflow-y-auto"
           >
             <div className="relative h-[200px] sm:h-[300px]">
               <OptimizedImage
@@ -182,12 +175,11 @@ export default function HistoryPage() {
             <div className="px-4 pb-8 sm:p-8 relative">
               <div className="flex flex-col md:flex-row md:gap-8">
                 <div className="relative w-[140px] h-[210px] md:w-[200px] md:h-[300px] rounded-lg overflow-hidden mx-auto md:mx-0 -mt-20 md:-mt-32">
-                  <Image
-                    src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${selectedItem.data.poster_path}`}
+                  <OptimizedImage
+                    src={`${selectedItem.data.poster_path}`}
                     alt={selectedItem.data.title}
-                    fill
                     className="object-cover opacity-90"
-                    priority
+                    sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 20vw"
                   />
                 </div>
 

@@ -56,7 +56,7 @@ const WatchHistoryOverview = ({
                     </div>
                     <button 
                         onClick={handleLogout} 
-                        className="flex items-center space-x-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-zinc-800/30 rounded-full border border-red-500/20 hover:bg-red-500/10 transition-all duration-300 group w-full sm:w-auto justify-center"
+                        className="flex items-center space-x-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-zinc-800/30 rounded-full border border-red-500/20 hover:bg-red-500/10 transition-colors duration-300 group w-full sm:w-auto justify-center"
                     >
                         <IoLogOut className="w-4 sm:w-5 h-4 sm:h-5 text-red-400 group-hover:text-red-300 transition-colors" />
                         <span className="text-red-400 group-hover:text-red-300 transition-colors">Logout</span>
@@ -64,7 +64,7 @@ const WatchHistoryOverview = ({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    <div className="p-4 sm:p-6 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:border-zinc-600/50 transition-colors duration-300">
+                    <div className="p-4 sm:p-6 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:border-zinc-600/50 transition-colors">
                         <div className="flex items-center space-x-3 text-zinc-400 mb-3 sm:mb-4">
                             <IoTv className="w-4 sm:w-5 h-4 sm:h-5 text-blue-400" />
                             <span className="text-sm font-medium">Series Watch Time</span>
@@ -75,7 +75,7 @@ const WatchHistoryOverview = ({
                         <p className="text-xs sm:text-sm text-zinc-400 mt-2">{`${watchedShows.length} shows watched`}</p>
                     </div>
 
-                    <div className="p-4 sm:p-6 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:border-zinc-600/50 transition-colors duration-300">
+                    <div className="p-4 sm:p-6 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:border-zinc-600/50 transition-colors">
                         <div className="flex items-center space-x-3 text-zinc-400 mb-3 sm:mb-4">
                             <IoFilm className="w-4 sm:w-5 h-4 sm:h-5 text-purple-400" />
                             <span className="text-sm font-medium">Movies Watch Time</span>
@@ -86,7 +86,7 @@ const WatchHistoryOverview = ({
                         <p className="text-xs sm:text-sm text-zinc-400 mt-2">{`${watchedMovies.length} movies watched`}</p>
                     </div>
 
-                    <div className="p-4 sm:p-6 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:border-zinc-600/50 transition-colors duration-300">
+                    <div className="p-4 sm:p-6 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:border-zinc-600/50 transition-colors">
                         <div className="flex items-center space-x-3 text-zinc-400 mb-3 sm:mb-4">
                             <IoTime className="w-4 sm:w-5 h-4 sm:h-5 text-emerald-400" />
                             <span className="text-sm font-medium">Total Time Watched</span>

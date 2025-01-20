@@ -11,7 +11,7 @@ export default function Card({
     hover = false,
     onClick 
 }: CardProps) {
-    const baseClasses = 'bg-zinc-900/50 border border-zinc-800/50 rounded-lg overflow-hidden backdrop-blur-sm';
+    const baseClasses = 'bg-zinc-900/50 border border-zinc-800/50 rounded-lg overflow-hidden';
     const hoverClasses = hover ? 'hover:border-zinc-700/50 hover:bg-zinc-800/30 transition-all duration-300' : '';
     const clickClasses = onClick ? 'cursor-pointer' : '';
     

@@ -13,7 +13,7 @@ export default function Navbar() {
     const pathname = usePathname();
 
     return (
-        <nav className="sticky top-0 z-50 bg-zinc-950/90 backdrop-blur-2xl border-b border-zinc-800/50">
+        <nav className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800/50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center h-20 justify-between">
                     {/* Logo */}

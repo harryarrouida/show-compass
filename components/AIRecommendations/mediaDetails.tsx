@@ -44,7 +44,7 @@ export default function MediaDetails({
   return (
     <div className="flex flex-col md:grid md:grid-cols-[300px_1fr] gap-8 mb-12">
       {/* Left Column */}
-      <div className="space-y-8 bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-sm rounded-2xl border border-zinc-800/50 p-6 w-full">
+      <div className="space-y-8 bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 rounded-2xl border border-zinc-800/50 p-6 w-full">
         {/* Poster */}
         <div className="relative aspect-[2/3] w-[200px] sm:w-[240px] md:w-[260px] mx-auto rounded-xl overflow-hidden bg-zinc-900/40 ring-1 ring-zinc-800/50">
           <Image
@@ -60,7 +60,7 @@ export default function MediaDetails({
         {/* Info Section */}
         <div className="space-y-8">
           {/* Rating & Year */}
-          <div className="bg-zinc-800/20 backdrop-blur-sm rounded-xl p-5 border border-zinc-700/30 space-y-4 hover:border-zinc-700/50 transition-colors duration-300">
+          <div className="bg-zinc-800/20 rounded-xl p-5 border border-zinc-700/30 space-y-4 hover:border-zinc-700/50 transition-colors duration-300">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-amber-400 text-lg">★</span>
@@ -124,7 +124,7 @@ export default function MediaDetails({
                     .map((season) => (
                       <div
                         key={season.id}
-                        className="bg-zinc-800/20 backdrop-blur-sm rounded-xl p-4 space-y-2 border border-zinc-700/30 
+                        className="bg-zinc-800/20 rounded-xl p-4 space-y-2 border border-zinc-700/30 
                                  hover:bg-zinc-800/30 hover:border-zinc-700/50 transition-all duration-300"
                       >
                         <div className="flex justify-between items-start">
@@ -169,7 +169,7 @@ export default function MediaDetails({
                 {details.spoken_languages?.map((lang) => (
                   <span
                     key={lang.iso_639_1}
-                    className="text-xs text-zinc-400 bg-zinc-800/20 backdrop-blur-sm px-3 py-1.5 rounded-full 
+                    className="text-xs text-zinc-400 bg-zinc-800/20 px-3 py-1.5 rounded-full 
                              border border-zinc-700/30 hover:border-zinc-700/50 transition-colors cursor-default"
                   >
                     {lang.english_name}
@@ -201,7 +201,7 @@ export default function MediaDetails({
           <h1 className="text-2xl md:text-4xl font-bold text-white text-center md:text-left bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
             {details.title}
           </h1>
-          <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 backdrop-blur-sm rounded-2xl border border-zinc-800/50 p-6">
+          <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 rounded-2xl border border-zinc-800/50 p-6">
             <p className={`text-base md:text-lg text-zinc-300 leading-relaxed
               ${!isMobile || showAllOverview ? "line-clamp-none" : "line-clamp-3"}`}
             >

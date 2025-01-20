@@ -281,7 +281,7 @@ const TraktRecommendations = () => {
         throw new Error("Failed to generate prompt");
       }
 
-      console.log("Generated Prompt:", prompt);
+      // console.log("Generated Prompt:", prompt);
 
       const completion = await groq.chat.completions.create({
         messages: [
@@ -390,7 +390,7 @@ const TraktRecommendations = () => {
       animeOnly
     );
 
-    console.log("Generated Prompt:", prompt);
+    // console.log("Generated Prompt:", prompt);
 
     return prompt;
   };
@@ -475,7 +475,7 @@ const TraktRecommendations = () => {
                             ${
                               animeOnly
                                 ? "bg-violet-500/10 text-violet-300 border border-violet-500/20"
-                                : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50 hover:bg-zinc-800/50 hover:border-zinc-600/50"
+                                : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
                             }`}
                 >
                   {animeOnly ? "Anime Only" : `All ${mediaType}`}
@@ -487,11 +487,8 @@ const TraktRecommendations = () => {
                 disabled={loading || generateDisabled}
                 className="group flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 
                           bg-gradient-to-r from-violet-600 to-violet-500 
-                          hover:from-violet-500 hover:to-violet-400
                           rounded-xl text-sm text-white font-medium transition-all duration-300
-                          hover:shadow-lg hover:shadow-violet-500/25 
-                          disabled:opacity-50 disabled:cursor-not-allowed
-                          disabled:hover:shadow-none"
+                          disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
                   <>
@@ -500,14 +497,14 @@ const TraktRecommendations = () => {
                   </>
                 ) : generateDisabled ? (
                   <>
-                    <RiRobot2Line className="w-4 h-4" />
+                    <RiRobot2Line className="w-4 h-4 transition-transform group-hover:rotate-12" />
                     <span>Wait {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}</span>
                   </>
                 ) : (
                   <>
-                    <RiRobot2Line className="w-4 h-4" />
+                    <RiRobot2Line className="w-4 h-4 transition-transform group-hover:rotate-12" />
                     <span>Generate</span>
-                    <IoChevronForwardOutline className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+                    <IoChevronForwardOutline className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                   </>
                 )}
               </button>

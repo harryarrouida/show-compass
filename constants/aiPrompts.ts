@@ -7,7 +7,8 @@ export const generateDefaultPrompt = (
     vote_average: number;
   },
   type: string,
-  numRecommendations: number = 8) => `You are a sophisticated media analyst and recommendation engine. Generate EXACTLY ${numRecommendations} high-quality ${type} recommendations based on these details:
+  numRecommendations: number = 8
+) => `You are a sophisticated media analyst and recommendation engine. Generate EXACTLY ${numRecommendations} high-quality ${type} recommendations based on these details:
 
 Input Media:
 - Title: "${mediaDetails.title}"
@@ -28,6 +29,7 @@ STRICT Requirements:
 } or later
 6. All recommendations MUST be available on major streaming platforms
 7. Prioritize critically acclaimed content that matches the tone and sophistication level
+8. Avoid Content with low ratings, low popularity, and low user ratings, new releases, and upcoming releases
 
 JSON Format:
 {
@@ -51,7 +53,8 @@ export const generateCustomPrompt = (
   },
   type: string,
   prompt: string,
-  numRecommendations: number = 8) => `
+  numRecommendations: number = 8
+) => `
 You are a perceptive media recommendation engine. Generate EXACTLY ${numRecommendations} ${type} recommendations that seamlessly blend the essence of the original content with the user's specific interests.
 
 Input Media:
@@ -87,6 +90,7 @@ STRICT Requirements:
    - If they want certain character types, prioritize those
    - If they mention mood or atmosphere, focus on that
    - If they specify story elements, highlight those
+8. Avoid Content with low ratings, low popularity, and low user ratings, new releases, and upcoming releases
 
 JSON Format:
 {
@@ -137,6 +141,7 @@ STRICT Requirements:
    - Recognize emotional resonance patterns
    - Map complexity preferences and pacing choices
    - Note genre combination patterns they gravitate towards
+   - Avoid Content with low ratings, low popularity, and low user ratings, new releases, and upcoming releases
 
 2. Each recommendation MUST include two sentences that:
    - First: Connect to the user's broader viewing patterns and thematic preferences
@@ -236,6 +241,7 @@ STRICT Selection Criteria:
    - Recognize emotional resonance patterns
    - Map complexity preferences and pacing choices
    - Note genre combination patterns they gravitate towards
+   - Avoid Content with low ratings, low popularity, and low user ratings, new releases, and upcoming releases
 
 2. Each recommendation MUST include two sentences that:
    - First: Connect to the user's broader viewing patterns and thematic preferences
