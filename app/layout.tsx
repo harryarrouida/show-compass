@@ -34,7 +34,7 @@ export default function RootLayout({
             <HistoryProvider>
               <Navbar />
               <main className="flex-grow mb-16 relative">
-                <Suspense fallback={<Loading text="Loading..." size="large" />}>
+                <Suspense fallback={<Loading text="Loading..." />}>
                   {children}
                 </Suspense>
               </main>

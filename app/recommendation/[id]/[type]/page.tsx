@@ -236,8 +236,11 @@ export default function RecommendationPage() {
             ),
           },
         ],
-        model: "mixtral-8x7b-32768",
-        temperature: 0.2,
+        // model: "mixtral-8x7b-32768",
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.1,
+        top_p: 0.1,
+        max_tokens: 4096,
         response_format: { type: "json_object" },
       });
 
@@ -305,7 +308,7 @@ export default function RecommendationPage() {
   return (
     <div className="p-4 sm:p-8 max-w-7xl mx-auto min-h-screen mt-4 sm:mt-10">
       {isLoading ? (
-        <Loading text="Loading Recommendations..." size="large" />
+        <Loading text="Loading Recommendations..." />
       ) : (
         <>
           {details && (

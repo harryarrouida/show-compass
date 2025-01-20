@@ -125,9 +125,7 @@ const Trakt = () => {
   }
 
   if (isLoading) {
-    return (
-        <Loading text="Loading Watched Data..." size="large" />
-    );
+    return <Loading text="Loading Data..." />;
   }
 
   return (

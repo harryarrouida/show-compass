@@ -1,36 +1,15 @@
-'use client';
-
-import { BarLoader} from "react-spinners";
-
+"use client";
 interface LoadingProps {
   text?: string;
-  size?: "small" | "medium" | "large";
 }
 
-export default function Loading({ text = "Loading...", size = "medium" }: LoadingProps) {
-  const sizeMap = {
-    small: 8,
-    medium: 12,
-    large: 16
-  };
-
-  const textClasses = {
-    small: "text-sm",
-    medium: "text-base",
-    large: "text-lg"
-  };
-
+export default function Loading({ text = "Loading..." }: LoadingProps) {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center space-y-4">
-      <BarLoader
-        color="#a78bfa"
-        height={4}
-        width={100}
-        speedMultiplier={0.8}
-      />
-      <p className={`${textClasses[size]} text-zinc-400 font-medium animate-pulse mt-6`}>
-        {text}
-      </p>
+      <div className="col-span-full flex flex-col items-center justify-center py-12">
+        <div className="animate-spin h-8 w-8 border-4 border-violet-500 border-t-transparent rounded-full" />
+        <p className="text-zinc-400 mt-4">{text}</p>
+      </div>
     </div>
   );
 }

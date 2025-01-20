@@ -140,18 +140,13 @@ export default function HistoryPage() {
       )}
 
       {selectedItem && (
-        <div
-          className="fixed -top-10 min-h-screen inset-0 z-50 flex items-end md:items-center justify-center 
-                "
-        >
+        <div className="fixed -top-10 min-h-screen inset-0 z-50 flex items-end md:items-center justify-center overflow-hidden">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setSelectedItem(null)}
           />
 
-          <div
-            className="relative w-full md:w-[800px] bg-zinc-900 rounded-t-2xl md:rounded-2xl h-[85vh] overflow-y-auto"
-          >
+          <div className="relative w-full md:w-[800px] bg-zinc-900 rounded-t-2xl md:rounded-2xl max-h-[85vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
             <div className="relative h-[200px] sm:h-[300px]">
               <OptimizedImage
                 src={`${selectedItem.data.backdrop_path}`}
@@ -174,13 +169,29 @@ export default function HistoryPage() {
 
             <div className="px-4 pb-8 sm:p-8 relative">
               <div className="flex flex-col md:flex-row md:gap-8">
-                <div className="relative w-[140px] h-[210px] md:w-[200px] md:h-[300px] rounded-lg overflow-hidden mx-auto md:mx-0 -mt-20 md:-mt-32">
-                  <OptimizedImage
-                    src={`${selectedItem.data.poster_path}`}
-                    alt={selectedItem.data.title}
-                    className="object-cover opacity-90"
-                    sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 20vw"
-                  />
+                <div className="relative flex flex-col items-center">
+                  <div className="relative w-[140px] h-[210px] md:w-[200px] md:h-[300px] rounded-lg overflow-hidden mx-auto md:mx-0 -mt-20 md:-mt-32">
+                    <OptimizedImage
+                      src={`${selectedItem.data.poster_path}`}
+                      alt={selectedItem.data.title}
+                      className="object-cover opacity-90"
+                      sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 20vw"
+                    />
+                  </div>
+                  <div className="hidden md:block w-full mt-4">
+                    <button
+                      onClick={() => {
+                        deleteFromHistory(selectedItem.id);
+                        setSelectedItem(null);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-red-500/10 hover:bg-red-500/20 rounded-xl transition-colors duration-300"
+                    >
+                      <IoTrashOutline className="w-5 h-5 text-red-400" />
+                      <span className="text-red-400 text-sm font-medium">
+                        Remove
+                      </span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex-1 min-w-0 space-y-4 mt-4 md:mt-0">
@@ -226,20 +237,6 @@ export default function HistoryPage() {
                         ? selectedItem.from
                         : selectedItem.from.title}
                     </span>
-                  </div>
-                  <div className="hidden md:block mt-10">
-                    <button
-                      onClick={() => {
-                        deleteFromHistory(selectedItem.id);
-                        setSelectedItem(null);
-                      }}
-                      className="flex items-center justify-center gap-2 px-6 py-3 bg-red-500/10 hover:bg-red-500/20 rounded-xl transition-colors duration-300"
-                    >
-                      <IoTrashOutline className="w-5 h-5 text-red-400" />
-                      <span className="text-red-400 text-sm font-medium">
-                        Remove from History
-                      </span>
-                    </button>
                   </div>
                 </div>
               </div>
