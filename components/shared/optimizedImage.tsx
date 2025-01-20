@@ -36,17 +36,31 @@ export default function OptimizedImage({
   id,
   sizes,
 }: OptimizedImageProps) {
-  // Handle missing or null src
   if (!src) {
-    return null; // or return a placeholder image
+    return null;
   }
 
-  // Handle TMDB image paths that don't include the base URL
+  // Handle TMDB image paths with different sizes
   const imageUrl = src.startsWith('http') 
     ? src 
-    : `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL || ''}${src}`;
+    : `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL || 'https://image.tmdb.org/t/p/original'}${src}`;
 
-  // Ensure className is handled safely
+  // Try different sizes if original fails
+  const handleImageError = (e: any) => {
+    const imgElement = e.target as HTMLImageElement;
+    if (imgElement.src.includes('/original/')) {
+      // Try w500 size
+      imgElement.src = imgElement.src.replace('/original/', '/w500/');
+    } else if (imgElement.src.includes('/w500/')) {
+      // Try w300 size
+      imgElement.src = imgElement.src.replace('/w500/', '/w300/');
+    } else {
+      console.error(`Error loading image: ${imageUrl}`, e);
+      // You could set a fallback image here
+      // imgElement.src = '/fallback-image.jpg';
+    }
+  };
+
   const combinedClassName = `${className || ''} object-cover hover:scale-105 transition-transform duration-300`.trim();
 
   return (
@@ -62,9 +76,7 @@ export default function OptimizedImage({
       loading={loading}
       placeholder="blur"
       blurDataURL={rgbDataURL(24, 24, 27, 128)}
-      onError={(e) => {
-        console.error(`Error loading image: ${imageUrl}`, e);
-      }}
+      onError={handleImageError}
     />
   );
 }
