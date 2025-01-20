@@ -106,7 +106,7 @@ const TraktRecommendations = () => {
 
     const favoriteGenres = Object.entries(genreCounts)
       .sort(([, a]: any, [, b]: any) => b - a)
-      .slice(0, 10 || 3)
+      .slice(0, 10)
       .map(([genre]) => genre);
 
     const decadePreferences = recentContent.reduce((acc: any, item) => {
