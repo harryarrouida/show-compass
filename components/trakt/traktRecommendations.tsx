@@ -12,6 +12,7 @@ import {
 import { RecommendationCard } from "@/components/AIRecommendations/RecommendationCard";
 import { RecommendationModal } from "@/components/AIRecommendations/RecommendationModal";
 import { getUserWatchlist } from "@/services/trakt/traktServices";
+import Cookies from 'js-cookie';
 
 // Main component for AI-powered movie/show recommendations based on Trakt.tv data
 type MediaType = "movies" | "shows";
@@ -27,6 +28,7 @@ const TraktRecommendations = () => {
     []
   );
   const [generateDisabled, setGenerateDisabled] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState<number>(0);
 
   // UI state management
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
@@ -48,6 +50,37 @@ const TraktRecommendations = () => {
   const { accessToken } = useTraktContext();
 
   const [animeOnly, setAnimeOnly] = useState(false);
+
+  useEffect(() => {
+    // Check if there's a timeout stored in cookies
+    const timeoutEndStr = Cookies.get('recommendationTimeout');
+    if (timeoutEndStr) {
+      const timeoutEnd = parseInt(timeoutEndStr);
+      const now = Date.now();
+      
+      if (now < timeoutEnd) {
+        setGenerateDisabled(true);
+        setTimeRemaining(Math.ceil((timeoutEnd - now) / 1000));
+        
+        // Start countdown timer
+        const timer = setInterval(() => {
+          const currentTime = Date.now();
+          if (currentTime >= timeoutEnd) {
+            setGenerateDisabled(false);
+            setTimeRemaining(0);
+            Cookies.remove('recommendationTimeout');
+            clearInterval(timer);
+          } else {
+            setTimeRemaining(Math.ceil((timeoutEnd - currentTime) / 1000));
+          }
+        }, 1000);
+
+        return () => clearInterval(timer);
+      } else {
+        Cookies.remove('recommendationTimeout');
+      }
+    }
+  }, []);
 
   useEffect(() => {
     setRecommendations([]);
@@ -186,9 +219,8 @@ const TraktRecommendations = () => {
 
   // Main function to handle recommendation generation
   const handleRecommendations = async () => {
-    // TODO: add back in
     if (generateDisabled) {
-      setError("Please wait 5 minutes between generating recommendations");
+      setError(`Please wait ${Math.ceil(timeRemaining / 60)} minutes and ${timeRemaining % 60} seconds before generating new recommendations`);
       return;
     }
 
@@ -198,10 +230,22 @@ const TraktRecommendations = () => {
     setRecommendationsDetails([]);
     setGenerateDisabled(true);
 
-    // Set 5 minute timeout
-    setTimeout(() => {
-      setGenerateDisabled(false);
-    }, 3 * 60 * 1000);
+    // Set 5 minute timeout and store in cookies
+    const timeoutEnd = Date.now() + (3 * 60 * 1000);
+    Cookies.set('recommendationTimeout', timeoutEnd.toString(), { expires: 1/480 }); // expires in 3 minutes
+    setTimeRemaining(180); // 3 minutes in seconds
+
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setGenerateDisabled(false);
+          Cookies.remove('recommendationTimeout');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     try {
       // Get watched content from cache or fetch new
@@ -440,10 +484,7 @@ const TraktRecommendations = () => {
 
               <button
                 onClick={handleRecommendations}
-                disabled={
-                  loading
-                  // || generateDisabled
-                }
+                disabled={loading || generateDisabled}
                 className="group flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 
                           bg-gradient-to-r from-violet-600 to-violet-500 
                           hover:from-violet-500 hover:to-violet-400
@@ -456,6 +497,11 @@ const TraktRecommendations = () => {
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
                     <span>Analyzing...</span>
+                  </>
+                ) : generateDisabled ? (
+                  <>
+                    <RiRobot2Line className="w-4 h-4" />
+                    <span>Wait {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}</span>
                   </>
                 ) : (
                   <>
