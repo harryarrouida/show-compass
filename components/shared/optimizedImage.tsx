@@ -41,19 +41,19 @@ export default function OptimizedImage({
   }
 
   // Handle TMDB image paths with different sizes
-  const imageUrl = src.startsWith('http') 
-    ? src 
-    : `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL || 'https://image.tmdb.org/t/p/original'}${src}`;
-
+  // const imageUrl = src.startsWith('https://')
+  //   ? src
+  //   : `${process.env.NEXT_PUBLIC_TMDB_ORIGINAL_URL || 'https://image.tmdb.org/t/p/original'}${src}`;
+  const imageUrl = src;
   // Try different sizes if original fails
   const handleImageError = (e: any) => {
     const imgElement = e.target as HTMLImageElement;
-    if (imgElement.src.includes('/original/')) {
+    if (imgElement.src.includes("/original/")) {
       // Try w500 size
-      imgElement.src = imgElement.src.replace('/original/', '/w500/');
-    } else if (imgElement.src.includes('/w500/')) {
+      imgElement.src = imgElement.src.replace("/original/", "/w500/");
+    } else if (imgElement.src.includes("/w500/")) {
       // Try w300 size
-      imgElement.src = imgElement.src.replace('/w500/', '/w300/');
+      imgElement.src = imgElement.src.replace("/w500/", "/w300/");
     } else {
       console.error(`Error loading image: ${imageUrl}`, e);
       // You could set a fallback image here
@@ -61,8 +61,12 @@ export default function OptimizedImage({
     }
   };
 
-  const combinedClassName = `${className || ''} object-cover hover:scale-105 transition-transform duration-300`.trim();
+  const combinedClassName = `${
+    className || ""
+  } object-cover hover:scale-105 transition-transform duration-300`.trim();
 
+  console.log("src", src);
+  console.log("imageUrl", imageUrl);
   return (
     <Image
       key={id || src}
@@ -70,7 +74,7 @@ export default function OptimizedImage({
       alt={alt}
       fill
       className={combinedClassName}
-      sizes={sizes || '100vw'}
+      sizes={sizes || "100vw"}
       priority={priority}
       quality={quality || 75}
       loading={loading}

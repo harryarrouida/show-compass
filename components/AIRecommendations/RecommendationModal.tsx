@@ -1,6 +1,7 @@
 import { IoStar, IoClose, IoBookmarkOutline } from "react-icons/io5";
 import { AIRecommendation } from "@/types/types";
 import OptimizedImage from "../shared/optimizedImage";
+import Image from "next/image";
 
 interface RecommendationModalProps {
   recommendation: AIRecommendation;
@@ -15,14 +16,17 @@ export function RecommendationModal({
 }: RecommendationModalProps) {
   return (
     <div className="fixed -top-10 min-h-screen inset-0 z-50 flex items-end md:items-center justify-center">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
       {/* Modal Container */}
       <div className="relative w-full md:w-[800px] bg-zinc-900 rounded-t-2xl md:rounded-2xl max-h-[85vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
         {/* Backdrop Image */}
         <div className="relative h-[200px] sm:h-[300px]">
           <OptimizedImage
-            src={`${process.env.NEXT_PUBLIC_TMDB_ORIGINAL_URL}${selectedRec.media?.backdrop_path}`}
+            src={`${selectedRec.media?.backdrop_path}`}
             alt={selectedRec.title}
             sizes="(max-width: 768px) 100vw, 800px"
             priority={true}
@@ -50,7 +54,7 @@ export function RecommendationModal({
             {/* Poster */}
             <div className="relative w-[140px] h-[210px] md:w-[200px] md:h-[300px] rounded-lg overflow-hidden mx-auto md:mx-0 -mt-20 md:-mt-32">
               <OptimizedImage
-                src={`${process.env.NEXT_PUBLIC_TMDB_ORIGINAL_URL}${selectedRec.media?.poster_path}`}
+                src={`${selectedRec.media?.poster_path}`}
                 alt={selectedRec.title}
                 className="object-cover opacity-90"
                 priority={true}
@@ -65,7 +69,7 @@ export function RecommendationModal({
               <h2 className="text-xl md:text-3xl font-semibold text-white text-center md:text-left">
                 {selectedRec.title}
               </h2>
-              
+
               <div className="flex items-center justify-center md:justify-start gap-4 text-sm md:text-base text-zinc-300">
                 <span>{selectedRec.media?.release_date?.split("-")[0]}</span>
                 {selectedRec.media?.vote_average && (
@@ -75,7 +79,7 @@ export function RecommendationModal({
                   </div>
                 )}
               </div>
-              
+
               <p className="text-sm md:text-base text-zinc-300 leading-relaxed text-center md:text-left line-clamp-none">
                 {selectedRec.reason}
               </p>
@@ -90,7 +94,9 @@ export function RecommendationModal({
                   className="flex items-center justify-center gap-2 px-6 py-3 bg-violet-600/10 hover:bg-violet-500/20 rounded-xl transition-colors duration-300"
                 >
                   <IoBookmarkOutline className="w-5 h-5 text-violet-400" />
-                  <span className="text-violet-400 text-sm font-medium">Save to History</span>
+                  <span className="text-violet-400 text-sm font-medium">
+                    Save to History
+                  </span>
                 </button>
               </div>
             </div>
@@ -106,7 +112,9 @@ export function RecommendationModal({
               className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-violet-600/20 hover:bg-violet-500 rounded-xl transition-colors duration-300"
             >
               <IoBookmarkOutline className="w-5 h-5 text-white" />
-              <span className="text-white text-sm font-medium">Save to History</span>
+              <span className="text-white text-sm font-medium">
+                Save to History
+              </span>
             </button>
           </div>
         </div>
