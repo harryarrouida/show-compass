@@ -44,7 +44,7 @@ export function RecommendationCard({
               quality={75}
             /> */}
             <OptimizedImage
-              src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${rec.media?.poster_path}`}
+              src={rec.media?.poster_path || ''}
               alt={rec.title}
               className="object-cover"
               priority={rec.media?.id ? index < 2 : false}

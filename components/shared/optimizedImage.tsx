@@ -36,10 +36,18 @@ export default function OptimizedImage({
   id,
   sizes,
 }: OptimizedImageProps) {
+  // Handle missing or null src
+  if (!src) {
+    return null; // or return a placeholder image
+  }
+
   // Handle TMDB image paths that don't include the base URL
   const imageUrl = src.startsWith('http') 
     ? src 
-    : `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${src}`;
+    : `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL || ''}${src}`;
+
+  // Ensure className is handled safely
+  const combinedClassName = `${className || ''} object-cover hover:scale-105 transition-transform duration-300`.trim();
 
   return (
     <Image
@@ -47,13 +55,16 @@ export default function OptimizedImage({
       src={imageUrl}
       alt={alt}
       fill
-      className={`${className} object-cover hover:scale-105 transition-transform duration-300`}
-      sizes={sizes}
+      className={combinedClassName}
+      sizes={sizes || '100vw'}
       priority={priority}
-      quality={quality}
+      quality={quality || 75}
       loading={loading}
       placeholder="blur"
-      blurDataURL={rgbDataURL(24, 24, 27, 128)} // bg-zinc-900/50 equivalent
+      blurDataURL={rgbDataURL(24, 24, 27, 128)}
+      onError={(e) => {
+        console.error(`Error loading image: ${imageUrl}`, e);
+      }}
     />
   );
 }
