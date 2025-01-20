@@ -80,6 +80,7 @@ export default function OptimizedImage({
       loading={loading}
       placeholder="blur"
       blurDataURL={rgbDataURL(24, 24, 27, 128)}
+      unoptimized={src.includes('image.tmdb.org')}
       onError={handleImageError}
     />
   );

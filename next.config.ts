@@ -2,14 +2,19 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: [
-      'image.tmdb.org',
-      'themoviedb.org'
-    ],
+    // domains: [
+    //   'image.tmdb.org',
+    //   'themoviedb.org'
+    // ],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'image.tmdb.org',
+        pathname: '/t/p/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'themoviedb.org',
         pathname: '/t/p/**',
       },
     ],
