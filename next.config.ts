@@ -4,7 +4,6 @@ const nextConfig: NextConfig = {
   images: {
     domains: [
       'image.tmdb.org',
-      'wallup.net', // For the fallback image
       'themoviedb.org'
     ],
     remotePatterns: [

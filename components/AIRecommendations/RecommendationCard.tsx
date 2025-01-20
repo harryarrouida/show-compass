@@ -1,6 +1,7 @@
 import { IoStar } from "react-icons/io5";
 import { AIRecommendation } from "@/types/types";
-import OptimizedImage from "../shared/optimizedImage";
+import Image from "next/image";
+import OptimizedImage from "@/components/shared/optimizedImage";
 
 interface RecommendationCardProps {
   recommendation: AIRecommendation;
@@ -34,13 +35,9 @@ export function RecommendationCard({
 
           <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-zinc-900/50">
             {/* <Image
-              src={
-                rec.media?.poster_path
-                  ? `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${rec.media.poster_path}`
-                  : "/placeholder-poster.png"
-              }
-              alt={rec.title}
+              src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${rec.media?.poster_path}`}
               fill
+              alt={rec.title}
               sizes="(max-width: 768px) 100px, 180px"
               className="object-cover"
               priority={index < 2}
@@ -50,7 +47,7 @@ export function RecommendationCard({
               src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${rec.media?.poster_path}`}
               alt={rec.title}
               className="object-cover"
-              priority={index < 2}
+              priority={rec.media?.id ? index < 2 : false}
               quality={75}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             />

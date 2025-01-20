@@ -84,11 +84,13 @@ const TraktRecommendations = () => {
           ...item,
           media: {
             title: mediaMatch?.title,
-            year: mediaMatch?.release_date ? new Date(mediaMatch.release_date).getFullYear() : null,
+            year: mediaMatch?.release_date
+              ? new Date(mediaMatch.release_date).getFullYear()
+              : null,
             genres: mediaMatch?.genres || [],
             rating: mediaMatch?.vote_average,
             vote_average: mediaMatch?.vote_average,
-            overview: mediaMatch?.overview?.slice(0, 100) || "",
+            overview: mediaMatch?.overview,
             poster_path: mediaMatch?.poster_path,
             backdrop_path: mediaMatch?.backdrop_path,
           },
@@ -185,10 +187,10 @@ const TraktRecommendations = () => {
   // Main function to handle recommendation generation
   const handleRecommendations = async () => {
     // TODO: add back in
-    // if (generateDisabled) {
-    //   setError("Please wait 5 minutes between generating recommendations");
-    //   return;
-    // }
+    if (generateDisabled) {
+      setError("Please wait 5 minutes between generating recommendations");
+      return;
+    }
 
     setLoading(true);
     setError(null);
@@ -199,7 +201,7 @@ const TraktRecommendations = () => {
     // Set 5 minute timeout
     setTimeout(() => {
       setGenerateDisabled(false);
-    }, 5 * 60 * 1000);
+    }, 3 * 60 * 1000);
 
     try {
       // Get watched content from cache or fetch new
@@ -241,21 +243,22 @@ const TraktRecommendations = () => {
         messages: [
           {
             role: "system",
-            content:
-              "You are a helpful assistant that provides recommendations. Your responses must be valid JSON with a 'recommendations' array containing objects with 'title' and 'reason' fields. response only in JSON format",
-
-            // 'You are a movie and TV show recommendation bot. You will be given a list of movies and TV shows that the user has watched. Generate recommendations based on their watch history. IMPORTANT: Your response must be a valid JSON object with this exact format: {"recommendations": [{"title": "Movie Title", "reason": "Reason for recommendation"}]}. response only in JSON format',
+            content: `
+            You are a movie and TV show recommendation assistant. You will receive user input details and generate personalized recommendations. 
+            - Your responses MUST only be in valid JSON format.
+            `,
           },
           {
             role: "user",
             content: prompt,
           },
         ],
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.7,
-        top_p: 0.9,
-        max_tokens: 4096,
-        response_format: { type: "json_object" },
+        model: "llama-3.3-70b-versatile", // Best model 
+        // model: "mixtral-8x7b-32768", // alternative model
+        temperature: 0.4, // Balanced creativity and relevance
+        top_p: 0.7, // Ensures diversity in recommendations
+        max_tokens: 4096, // Sufficient for 8-10 recommendations
+        response_format: { type: "json_object" }, // Enforces JSON output
       });
 
       const response = completion.choices[0]?.message?.content || "";
@@ -265,23 +268,40 @@ const TraktRecommendations = () => {
         setRecommendations(parsed.recommendations);
         const recommendationsDetails = await Promise.all(
           parsed.recommendations.map(async (rec: any) => {
-            const searchResults = await search(rec.title);
-            if (!searchResults.length) {
-              throw new Error(`Could not find media details for ${rec.title}`);
+            try {
+              const searchResults = await search(rec.title);
+              if (!searchResults.length) {
+                console.error(`No search results found for: ${rec.title}`);
+                return null;
+              }
+              const mediaMatch = searchResults[0];
+              return {
+                ...rec,
+                media: {
+                  ...mediaMatch,
+                  backdrop_path: mediaMatch.backdrop_path || "",
+                },
+              };
+            } catch (searchError) {
+              console.error(`Error searching for ${rec.title}:`, searchError);
+              return null;
             }
-            const mediaMatch = searchResults[0];
-            return {
-              ...rec,
-              media: {
-                ...mediaMatch,
-                backdrop_path: mediaMatch.backdrop_path || "",
-              },
-            };
           })
         );
-        setRecommendationsDetails(recommendationsDetails);
-      } catch (error) {
-        throw new Error("Failed to process recommendations");
+
+        // Filter out null results and set recommendations
+        const validRecommendations = recommendationsDetails.filter(
+          (rec) => rec !== null
+        );
+        if (validRecommendations.length === 0) {
+          throw new Error("No valid recommendations could be found");
+        }
+        setRecommendationsDetails(validRecommendations);
+      } catch (error: any) {
+        console.error("Recommendation processing error:", error);
+        throw new Error(
+          `Failed to process recommendations: ${error?.message as string}`
+        );
       }
     } catch (error: any) {
       console.error("Error generating recommendations:", error);

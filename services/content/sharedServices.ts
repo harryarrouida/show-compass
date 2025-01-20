@@ -52,30 +52,24 @@ export const search = async (query: string) => {
         id: movie.id,
         title: movie.title,
         release_date: movie.release_date,
-        poster_path: movie.poster_path,
+        poster_path: movie.poster_path ? `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${movie.poster_path}` : null,
+        backdrop_path: movie.backdrop_path ? `${process.env.NEXT_PUBLIC_TMDB_BACKDROP_URL}${movie.backdrop_path}` : null,
         vote_average: movie.vote_average,
         popularity: movie.popularity,
         type: "movie",
-        backdrop_path: movie.backdrop_path,
-        genres:
-          movie.genre_ids?.map(
-            (id: number) => GENRES[id as keyof typeof GENRES]
-          ) || [],
+        genres: movie.genre_ids?.map((id: number) => GENRES[id as keyof typeof GENRES]) || [],
         overview: movie.overview,
       })),
       ...shows.map((show: any) => ({
         id: show.id,
         title: show.name,
         release_date: show.first_air_date,
-        poster_path: show.poster_path,
+        poster_path: show.poster_path ? `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${show.poster_path}` : null,
+        backdrop_path: show.backdrop_path ? `${process.env.NEXT_PUBLIC_TMDB_BACKDROP_URL}${show.backdrop_path}` : null,
         vote_average: show.vote_average,
         popularity: show.popularity,
         type: "show",
-        backdrop_path: show.backdrop_path,
-        genres:
-          show.genre_ids?.map(
-            (id: number) => GENRES[id as keyof typeof GENRES]
-          ) || [],
+        genres: show.genre_ids?.map((id: number) => GENRES[id as keyof typeof GENRES]) || [],
         overview: show.overview,
       })),
     ];

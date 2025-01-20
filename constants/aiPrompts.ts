@@ -9,38 +9,30 @@ export const generateDefaultPrompt = (
   type: string,
   numRecommendations: number = 8
 ) => `
-You are a strict recommendation engine. Your task is to generate ${numRecommendations} recommendations for this ${type} based on the input details. Follow these rules for each recommendation:
+You are a strict recommendation engine. Generate EXACTLY ${numRecommendations} ${type} recommendations based on the input details. Your recommendations MUST span multiple genres, exist on major streaming platforms, and MUST include at least three titles from the last three years.
 
-1. Focus exclusively on thematic, stylistic, or emotional connections.
-2. Provide concise, two-sentence reasons for each recommendation.
-3. Avoid plot summaries, ratings, reviews, or popularity metrics.
-4. Include at least two titles released in the last three years.
-5. Ensure all recommendations span multiple genres and exist on major streaming platforms.
-
-Input Details:
+Input:
 - Title: "${mediaDetails.title}"
 - Overview: "${mediaDetails.overview}"
 - Genres: ${mediaDetails.genres.map((g) => g.name).join(", ")}
 - Release Year: ${new Date(mediaDetails.release_date).getFullYear()}
-- Average Rating: ${mediaDetails.vote_average}
+- Rating: ${mediaDetails.vote_average}
+
+STRICT Requirements:
+1. Focus ONLY on thematic, stylistic, or emotional connections.
+2. Each recommendation MUST have exactly two concise sentences explaining the connection.
+3. NEVER include plot summaries, ratings, or popularity metrics.
+4. MUST include diverse genres - do not cluster recommendations in similar genres.
+5. All recommendations MUST be readily available on major streaming platforms.
 
 JSON Format:
 {
   "recommendations": [
-    {
-      "title": "Title",
-      "reason": "Two precise sentences explaining the connection."
-    }
+    { "title": "Title", "reason": "Two sentences explaining the connection." }
   ]
 }
 
-Example Recommendation:
-{
-  "title": "Inception",
-  "reason": "This movie explores similar philosophical questions about reality and perception, coupled with an intricate narrative structure."
-}
-
-CRITICAL: Return only a valid JSON object. Additional text is forbidden.`;
+CRITICAL: Return ONLY valid JSON. Any additional text will result in failure.`;
 
 export const generateCustomPrompt = (
   details: {
@@ -54,35 +46,35 @@ export const generateCustomPrompt = (
   prompt: string,
   numRecommendations: number = 8
 ) => `
-You are a strict recommendation engine. Your task is to answer this user question about a ${type} with ${numRecommendations} recommendations.
+You are a strict recommendation engine. Generate EXACTLY ${numRecommendations} ${type} recommendations that PRECISELY address the user's query.
 
-Input Details:
-- Title: "${details?.title}"
-- Overview: "${details?.overview}"
-- Genres: ${details?.genres?.map((g) => g.name).join(", ")}
-- Release Year: ${new Date(details?.release_date || "").getFullYear()}
-- Rating: ${details?.vote_average}
+Input:
+- Title: "${details?.title || "N/A"}"
+- Overview: "${details?.overview || "N/A"}"
+- Genres: ${details?.genres?.map((g) => g.name).join(", ") || "N/A"}
+- Release Year: ${
+  details?.release_date ? new Date(details?.release_date).getFullYear() : "N/A"
+}
+- Rating: ${details?.vote_average || "N/A"}
 
-User Question: "${prompt}"
+User Query: "${prompt}"
 
-Key Requirements:
-1. Focus on thematic, stylistic, or emotional connections.
-2. Provide concise, two-sentence reasons addressing the user's question.
-3. Avoid plot summaries, ratings, reviews, or popularity metrics.
-4. Include at least two titles from the last three years.
-5. Ensure recommendations span multiple genres and exist on major platforms.
+STRICT Requirements:
+1. Focus ONLY on thematic, stylistic, or emotional connections.
+2. Each recommendation MUST have exactly two concise sentences addressing the user's query.
+3. MUST include at least three titles from the last three years.
+4. NEVER include plot summaries, ratings, or popularity metrics.
+5. All recommendations MUST be readily available on major streaming platforms.
+6. MUST include diverse genres - do not cluster recommendations in similar genres.
 
 JSON Format:
 {
   "recommendations": [
-    {
-      "title": "Title",
-      "reason": "Two precise sentences connecting to both the ${type} and user's request."
-    }
+    { "title": "Title", "reason": "Two sentences explaining the connection." }
   ]
 }
 
-CRITICAL: Return only a valid JSON object. Additional text is forbidden.`;
+CRITICAL: Return ONLY valid JSON. Any additional text will result in failure.`;
 
 //  trakt recommendations
 export const generateTraktRecommendationsPrompt = (
@@ -95,30 +87,35 @@ export const generateTraktRecommendationsPrompt = (
   numRecommendations: number,
   animeOnly: boolean
 ) => `
-You are a strict recommendation engine. Your task is to generate ${numRecommendations} personalized ${
+You are a STRICT recommendation engine. Your task is to generate EXACTLY ${numRecommendations} personalized ${
   type + (animeOnly ? " anime" : "")
 } recommendations based on the user's watch history.
 
 Input Analysis:
-- Watched Titles and Overview: ${watchedTitles
+- Watched Titles and Overview (last 30): ${watchedTitles
+  .slice(0, 30)
   .map((title) => title.title + " - " + title.overview)
   .join(", ")}
 - Favorite Genres: ${favoriteGenres.join(", ")}
 - Decade Preferences: ${JSON.stringify(decadePreferences)}
 - Rating Distribution: ${JSON.stringify(ratingDistribution)}
 
-IMPORTANT: Do NOT recommend any of these already watched titles:
+CRITICAL: These titles are STRICTLY FORBIDDEN from recommendations:
 ${watchedTitles.map((title) => title.title).join(", ")}
 
-Key Requirements:
-1. Focus on thematic, stylistic, or emotional connections to watched content.
-2. Provide concise, two-sentence reasons for each recommendation.
-3. Avoid plot summaries, ratings, reviews, or popularity metrics.
-4. Include at least two titles from the last three years.
-5. Ensure recommendations span multiple genres and exist on major platforms.
-6. Analyze patterns in the user's watch history to inform recommendations.
-7. NEVER recommend any titles from the already watched list above.
-8. genres should be varied and not just the same main genre
+MANDATORY Requirements:
+1. Focus EXCLUSIVELY on thematic, stylistic, or emotional connections to watched content.
+2. Each recommendation MUST have exactly two concise sentences.
+3. NEVER include plot summaries, ratings, reviews, or popularity metrics.
+4. MUST include at least three titles from the last three years.
+5. All recommendations MUST exist on major streaming platforms.
+6. MUST analyze and reflect patterns in user's watch history.
+7. ABSOLUTELY NO recommendations from the forbidden list above.
+8. MUST span multiple genres - NO genre clustering allowed.
+9. All recommendations MUST be currently available titles.
+10. Recommendations MUST be ${numRecommendations} ${type} ${
+  animeOnly ? "anime" : ""
+}
 
 JSON Format:
 {
@@ -130,7 +127,7 @@ JSON Format:
   ]
 }
 
-CRITICAL: Return only a valid JSON object. Additional text is forbidden. Do not recommend any titles that appear in the already watched list.`;
+CRITICAL: Return ONLY valid JSON. Any deviation will result in failure. NEVER recommend forbidden titles. Any broken rule will result in failure.`;
 
 export const generateWatchlistPrompt = (
   ratingDistribution: any,
@@ -142,7 +139,7 @@ export const generateWatchlistPrompt = (
   numRecommendations: number,
   animeOnly: boolean
 ) => `
-You are a strict recommendation engine. Your task is to identify the ${numRecommendations} most relevant ${
+You are a STRICT recommendation engine. Your task is to identify EXACTLY ${numRecommendations} most relevant to the user's taste ${
   type + (animeOnly ? " anime" : "")
 } titles from this watchlist based on watch history and viewing patterns.
 
@@ -150,20 +147,30 @@ Input Analysis:
 - Rating Distribution: ${JSON.stringify(ratingDistribution)}
 - Decade Preferences: ${JSON.stringify(decadePreferences)}
 - Favorite Genres: ${JSON.stringify(favoriteGenres)}
-- Watched Titles and Overview: ${watchedTitles
+- Watched Titles and Overview (last 30): ${watchedTitles
+  .slice(0, 30)
   .map((item) => item.title + " - " + item.overview)
   .join(", ")}
-- Excluded Titles: ${watchedTitles.map((item) => item.title).join(", ")}
-- Watchlist: ${watchlist.map((item) => item.title).join(", ")}
+- Watchlist (MUST select from this list): ${watchlist
+  .map((item) => item.title)
+  .join(", ")}
 
-Key Requirements:
-1. Select recommendations primarily from the watchlist.
-2. Focus on thematic, stylistic, or emotional connections to watched content.
-3. Provide concise, two-sentence reasons for each recommendation.
-4. Avoid plot summaries, ratings, reviews, or popularity metrics.
-5. If watchlist content is insufficient, recommend additional relevant titles.
-6. Consider patterns and preferences shown in watch history.
-7. genres should be varied and not just the same main genre
+  ${console.log("watchedd", watchedTitles.map((item) => item.title))}
+  
+CRITICAL: These titles are STRICTLY FORBIDDEN from recommendations:
+${watchedTitles.map((title) => title.title).join(", ")}
+
+MANDATORY Requirements:
+1. Recommendations MUST be ${numRecommendations} ${type} ${
+  animeOnly ? "anime" : ""
+} from the provided watchlist.
+2. Focus EXCLUSIVELY on thematic, stylistic, or emotional connections.
+3. Each recommendation MUST have exactly two concise sentences.
+4. NEVER include plot summaries, ratings, reviews, or popularity metrics.
+5. Additional titles ONLY if watchlist is insufficient.
+6. MUST reflect user's demonstrated viewing patterns.
+7. MUST span multiple genres - NO genre clustering allowed.
+8. All recommendations MUST be currently available titles.
 
 JSON Format:
 {
@@ -175,4 +182,4 @@ JSON Format:
   ]
 }
 
-CRITICAL: Return only a valid JSON object. Additional text is forbidden.`;
+CRITICAL: Return ONLY valid JSON. Any deviation will result in failure. NEVER recommend forbidden titles. Any broken rule will result in failure.`;

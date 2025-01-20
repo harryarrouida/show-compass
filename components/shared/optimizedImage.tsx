@@ -36,10 +36,15 @@ export default function OptimizedImage({
   id,
   sizes,
 }: OptimizedImageProps) {
+  // Handle TMDB image paths that don't include the base URL
+  const imageUrl = src.startsWith('http') 
+    ? src 
+    : `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${src}`;
+
   return (
     <Image
       key={id || src}
-      src={src}
+      src={imageUrl}
       alt={alt}
       fill
       className={`${className} object-cover hover:scale-105 transition-transform duration-300`}
