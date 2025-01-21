@@ -14,8 +14,22 @@ export default function Home() {
   const [movies, setMovies] = useState<MappedMovie[]>([]);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [showDonationPopup, setShowDonationPopup] = useState(true);
 
   const [isSomethingHappening, setIsSomethingHappening] = useState(true);
+
+  useEffect(() => {
+    // Check if the popup has been shown before
+    const hasSeenPopup = localStorage.getItem("hasSeenDonationPopup");
+    if (hasSeenPopup) {
+      setShowDonationPopup(false);
+    }
+  }, []);
+
+  const handleClosePopup = () => {
+    setShowDonationPopup(false);
+    localStorage.setItem("hasSeenDonationPopup", "true");
+  };
 
   useEffect(() => {
     if (activeTab === "movies") {
@@ -59,6 +73,38 @@ export default function Home() {
 
   return (
     <PageLayout>
+      {showDonationPopup && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-6">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-2xl w-full shadow-xl">
+            <h2 className="text-2xl font-bold mb-6">👋 Hello there!</h2>
+            <p className="mb-6 text-lg leading-relaxed">
+              I'm a solo developer maintaining this project in my spare time. If
+              you're enjoying the app, consider supporting its development with
+              a small donation. Even $1 helps keep the app running!
+              <span className="mt-4 border-t border-border py-4">
+                Any suggestions for new features are welcome!
+              </span>
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={handleClosePopup}
+                className="px-6 py-3 text-base bg-gray-200 dark:bg-gray-700 rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+              >
+                Maybe later
+              </button>
+              <a
+                href={process.env.NEXT_PUBLIC_DONATION_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-3 text-base bg-blue-500 text-white rounded hover:bg-blue-600"
+                onClick={handleClosePopup}
+              >
+                Support via PayPal
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="space-y-16">
         <div>
           <SearchComponent />

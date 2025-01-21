@@ -63,7 +63,7 @@ export default function OptimizedImage({
 
   const combinedClassName = `${
     className || ""
-  } object-cover hover:scale-105 transition-transform duration-300`.trim();
+  } object-cover`.trim();
 
   // console.log("src", src);
   // console.log("imageUrl", imageUrl);

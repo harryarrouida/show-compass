@@ -10,7 +10,8 @@ import TraktRecommendations from "@/components/trakt/traktRecommendations";
 import { useHistory } from "@/contexts/historyContext";
 import DataGrid from "@/components/bigData/dataGrid";
 import PageLayout from "@/components/layout/PageLayout";
-import Loading from "@/components/shared/loading";
+import Loading from "@/components/shared/loaders/loading";
+import SmallLoader from "@/components/shared/loaders/smallLoader";
 
 const Trakt = () => {
   const {
@@ -117,8 +118,13 @@ const Trakt = () => {
     return (
       <div className="min-h-[80vh] flex items-center justify-center">
         <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold">Connecting to Trakt...</h1>
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto" />
+          <Loading text="Connecting to Trakt..." />
+          <button
+            onClick={() => router.push("/")}
+            className="text-zinc-400 hover:text-zinc-200 text-sm mt-2 transition-colors"
+          >
+            Go to Home (if the page doesn't load)
+          </button>
         </div>
       </div>
     );
@@ -139,19 +145,19 @@ const Trakt = () => {
 
       <TraktRecommendations />
 
-        <DataGrid
-          activeTab={activeTab}
-          setActiveTab={setActiveTab as any}
-          shows={mappedShows}
-          setShows={setMappedShows}
-          movies={mappedMovies}
-          setMovies={setMappedMovies}
-          page={page}
-          setPage={setPage}
-          isLoading={isLoading}
-          setIsLoading={setIsLoading}
-          isWithSearch={true}
-        />
+      <DataGrid
+        activeTab={activeTab}
+        setActiveTab={setActiveTab as any}
+        shows={mappedShows}
+        setShows={setMappedShows}
+        movies={mappedMovies}
+        setMovies={setMappedMovies}
+        page={page}
+        setPage={setPage}
+        isLoading={isLoading}
+        setIsLoading={setIsLoading}
+        isWithSearch={true}
+      />
     </PageLayout>
   );
 };

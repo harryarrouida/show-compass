@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { RiRobot2Line } from "react-icons/ri";
-import { IoChevronForwardOutline } from "react-icons/io5";
+import { IoChevronForwardOutline, IoFilterOutline } from "react-icons/io5";
+import { IoChevronDownOutline, IoChevronUpOutline } from "react-icons/io5";
 import { useTraktContext } from "@/contexts/traktContext";
 import Groq from "groq-sdk";
 import { search } from "@/services/content/sharedServices";
@@ -12,10 +13,17 @@ import {
 import { RecommendationCard } from "@/components/AIRecommendations/RecommendationCard";
 import { RecommendationModal } from "@/components/AIRecommendations/RecommendationModal";
 import { getUserWatchlist } from "@/services/trakt/traktServices";
-import Cookies from 'js-cookie';
+import Cookies from "js-cookie";
+import CryptoJS from "crypto-js";
+import Card from "@/components/shared/ui/Card";
+import { useGenerations } from "@/contexts/GenerationsContext";
 
 // Main component for AI-powered movie/show recommendations based on Trakt.tv data
 type MediaType = "movies" | "shows";
+
+// Add new types
+type LengthPreference = "short" | "medium" | "long";
+type ShowStatus = "ongoing" | "completed" | "both";
 
 const TraktRecommendations = () => {
   // Core state management
@@ -40,6 +48,8 @@ const TraktRecommendations = () => {
   const [watchlist, setWatchlist] = useState<any[]>([]);
   const [seen, setSeen] = useState<string[]>([]);
 
+  const { generationsLeft, useGeneration } = useGenerations();
+
   const {
     watchedMoviesCache,
     watchedShowsCache,
@@ -51,33 +61,69 @@ const TraktRecommendations = () => {
 
   const [animeOnly, setAnimeOnly] = useState(false);
 
-  useEffect(() => {
-    // Check if there's a timeout stored in cookies
-    const timeoutEndStr = Cookies.get('recommendationTimeout');
-    if (timeoutEndStr) {
-      const timeoutEnd = parseInt(timeoutEndStr);
-      const now = Date.now();
-      
-      if (now < timeoutEnd) {
-        setGenerateDisabled(true);
-        setTimeRemaining(Math.ceil((timeoutEnd - now) / 1000));
-        
-        // Start countdown timer
-        const timer = setInterval(() => {
-          const currentTime = Date.now();
-          if (currentTime >= timeoutEnd) {
-            setGenerateDisabled(false);
-            setTimeRemaining(0);
-            Cookies.remove('recommendationTimeout');
-            clearInterval(timer);
-          } else {
-            setTimeRemaining(Math.ceil((timeoutEnd - currentTime) / 1000));
-          }
-        }, 1000);
+  // Add new state for advanced filtering
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [lengthPreference, setLengthPreference] = useState<
+    LengthPreference | ""
+  >("");
+  const [episodeCount, setEpisodeCount] = useState<{
+    min?: number;
+    max?: number;
+  }>({});
+  const [showStatus, setShowStatus] = useState<ShowStatus>("both");
+  const [minimumRating, setMinimumRating] = useState<number>(0);
 
-        return () => clearInterval(timer);
-      } else {
-        Cookies.remove('recommendationTimeout');
+  const encryptValue = (value: string) => {
+    return CryptoJS.AES.encrypt(
+      value,
+      process.env.NEXT_PUBLIC_COOKIE_SECRET || "immakeepitsimple"
+    ).toString();
+  };
+
+  const decryptValue = (encrypted: string) => {
+    const bytes = CryptoJS.AES.decrypt(
+      encrypted,
+      process.env.NEXT_PUBLIC_COOKIE_SECRET || "immakeepitsimple"
+    );
+    return bytes.toString(CryptoJS.enc.Utf8);
+  };
+
+  useEffect(() => {
+    const encryptedTimeout = Cookies.get("recommendationTimeout");
+    if (encryptedTimeout) {
+      try {
+        const timeoutEndStr = decryptValue(encryptedTimeout);
+        const timeoutEnd = parseInt(timeoutEndStr);
+        const now = Date.now();
+
+        if (now < timeoutEnd) {
+          setGenerateDisabled(true);
+          setTimeRemaining(Math.ceil((timeoutEnd - now) / 1000));
+
+          // Start countdown timer
+          const timer = setInterval(() => {
+            const currentTime = Date.now();
+            if (currentTime >= timeoutEnd) {
+              setGenerateDisabled(false);
+              setTimeRemaining(0);
+              Cookies.remove("recommendationTimeout");
+              clearInterval(timer);
+            } else {
+              setTimeRemaining(Math.ceil((timeoutEnd - currentTime) / 1000));
+            }
+          }, 1000);
+
+          return () => clearInterval(timer);
+        } else {
+          Cookies.remove("recommendationTimeout");
+          setGenerateDisabled(false);
+          setTimeRemaining(0);
+        }
+      } catch (error) {
+        // Handle invalid/tampered cookie
+        Cookies.remove("recommendationTimeout");
+        setGenerateDisabled(false);
+        setTimeRemaining(0);
       }
     }
   }, []);
@@ -220,7 +266,16 @@ const TraktRecommendations = () => {
   // Main function to handle recommendation generation
   const handleRecommendations = async () => {
     if (generateDisabled) {
-      setError(`Please wait ${Math.ceil(timeRemaining / 60)} minutes and ${timeRemaining % 60} seconds before generating new recommendations`);
+      setError(
+        `Please wait ${Math.ceil(timeRemaining / 60)} minutes and ${
+          timeRemaining % 60
+        } seconds before generating new recommendations`
+      );
+      return;
+    }
+
+    if (generationsLeft <= 0) {
+      setError("You have no generations left for today");
       return;
     }
 
@@ -228,24 +283,6 @@ const TraktRecommendations = () => {
     setError(null);
     setRecommendations([]);
     setRecommendationsDetails([]);
-    setGenerateDisabled(true);
-
-    // Set 5 minute timeout and store in cookies
-    const timeoutEnd = Date.now() + (3 * 60 * 1000);
-    Cookies.set('recommendationTimeout', timeoutEnd.toString(), { expires: 1/480 }); // expires in 3 minutes
-    setTimeRemaining(180); // 3 minutes in seconds
-
-    const timer = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setGenerateDisabled(false);
-          Cookies.remove('recommendationTimeout');
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
 
     try {
       // Get watched content from cache or fetch new
@@ -297,7 +334,7 @@ const TraktRecommendations = () => {
             content: prompt,
           },
         ],
-        model: "llama-3.3-70b-versatile", // Best model 
+        model: "llama-3.3-70b-versatile", // Best model
         // model: "mixtral-8x7b-32768", // alternative model
         temperature: 0.4, // Balanced creativity and relevance
         top_p: 0.7, // Ensures diversity in recommendations
@@ -341,6 +378,30 @@ const TraktRecommendations = () => {
           throw new Error("No valid recommendations could be found");
         }
         setRecommendationsDetails(validRecommendations);
+        
+        // Only set timeout and use generation if recommendations were successful
+        setGenerateDisabled(true);
+        const timeoutEnd = Date.now() + 3 * 60 * 1000;
+        const encryptedTimeout = encryptValue(timeoutEnd.toString());
+        Cookies.set("recommendationTimeout", encryptedTimeout, {
+          expires: 1 / 480,
+        }); // expires in 3 minutes
+        setTimeRemaining(180); // 3 minutes in seconds
+
+        const timer = setInterval(() => {
+          setTimeRemaining((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              setGenerateDisabled(false);
+              Cookies.remove("recommendationTimeout");
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
+        useGeneration();
+        
       } catch (error: any) {
         console.error("Recommendation processing error:", error);
         throw new Error(
@@ -371,6 +432,7 @@ const TraktRecommendations = () => {
     );
   };
 
+  // Update generatePrompt to include new filters
   const generatePrompt = async (type: MediaType, watchedContent: any[]) => {
     const {
       favoriteGenres,
@@ -387,29 +449,31 @@ const TraktRecommendations = () => {
       seen,
       type,
       numRecommendations,
-      animeOnly
+      animeOnly,
+      lengthPreference || undefined,
+      Object.keys(episodeCount).length > 0 ? episodeCount : undefined,
+      showStatus !== "both" ? showStatus : undefined,
+      minimumRating > 0 ? minimumRating : undefined
     );
-
-    // console.log("Generated Prompt:", prompt);
 
     return prompt;
   };
 
   return (
     <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-4 sm:mt-8">
-      <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 border border-zinc-800/50 rounded-2xl p-4 sm:p-8 mx-auto">
+      <Card className="p-4 sm:p-8">
         <div className="flex flex-col gap-4 sm:gap-6">
           {/* Header Section */}
           <div className="flex items-center gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-zinc-800/50">
-            <div className="p-2 sm:p-3 bg-gradient-to-br from-violet-500/10 to-violet-500/5 rounded-xl border border-violet-500/10">
-              <RiRobot2Line className="w-4 sm:w-5 h-4 sm:h-5 text-violet-400" />
+            <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-xl border border-blue-500/10">
+              <RiRobot2Line className="w-4 sm:w-5 h-4 sm:h-5 text-blue-400" />
             </div>
             <div>
               <h2 className="text-xl sm:text-2xl font-bold text-white">
                 AI-Powered Recommendations
               </h2>
               <p className="text-zinc-400 text-xs sm:text-sm mt-0.5 sm:mt-1">
-                Discover your next favorite based on your unique taste
+                Discover your next favorite based on your unique taste ({generationsLeft} generations left)
               </p>
             </div>
           </div>
@@ -428,65 +492,66 @@ const TraktRecommendations = () => {
               </div>
             )}
 
+            {/* Mobile-first controls layout */}
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-1">
-                <select
-                  value={mediaType}
-                  onChange={(e) => setMediaType(e.target.value as MediaType)}
-                  className="w-full sm:w-auto bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-zinc-200 
-                            focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20
-                            appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
-                            bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all lg:px-2 lg:gap-2"
-                >
-                  <option value="movies">Movies</option>
-                  <option value="shows">TV Shows</option>
-                </select>
+              {/* Primary controls stacked on mobile */}
+              <div className="flex flex-col gap-2 sm:flex-row sm:gap-3 flex-1">
+                {/* Media Type & Number Selection */}
+                <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+                  <select
+                    value={mediaType}
+                    onChange={(e) => setMediaType(e.target.value as MediaType)}
+                    className="w-full sm:w-auto bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-zinc-200 
+                              focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20
+                              appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
+                              bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all"
+                  >
+                    <option value="movies">Movies</option>
+                    <option value="shows">TV Shows</option>
+                  </select>
 
-                <select
-                  value={numRecommendations}
-                  onChange={(e) =>
-                    setNumRecommendations(Number(e.target.value) as 5 | 10)
-                  }
-                  className="w-full sm:w-auto bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-zinc-200 
-                            focus:outline-none focus:border-violet-500/50 focus:ring-1 focus:ring-violet-500/20
-                            appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
-                            bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all lg:px-2 lg:gap-2"
-                >
-                  <option value={5} defaultChecked>
-                    5 Recommendations
-                  </option>
-                  <option value={10}>10 Recommendations</option>
-                </select>
+                  <select
+                    value={numRecommendations}
+                    onChange={(e) => setNumRecommendations(Number(e.target.value) as 5 | 10)}
+                    className="w-full sm:w-auto bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-zinc-200 
+                              focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20
+                              appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
+                              bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all"
+                  >
+                    <option value={5}>5 Recommendations</option>
+                    <option value={10}>10 Recommendations</option>
+                  </select>
+                </div>
 
-                <button
-                  onClick={() => setFromWatchlist(!fromWatchlist)}
-                  className={`w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
-                            ${
-                              fromWatchlist
-                                ? "bg-violet-500/10 text-violet-300 border border-violet-500/20"
-                                : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
-                            }`}
-                >
-                  {fromWatchlist ? "From Watchlist" : "General"}
-                </button>
-                <button
-                  onClick={() => setAnimeOnly(!animeOnly)}
-                  className={`w-full sm:w-auto px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
-                            ${
-                              animeOnly
-                                ? "bg-violet-500/10 text-violet-300 border border-violet-500/20"
-                                : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
-                            }`}
-                >
-                  {animeOnly ? "Anime Only" : `All ${mediaType}`}
-                </button>
+                {/* Filter Buttons */}
+                <div className="flex gap-2 sm:gap-3">
+                  <button
+                    onClick={() => setFromWatchlist(!fromWatchlist)}
+                    className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
+                              ${fromWatchlist 
+                                ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
+                                : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"}`}
+                  >
+                    {fromWatchlist ? "From Watchlist" : "General"}
+                  </button>
+                  <button
+                    onClick={() => setAnimeOnly(!animeOnly)}
+                    className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
+                              ${animeOnly
+                                ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" 
+                                : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"}`}
+                  >
+                    {animeOnly ? "Anime Only" : `All ${mediaType}`}
+                  </button>
+                </div>
               </div>
 
+              {/* Generate Button - Full width on mobile */}
               <button
                 onClick={handleRecommendations}
-                disabled={loading || generateDisabled}
-                className="group flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 
-                          bg-gradient-to-r from-violet-600 to-violet-500 
+                disabled={loading || generateDisabled || generationsLeft <= 0}
+                className="w-full sm:w-auto group flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 
+                          bg-gradient-to-r from-blue-600 to-blue-500 
                           rounded-xl text-sm text-white font-medium transition-all duration-300
                           disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -498,7 +563,10 @@ const TraktRecommendations = () => {
                 ) : generateDisabled ? (
                   <>
                     <RiRobot2Line className="w-4 h-4 transition-transform group-hover:rotate-12" />
-                    <span>Wait {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}</span>
+                    <span>
+                      Wait {Math.floor(timeRemaining / 60)}:
+                      {(timeRemaining % 60).toString().padStart(2, "0")}
+                    </span>
                   </>
                 ) : (
                   <>
@@ -510,13 +578,102 @@ const TraktRecommendations = () => {
               </button>
             </div>
           </div>
+
+          {/* Advanced Filters Section */}
+          {/* <div className="mt-4 border-t border-zinc-800/50 pt-4">
+            <button
+              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              className="w-full flex items-center justify-between text-zinc-300 text-sm hover:text-white transition-colors px-2"
+            >
+              <div className="flex items-center gap-2">
+                <IoFilterOutline className="w-4 h-4" />
+                Advanced Filters (still in development)
+              </div>
+              {showAdvancedFilters ? (
+                <IoChevronUpOutline className="w-4 h-4" />
+              ) : (
+                <IoChevronDownOutline className="w-4 h-4" />
+              )}
+            </button>
+
+            {showAdvancedFilters && (
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-zinc-400 text-sm">Length</label>
+                  <select
+                    value={lengthPreference}
+                    onChange={(e) => setLengthPreference(e.target.value as LengthPreference | "")}
+                    className="w-full bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
+                  >
+                    <option value="">Any Length</option>
+                    <option value="short">Short</option>
+                    <option value="medium">Medium</option>
+                    <option value="long">Long</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-zinc-400 text-sm">Episode Range</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={episodeCount.min || ""}
+                      onChange={(e) => setEpisodeCount((prev) => ({
+                        ...prev,
+                        min: parseInt(e.target.value) || undefined,
+                      }))}
+                      className="w-1/2 bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      value={episodeCount.max || ""}
+                      onChange={(e) => setEpisodeCount((prev) => ({
+                        ...prev,
+                        max: parseInt(e.target.value) || undefined,
+                      }))}
+                      className="w-1/2 bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-zinc-400 text-sm">Status</label>
+                  <select
+                    value={showStatus}
+                    onChange={(e) => setShowStatus(e.target.value as ShowStatus)}
+                    className="w-full bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
+                  >
+                    <option value="both">Any Status</option>
+                    <option value="ongoing">Ongoing</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-zinc-400 text-sm">Minimum Rating</label>
+                  <input
+                    type="number"
+                    min="5"
+                    max="9"
+                    step="0.5"
+                    value={minimumRating}
+                    onChange={(e) => setMinimumRating(parseFloat(e.target.value))}
+                    className="w-full bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
+                    placeholder="Any rating"
+                  />
+                </div>
+              </div>
+            )}
+          </div> */}
         </div>
-      </div>
+      </Card>
 
       {/* Recommendations Grid */}
       {recommendations.length > 0 && (
         <div className="mt-4 sm:mt-8">
-          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
             {recommendationsDetails.map((rec, index) => (
               <RecommendationCard
                 key={index}

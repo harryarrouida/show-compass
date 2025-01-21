@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { ErrorBoundary } from '../shared/ErrorBoundary';
+import { ErrorBoundary } from '../shared/handlers/ErrorBoundary';
 
 interface PageLayoutProps {
     children: ReactNode;

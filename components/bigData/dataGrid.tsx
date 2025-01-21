@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { MappedShow, MappedMovie } from "@/types/types";
 import MediaCard from "@/components/bigData/mediaCard";
 import { IoClose } from "react-icons/io5";
+import CardSkeleton from "../shared/loaders/CardSkeleton";
 
 interface DataGridProps {
   activeTab: "shows" | "movies";
@@ -147,15 +148,26 @@ export default function DataGrid({
       <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 sm:gap-8">
         {(isWithSearch ? filteredData : data)
           .slice(0, isWithSearch ? displayCount : undefined)
-          .map((item) => (
-            <div
-              key={item.id}
-              className="w-full aspect-[2/3]"
-            >
-              <MediaCard item={item} activeTab={activeTab} />
+          .map((item, index) => (
+            <div key={item.id} className="w-full aspect-[2/3]">
+              <MediaCard
+                item={item}
+                activeTab={activeTab}
+                key={item.id + index}
+              />
             </div>
           ))}
       </div>
+
+      {isLoading && (
+        <div className="mt-10">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+            {[...Array(10)].map((_, index) => (
+              <CardSkeleton key={index} index={index} />
+            ))}
+          </div>
+        </div>
+      )}
 
       {(!isWithSearch && !isLoading) ||
       (isWithSearch &&

@@ -1,7 +1,8 @@
 import { IoStar } from "react-icons/io5";
 import { AIRecommendation } from "@/types/types";
 import Image from "next/image";
-import OptimizedImage from "@/components/shared/optimizedImage";
+import OptimizedImage from "@/components/shared/handlers/optimizedImage";
+import { useGenerations } from '@/contexts/GenerationsContext';
 
 interface RecommendationCardProps {
   recommendation: AIRecommendation;
@@ -16,6 +17,8 @@ export function RecommendationCard({
   onSave,
   index,
 }: RecommendationCardProps) {
+  const { generationsLeft } = useGenerations();
+  
   return (
     <div
       onClick={() => onSelect(rec)}
@@ -26,7 +29,7 @@ export function RecommendationCard({
           <div className="absolute -left-2 -top-4 md:-top-6 z-20">
             <span
               className="text-4xl sm:text-5xl md:text-5xl font-black opacity-90
-              bg-gradient-to-br from-violet-400 to-violet-600 bg-clip-text text-transparent
+              bg-gradient-to-br from-blue-400 to-blue-400 bg-clip-text text-transparent
               [text-shadow:2px_2px_4px_rgba(0,0,0,0.5)] tracking-tight"
             >
               {index + 1}
@@ -34,23 +37,15 @@ export function RecommendationCard({
           </div>
 
           <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-zinc-900/50">
-            {/* <Image
-              src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${rec.media?.poster_path}`}
-              fill
-              alt={rec.title}
-              sizes="(max-width: 768px) 100px, 180px"
-              className="object-cover"
-              priority={index < 2}
-              quality={75}
-            /> */}
             <OptimizedImage
-              src={rec.media?.poster_path || ''}
+              src={rec.media?.poster_path || ""}
               alt={rec.title}
               className="object-cover"
               priority={rec.media?.id ? index < 2 : false}
               quality={75}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10" />
           </div>
 
           <div className="mt-2 space-y-1 flex justify-between items-center">
@@ -68,17 +63,11 @@ export function RecommendationCard({
           </div>
         </div>
       </div>
-
-      {/* <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onSave(rec);
-        }}
-        className="absolute z-10 top-2 right-4 p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
-        aria-label="Save recommendation"
-      >
-        <IoBookmarkOutline className="w-5 h-5 text-white" />
-      </button> */}
+      
+      {/* Optional: Add an indicator for remaining generations */}
+      {/* <div className="absolute top-2 right-2 text-xs text-white bg-black/50 px-2 py-1 rounded-full">
+        {generationsLeft} left
+      </div> */}
     </div>
   );
 }

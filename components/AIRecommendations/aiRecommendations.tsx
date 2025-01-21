@@ -4,9 +4,12 @@ import { IoCheckmarkCircleOutline, IoClose } from "react-icons/io5";
 import { RiSendPlaneFill } from "react-icons/ri";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { RecommendationModal } from "./RecommendationModal";
-import { RecommendationCard } from "./RecommendationCard";
-import Loading from "@/components/shared/loading";
+import { RecommendationModal } from "@/components/AIRecommendations/RecommendationModal";
+import { RecommendationCard } from "@/components/AIRecommendations/RecommendationCard";
+import SmallLoader from "@/components/shared/loaders/smallLoader";
+import Card from "@/components/shared/ui/Card";
+import CardSkeleton from "../shared/loaders/CardSkeleton";
+
 interface AIRecommendationsProps {
   isAiLoading: boolean;
   aiRecommendations: AIRecommendation[] | string;
@@ -35,104 +38,97 @@ export default function AIRecommendations({
   const [selectedRec, setSelectedRec] = useState<AIRecommendation | null>(null);
 
   useEffect(() => {
-    if (pathname?.includes("recommendation")) {
-      setIsDefaultRecs(false);
-    }
+    setIsDefaultRecs(!pathname?.includes("recommendation"));
   }, [pathname]);
 
   return (
-    <div className="space-y-6 border-t border-zinc-800 pt-4">
-      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
-        <h2 className="text-xl sm:text-2xl font-semibold text-white">
+    <div className="space-y-6">
+      {/* Header Section */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-medium text-zinc-200">
           Similar Recommendations
         </h2>
         {!isDefaultRecs && (
           <button
             onClick={toggleChat}
-            className="text-zinc-400 text-sm font-light hover:text-violet-400 transition-colors duration-300"
+            className="text-sm text-zinc-400 hover:text-blue-400 transition-colors"
           >
-            {showChat
-              ? "Do you like these? Hide Chat"
-              : "Don't Like These? Chat here"}
+            {showChat ? "Hide Chat" : "Refine Results"}
           </button>
         )}
       </div>
 
+      {/* Chat Input Section */}
       {showChat && !isDefaultRecs && (
-        <form
-          onSubmit={handleSubmitPrompt}
-          className="mb-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3"
-        >
+        // <Card className="p-3">
+        <form onSubmit={handleSubmitPrompt} className="flex items-center gap-3">
           <div className="relative flex-grow">
             <input
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               type="text"
               placeholder="What kind of recommendations are you looking for?"
-              className="w-full p-3 sm:p-4 rounded-xl bg-zinc-900 text-zinc-100 border border-violet-500/20 
-                                     focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 
-                                     placeholder:text-zinc-500 transition-all duration-300 text-sm sm:text-base"
+              className="w-full px-4 py-4 rounded-xl bg-background-secondary text-zinc-200
+                         border border-border-primary outline-none focus:border-border-primary
+                         placeholder:text-zinc-500 text-sm transition-all"
               disabled={isAiLoading}
             />
             {prompt.length > 0 && !isAiLoading && (
               <button
                 type="button"
                 onClick={() => setPrompt("")}
-                className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 p-1 text-zinc-500 
-                                         hover:text-zinc-300 transition-colors"
-                aria-label="Clear input"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-2 py-4 text-zinc-500 
+                           hover:text-zinc-300 transition-colors"
               >
-                <IoClose size={16} className="sm:w-[18px] sm:h-[18px]" />
+                <IoClose className="w-4 h-4" />
               </button>
             )}
           </div>
           <button
             disabled={isAiLoading || !prompt.trim()}
             type="submit"
-            className={`px-4 sm:px-6 py-3 sm:py-4 rounded-xl text-white font-medium transition-all duration-300 
-                                  flex items-center justify-center gap-2 flex-shrink-0 text-sm sm:text-base 
-                                  ${
-                                    isAiLoading || !prompt.trim()
-                                      ? "bg-violet-600/50 opacity-50 cursor-not-allowed"
-                                      : "bg-violet-600 hover:bg-violet-700 active:scale-95"
-                                  }`}
-            aria-label={isAiLoading ? "Loading..." : "Send message"}
+            className={`p-2.5 rounded-xl flex items-center justify-center transition-all
+                       ${
+                         isAiLoading || !prompt.trim()
+                           ? "bg-blue-500/20 text-blue-300/50 cursor-not-allowed"
+                           : "bg-blue-500/20 text-blue-300 hover:bg-blue-500/30"
+                       }`}
           >
             {isAiLoading ? (
-              <>
-                <div className="animate-spin h-4 w-4 sm:h-5 sm:w-5 border-2 border-white border-t-transparent rounded-full" />
-                <span className="sm:inline">Loading...</span>
-              </>
+              <div className="w-5 h-5 border-2 border-blue-300/50 border-t-transparent rounded-full animate-spin" />
             ) : (
-              <>
-                <RiSendPlaneFill className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Send</span>
-              </>
+              <RiSendPlaneFill className="w-5 h-5" />
             )}
           </button>
         </form>
+        // </Card>
       )}
 
-      <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-4 gap-3 sm:gap-4">
+      {/* Recommendations Grid */}
+      <div className="relative">
         {isAiLoading ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-12">
-            <div className="animate-spin h-8 w-8 border-4 border-violet-500 border-t-transparent rounded-full" />
-            <p className="text-zinc-400 mt-4">Generating recommendations...</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {Array.from({ length: 10 }).map((_, index) => (
+              <CardSkeleton key={index} index={index} />
+            ))}
           </div>
         ) : (
-          Array.isArray(aiRecommendations) &&
-          aiRecommendations.map((rec, index) => (
-            <RecommendationCard
-              key={index}
-              index={index}
-              recommendation={rec}
-              onSelect={setSelectedRec}
-              onSave={saveToHistory}
-            />
-          ))
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {Array.isArray(aiRecommendations) &&
+              aiRecommendations.map((rec, index) => (
+                <RecommendationCard
+                  key={index}
+                  index={index}
+                  recommendation={rec}
+                  onSelect={setSelectedRec}
+                  onSave={saveToHistory}
+                />
+              ))}
+          </div>
         )}
       </div>
 
+      {/* Modal and Alert */}
       {selectedRec && (
         <RecommendationModal
           recommendation={selectedRec}
@@ -142,8 +138,11 @@ export default function AIRecommendations({
       )}
 
       {alert && (
-        <div className="flex items-center gap-2 text-sm text-green-400 font-medium fixed bottom-4 right-4 sm:bottom-12 sm:right-12 bg-green-900/10 rounded-lg p-3 z-50">
-          <IoCheckmarkCircleOutline className="text-green-400 text-lg" />
+        <div
+          className="fixed bottom-4 right-4 flex items-center gap-2 px-4 py-2 
+                     bg-green-500/10 border border-green-500/20 rounded-xl text-sm text-green-400"
+        >
+          <IoCheckmarkCircleOutline className="w-4 h-4" />
           {alert}
         </div>
       )}

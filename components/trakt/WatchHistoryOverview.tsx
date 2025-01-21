@@ -2,6 +2,7 @@ import { IoTv, IoFilm, IoTime, IoLogOut } from "react-icons/io5";
 import { SiTrakt } from "react-icons/si";
 import { useTraktContext } from "@/contexts/traktContext";
 import { useRouter } from 'next/navigation';
+import Card from "@/components/shared/ui/Card";
 
 interface WatchHistoryOverviewProps {
     watchedMovies: any[];
@@ -46,56 +47,61 @@ const WatchHistoryOverview = ({
 
     return (
         <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-4 sm:mt-8">
-            <div className="w-full bg-gradient-to-br from-zinc-900 to-zinc-950 rounded-2xl p-4 sm:p-8 border border-zinc-800/50 mx-auto">
+            <div className="w-full bg-background-secondary border border-border-primary rounded-2xl p-4 sm:p-8">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 mb-6 sm:mb-8">
                     <div className="flex items-center space-x-3 px-4 sm:px-5 py-2 sm:py-2.5 bg-zinc-800/30 rounded-full border border-zinc-700/50 w-full sm:w-auto">
-                        <SiTrakt className="w-4 sm:w-5 h-4 sm:h-5 text-[#ED1C24]" />
-                        <span className="text-base sm:text-lg font-medium text-white">
+                        <SiTrakt className="w-4 sm:w-5 h-4 sm:h-5 text-blue-400" />
+                        <span className="text-base sm:text-lg font-medium text-zinc-200">
                             {user?.username || ''}
                         </span>
                     </div>
-                    <button 
-                        onClick={handleLogout} 
-                        className="flex items-center space-x-2 px-4 sm:px-5 py-2 sm:py-2.5 bg-zinc-800/30 rounded-full border border-red-500/20 hover:bg-red-500/10 transition-colors duration-300 group w-full sm:w-auto justify-center"
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center space-x-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full w-full sm:w-auto justify-center
+                                 bg-red-400/10 hover:bg-red-400/15
+                                 text-zinc-300
+                                 border border-red-400/10 hover:border-red-400/20
+                                 backdrop-blur-sm
+                                 transition-all duration-300"
                     >
-                        <IoLogOut className="w-4 sm:w-5 h-4 sm:h-5 text-red-400 group-hover:text-red-300 transition-colors" />
-                        <span className="text-red-400 group-hover:text-red-300 transition-colors">Logout</span>
+                        <IoLogOut className="w-4 sm:w-5 h-4 sm:h-5" />
+                        <span>Logout</span>
                     </button>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    <div className="p-4 sm:p-6 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:border-zinc-600/50 transition-colors">
+                    <Card hover className="p-4 sm:p-6">
                         <div className="flex items-center space-x-3 text-zinc-400 mb-3 sm:mb-4">
-                            <IoTv className="w-4 sm:w-5 h-4 sm:h-5 text-blue-400" />
+                            <IoTv className="w-4 sm:w-5 h-4 sm:h-5 text-emerald-500" />
                             <span className="text-sm font-medium">Series Watch Time</span>
                         </div>
-                        <p className="text-3xl sm:text-4xl font-light text-white">
+                        <p className="text-3xl sm:text-4xl font-light text-zinc-200">
                             {`${showDays}d ${showHours}h`}
                         </p>
-                        <p className="text-xs sm:text-sm text-zinc-400 mt-2">{`${watchedShows.length} shows watched`}</p>
-                    </div>
+                        <p className="text-xs sm:text-sm text-zinc-500 mt-2">{`${watchedShows.length} shows watched`}</p>
+                    </Card>
 
-                    <div className="p-4 sm:p-6 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:border-zinc-600/50 transition-colors">
+                    <Card hover className="p-4 sm:p-6">
                         <div className="flex items-center space-x-3 text-zinc-400 mb-3 sm:mb-4">
-                            <IoFilm className="w-4 sm:w-5 h-4 sm:h-5 text-purple-400" />
+                            <IoFilm className="w-4 sm:w-5 h-4 sm:h-5 text-violet-500" />
                             <span className="text-sm font-medium">Movies Watch Time</span>
                         </div>
-                        <p className="text-3xl sm:text-4xl font-light text-white">
+                        <p className="text-3xl sm:text-4xl font-light text-zinc-200">
                             {`${movieDays}d ${movieHours}h`}
                         </p>
-                        <p className="text-xs sm:text-sm text-zinc-400 mt-2">{`${watchedMovies.length} movies watched`}</p>
-                    </div>
+                        <p className="text-xs sm:text-sm text-zinc-500 mt-2">{`${watchedMovies.length} movies watched`}</p>
+                    </Card>
 
-                    <div className="p-4 sm:p-6 rounded-xl bg-zinc-800/30 border border-zinc-700/50 hover:border-zinc-600/50 transition-colors">
+                    <Card hover className="p-4 sm:p-6">
                         <div className="flex items-center space-x-3 text-zinc-400 mb-3 sm:mb-4">
-                            <IoTime className="w-4 sm:w-5 h-4 sm:h-5 text-emerald-400" />
+                            <IoTime className="w-4 sm:w-5 h-4 sm:h-5 text-sky-500" />
                             <span className="text-sm font-medium">Total Time Watched</span>
                         </div>
-                        <p className="text-3xl sm:text-4xl font-light text-white">
+                        <p className="text-3xl sm:text-4xl font-light text-zinc-200">
                             {`${totalDays}d ${totalHours}h`}
                         </p>
-                        <p className="text-xs sm:text-sm text-zinc-400 mt-2">Combined watch time</p>
-                    </div>
+                        <p className="text-xs sm:text-sm text-zinc-500 mt-2">Combined watch time</p>
+                    </Card>
                 </div>
             </div>
         </div>

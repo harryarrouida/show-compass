@@ -75,7 +75,11 @@ export const generateTraktRecommendationsPrompt = (
   seen: string[],
   type: string,
   numRecommendations: number,
-  animeOnly: boolean
+  animeOnly: boolean,
+  lengthPreference?: 'short' | 'medium' | 'long',
+  episodeCount?: { min?: number; max?: number },
+  status?: 'ongoing' | 'completed' | 'both',
+  minimumRating?: number
 ) => `Generate ${numRecommendations} personalized ${type}${
   animeOnly ? " anime" : ""
 } recommendations based on viewing patterns to match exactly what they would like to watch.
@@ -83,15 +87,14 @@ export const generateTraktRecommendationsPrompt = (
 Recent Watch History:
 ${watchedTitles
   .slice(0, 30)
-  .map((t) => t.title)
+  .map((t) => `${t.title} (${t.overview})`)
   .join(", ")}
 
 User Preferences:
 - Genres: ${favoriteGenres.join(", ")}
 - Decades: ${JSON.stringify(decadePreferences)}
-- Ratings: ${JSON.stringify(ratingDistribution)}
+- Ratings: ${JSON.stringify(ratingDistribution)}-${lengthPreference ? `- Length Preference: ${lengthPreference}` : ''}-${episodeCount ? `- Episode Count: ${JSON.stringify(episodeCount)}` : ''}-${status ? `- Show Status: ${status}` : ''}-${minimumRating ? `- Minimum Rating: ${minimumRating}` : ''}
 - No already watched content: ${watchedTitles.map((t) => t.title).join(", ")}
-
 JSON Format:
 {
   "recommendations": [
@@ -101,7 +104,6 @@ JSON Format:
     }
   ]
 }
-
 Return ONLY valid JSON, any extra text will cause failure.`;
 
 export const generateWatchlistPrompt = (
@@ -112,24 +114,26 @@ export const generateWatchlistPrompt = (
   watchlist: Array<{ title: string }>,
   type: string,
   numRecommendations: number,
-  animeOnly: boolean
+  animeOnly: boolean,
+  lengthPreference?: 'short' | 'medium' | 'long',
+  episodeCount?: { min?: number; max?: number },
+  status?: 'ongoing' | 'completed' | 'both',
+  minimumRating?: number
 ) => `Generate ${numRecommendations} personalized ${type}${
   animeOnly ? " anime" : ""
 } recommendations from the user's watchlist based on their viewing patterns to match exactly what they would like to watch.
-
 User Profile:
 - Ratings: ${JSON.stringify(ratingDistribution)}
 - Decades: ${JSON.stringify(decadePreferences)}
-- Genres: ${JSON.stringify(favoriteGenres)}
-
+- Genres: ${JSON.stringify(favoriteGenres)}-${lengthPreference ? `- Length Preference: ${lengthPreference}` : ''}-${episodeCount ? `- Episode Count: ${JSON.stringify(episodeCount)}` : ''}-${status ? `- Show Status: ${status}` : ''}-${minimumRating ? `- Minimum Rating: ${minimumRating}` : ''}
 Watch History:
 ${watchedTitles
   .slice(0, 30)
-  .map((t) => t.title)
+  .map((t) => `${t.title} (${t.overview})`)
   .join(", ")}
 
 Watchlist (to be selected from):
-${watchlist.map((item) => item.title).join(", ")}
+${watchlist.map((item) => `${item.title} (${item.overview})`).join(", ")}
 
 JSON Format:
 {

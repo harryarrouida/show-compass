@@ -18,7 +18,7 @@ import {
 } from "@/constants/aiPrompts";
 import { search } from "@/services/content/sharedServices";
 import { useHistory } from "@/contexts/historyContext";
-import Loading from "@/components/shared/loading";
+import Loading from "@/components/shared/loaders/loading";
 import { IoClose } from "react-icons/io5";
 import {
   RiRobot2Line,

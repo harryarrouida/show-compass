@@ -13,49 +13,39 @@ export default function Navbar() {
     const pathname = usePathname();
 
     return (
-        <nav className="sticky top-0 z-50 bg-zinc-950 border-b border-zinc-800/50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center h-20 justify-between">
+        <nav className="sticky top-0 z-50 bg-background-secondary border-b border-border-primary">
+            <div className="max-w-7xl mx-auto px-4">
+                <div className="flex items-center h-16 justify-between">
                     {/* Logo */}
-                    <Link href="/" className="group">
-                        <h1 className="text-2xl sm:text-3xl font-extrabold text-violet-400 transition-colors duration-300 hover:text-violet-300">
-                            Show Compass
-                        </h1>
+                    <Link href="/" className="text-xl font-bold text-white">
+                        Show Compass
                     </Link>
 
                     {/* Desktop Navigation */}
                     <div className="hidden sm:flex items-center gap-4">
                         <Link
                             href="/history"
-                            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-lg transition-colors duration-300 font-medium
-                                     ${pathname === '/history' 
-                                        ? 'bg-zinc-800 text-white' 
-                                        : 'text-zinc-300 hover:text-white hover:bg-zinc-800'}`}
+                            className={`flex items-center gap-2 px-3 py-2 transition-colors hover:text-blue-400 ${pathname === '/history' ? 'text-blue-400 underline-offset-2 underline' : 'text-text-secondary'}`}
                         >
-                            <RiBookmarkLine className="text-xl" />
+                            <RiBookmarkLine />
                             <span>Saved</span>
                         </Link>
 
                         {isAuthenticated ? (
                             <Link 
                                 href="/trakt"
-                                className={`flex items-center gap-2.5 px-5 py-2.5 rounded-lg transition-colors duration-300 font-medium
-                                         ${pathname === '/trakt'
-                                            ? 'bg-violet-500/20 text-violet-300'
-                                            : 'bg-violet-500/10 text-violet-300 hover:bg-violet-500/20'}`}
+                                className={`flex items-center gap-2 px-3 py-2 transition-colors hover:text-blue-400 ${pathname === '/trakt' ? 'text-blue-400 underline-offset-2 underline' : 'text-text-secondary'}`}
                             >
-                                <SiTrakt className="text-xl" />
-                                <span>Trakt Account</span>
+                                <SiTrakt />
+                                <span>Trakt</span>
                             </Link>
                         ) : (
                             <button 
                                 onClick={login}
-                                className="flex items-center gap-2.5 px-5 py-2.5 rounded-lg font-medium
-                                         bg-violet-600 text-white transition-colors duration-300 
-                                         hover:bg-violet-500"
+                                className="flex items-center gap-2 px-3 py-2 text-text-secondary"
                             >
-                                <RiLoginCircleLine className="text-xl" />
-                                <span>Login With Trakt</span>
+                                <RiLoginCircleLine />
+                                <span>Login</span>
                             </button>
                         )}
                     </div>
@@ -63,44 +53,33 @@ export default function Navbar() {
                     {/* Mobile Menu Button */}
                     <button 
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="sm:hidden p-2.5 text-zinc-300 hover:text-white 
-                                 hover:bg-zinc-800 rounded-lg transition-colors duration-300"
+                        className="sm:hidden p-2 text-text-secondary"
                         aria-label="Toggle menu"
                     >
-                        {isMenuOpen ? (
-                            <RiCloseLine className="text-2xl" />
-                        ) : (
-                            <RiMenuLine className="text-2xl" />
-                        )}
+                        {isMenuOpen ? <RiCloseLine /> : <RiMenuLine />}
                     </button>
                 </div>
 
                 {/* Mobile Navigation */}
                 {isMenuOpen && (
-                    <div className="sm:hidden py-3 border-t border-zinc-800 space-y-2">
+                    <div className="sm:hidden py-2 border-t">
                         <Link
                             href="/history"
-                            className={`flex items-center gap-3 px-4 py-3.5 rounded-lg transition-colors duration-300
-                                     ${pathname === '/history'
-                                        ? 'bg-zinc-800 text-white'
-                                        : 'text-zinc-300 hover:text-white hover:bg-zinc-800'}`}
+                            className={`flex items-center gap-2 px-3 py-2 ${pathname === '/history' ? 'text-blue-500' : 'text-text-secondary'}`}
                             onClick={() => setIsMenuOpen(false)}
                         >
-                            <RiBookmarkLine className="text-xl" />
-                            <span className="font-medium">Saved</span>
+                            <RiBookmarkLine />
+                            <span>Saved</span>
                         </Link>
 
                         {isAuthenticated ? (
                             <Link
                                 href="/trakt"
-                                className={`flex items-center gap-3 px-4 py-3.5 rounded-lg transition-colors duration-300
-                                         ${pathname === '/trakt'
-                                            ? 'bg-violet-500/20 text-violet-300'
-                                            : 'bg-violet-500/10 text-violet-300 hover:bg-violet-500/20'}`}
+                                className={`flex items-center gap-2 px-3 py-2 ${pathname === '/trakt' ? 'text-blue-500' : 'text-text-secondary'}`}
                                 onClick={() => setIsMenuOpen(false)}
                             >
-                                <SiTrakt className="text-xl" />
-                                <span className="font-medium">Trakt Account</span>
+                                <SiTrakt />
+                                <span>Trakt</span>
                             </Link>
                         ) : (
                             <button 
@@ -108,12 +87,10 @@ export default function Navbar() {
                                     login();
                                     setIsMenuOpen(false);
                                 }}
-                                className="flex items-center gap-3 px-4 py-3.5 w-full rounded-lg
-                                         bg-violet-600 text-white transition-colors duration-300
-                                         hover:bg-violet-500 font-medium"
+                                className="flex items-center gap-2 px-3 py-2 w-full text-text-secondary"
                             >
-                                <RiLoginCircleLine className="text-xl" />
-                                <span>Login With Trakt</span>
+                                <RiLoginCircleLine />
+                                <span>Login</span>
                             </button>
                         )}
                     </div>

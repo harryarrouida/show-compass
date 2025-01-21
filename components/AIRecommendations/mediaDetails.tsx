@@ -5,7 +5,9 @@ import { ShowDetails, MovieDetails } from "@/types/types";
 import AIRecommendations from "@/components/AIRecommendations/aiRecommendations";
 import { AIRecommendation } from "@/types/types";
 import { useState } from "react";
-import { IoTime, IoCalendar, IoLanguage, IoBusinessSharp, IoChevronDown, IoChevronUp } from "react-icons/io5";
+import { IoStarOutline, IoStar, IoTime, IoCalendar, IoLanguage, IoBusinessSharp, IoChevronDown, IoChevronUp } from "react-icons/io5";
+import Card from "@/components/shared/ui/Card";
+import OptimizedImage from "../shared/handlers/optimizedImage";
 
 interface MediaDetailsProps {
   details: ShowDetails | MovieDetails;
@@ -42,196 +44,188 @@ export default function MediaDetails({
   const [showAllDetails, setShowAllDetails] = useState(false);
 
   return (
-    <div className="flex flex-col md:grid md:grid-cols-[300px_1fr] gap-8 mb-12">
-      {/* Left Column */}
-      <div className="space-y-8 bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 rounded-2xl border border-zinc-800/50 p-6 w-full">
+    <div className="flex flex-col lg:grid lg:grid-cols-[280px_1fr] gap-8 mb-12">
+      {/* Left Column - Media Info */}
+      <div className="space-y-6">
         {/* Poster */}
-        <div className="relative aspect-[2/3] w-[200px] sm:w-[240px] md:w-[260px] mx-auto rounded-xl overflow-hidden bg-zinc-900/40 ring-1 ring-zinc-800/50">
-          <Image
+        <div className="relative aspect-[2/3] w-[200px] sm:w-[240px] lg:w-[280px] mx-auto rounded-xl overflow-hidden">
+          <OptimizedImage
             src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${details.poster_path}`}
             alt={details.title}
-            fill
-            className="object-cover hover:scale-105 transition-transform duration-500"
-            priority
-            sizes="(max-width: 640px) 200px, (max-width: 768px) 240px, 260px"
+            className="object-cover"
+            priority={true}
+            sizes="(max-width: 640px) 200px, (max-width: 1024px) 240px, 280px"
           />
         </div>
 
-        {/* Info Section */}
-        <div className="space-y-8">
-          {/* Rating & Year */}
-          <div className="bg-zinc-800/20 rounded-xl p-5 border border-zinc-700/30 space-y-4 hover:border-zinc-700/50 transition-colors duration-300">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-amber-400 text-lg">★</span>
-                <span className="text-white text-lg font-medium">{details.vote_average?.toFixed(1)}</span>
-              </div>
-              <div className="flex items-center gap-2 text-zinc-400">
-                <IoCalendar className="w-4 h-4" />
-                <span>
-                  {details.type === "movie"
-                    ? new Date(details.release_date).getFullYear()
-                    : new Date(details.first_air_date).getFullYear()}
-                </span>
-              </div>
+        {/* Quick Info */}
+        {/* <Card className="p-4"> */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <IoStar className="w-5 h-5 text-amber-400" />
+              <span className="text-lg font-medium text-white">
+                {details.vote_average?.toFixed(1)}
+              </span>
             </div>
-
-            {/* Runtime */}
-            {"runtime" in details && details.runtime && (
-              <div className="flex items-center gap-2 text-zinc-400">
-                <IoTime className="w-4 h-4" />
-                <span>{Math.floor(details.runtime / 60)}h {details.runtime % 60}m</span>
-              </div>
-            )}
+            <div className="flex items-center gap-2 text-zinc-400">
+              <IoCalendar className="w-4 h-4" />
+              <span>
+                {details.type === "movie"
+                  ? new Date(details.release_date).getFullYear()
+                  : new Date(details.first_air_date).getFullYear()}
+              </span>
+            </div>
           </div>
 
-          {/* Mobile Toggle Button */}
-          {isMobile && (
-            <button
-              onClick={() => setShowAllDetails(!showAllDetails)}
-              className="w-full flex items-center justify-center gap-2 text-zinc-400 hover:text-violet-400 transition-colors"
-            >
-              <span>{showAllDetails ? "Show Less" : "Show More Details"}</span>
-              {showAllDetails ? <IoChevronUp /> : <IoChevronDown />}
-            </button>
+          {/* Runtime */}
+          {"runtime" in details && details.runtime && (
+            <div className="flex items-center gap-2 text-zinc-400">
+              <IoTime className="w-4 h-4" />
+              <span>{Math.floor(details.runtime / 60)}h {details.runtime % 60}m</span>
+            </div>
           )}
+        {/* </Card> */}
 
-          <div className={`space-y-8 ${isMobile && !showAllDetails ? 'hidden' : ''}`}>
-            {/* Genres */}
-            {details.genres && (
-              <div className="space-y-4">
-                <div className="flex flex-wrap gap-2">
-                  {details.genres.map((genre) => (
-                    <span
-                      key={genre.id}
-                      className="px-3 py-1.5 bg-violet-500/10 border border-violet-500/20 hover:bg-violet-500/20 
-                               rounded-full text-sm text-violet-300 whitespace-nowrap transition-all duration-300 cursor-default"
+        {/* Genres */}
+        {details.genres && (
+          <div className="flex flex-wrap gap-2">
+            {details.genres.map((genre) => (
+              <span
+                key={genre.id}
+                className="px-3 py-1.5 bg-blue-500/10 border border-blue-500/20 
+                         rounded-full text-sm text-blue-300 whitespace-nowrap"
+              >
+                {genre.name}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Additional Details Button (Mobile) */}
+        {isMobile && (
+          <button
+            onClick={() => setShowAllDetails(!showAllDetails)}
+            className="w-full text-sm text-zinc-400 hover:text-blue-400 transition-colors"
+          >
+            {showAllDetails ? "Show Less" : "Show More Details"}
+          </button>
+        )}
+
+        {/* Detailed Info (Collapsible on Mobile) */}
+        <div className={`space-y-6 ${isMobile && !showAllDetails ? 'hidden' : ''}`}>
+          {/* Seasons (for TV Shows) */}
+          {"seasons" in details && details.seasons && (
+            <Card className="p-4">
+              <h3 className="text-sm font-medium text-zinc-300 uppercase tracking-wider mb-4">
+                Seasons
+              </h3>
+              <div className="space-y-3">
+                {details.seasons
+                  .slice(0, showAllSeasons ? undefined : 3)
+                  .map((season) => (
+                    <div
+                      key={season.id}
+                      className="flex justify-between items-center p-2 hover:bg-zinc-800/30 rounded-lg transition-colors"
                     >
-                      {genre.name}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Show Specific Details - Seasons */}
-            {"seasons" in details && details.seasons && (
-              <div className="space-y-4">
-                <h3 className="text-sm font-medium text-zinc-300 uppercase tracking-wider">Seasons</h3>
-                <div className="space-y-3">
-                  {details.seasons
-                    .slice(0, showAllSeasons ? undefined : 4)
-                    .map((season) => (
-                      <div
-                        key={season.id}
-                        className="bg-zinc-800/20 rounded-xl p-4 space-y-2 border border-zinc-700/30 
-                                 hover:bg-zinc-800/30 hover:border-zinc-700/50 transition-all duration-300"
-                      >
-                        <div className="flex justify-between items-start">
-                          <span className="text-sm font-medium text-white">
-                            {season.name}
-                          </span>
-                          {season.vote_average > 0 && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-amber-400/90">★</span>
-                              <span className="text-zinc-400">
-                                {season.vote_average.toFixed(1)}
-                              </span>
-                            </div>
-                          )}
+                      <div>
+                        <div className="text-sm font-medium text-white">
+                          {season.name}
                         </div>
                         <div className="text-xs text-zinc-400">
                           {season.episode_count} Episodes • {new Date(season.air_date).getFullYear()}
                         </div>
                       </div>
-                    ))}
-                  {details.seasons.length > 4 && (
-                    <button
-                      onClick={() => setShowAllSeasons(!showAllSeasons)}
-                      className="w-full text-center text-sm text-zinc-400 hover:text-violet-400 transition-colors py-2"
-                    >
-                      {showAllSeasons
-                        ? "Show Less"
-                        : `Show All ${details.seasons.length} Seasons`}
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Languages */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 text-zinc-300">
-                <IoLanguage className="w-4 h-4" />
-                <h3 className="text-sm font-medium uppercase tracking-wider">Languages</h3>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {details.spoken_languages?.map((lang) => (
-                  <span
-                    key={lang.iso_639_1}
-                    className="text-xs text-zinc-400 bg-zinc-800/20 px-3 py-1.5 rounded-full 
-                             border border-zinc-700/30 hover:border-zinc-700/50 transition-colors cursor-default"
+                      {season.vote_average > 0 && (
+                        <div className="flex items-center gap-1 text-amber-400">
+                          <span>★</span>
+                          <span className="text-zinc-400">
+                            {season.vote_average.toFixed(1)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                {details.seasons.length > 3 && (
+                  <button
+                    onClick={() => setShowAllSeasons(!showAllSeasons)}
+                    className="w-full text-center text-sm text-zinc-400 hover:text-blue-400 transition-colors"
                   >
-                    {lang.english_name}
-                  </span>
-                ))}
+                    {showAllSeasons ? "Show Less" : `Show All ${details.seasons.length} Seasons`}
+                  </button>
+                )}
               </div>
-            </div>
+            </Card>
+          )}
 
-            {/* Production Companies */}
-            {details.production_companies && details.production_companies.length > 0 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-zinc-300">
-                  <IoBusinessSharp className="w-4 h-4" />
-                  <h3 className="text-sm font-medium uppercase tracking-wider">Production</h3>
-                </div>
-                <div className="text-sm text-zinc-400">
-                  {details.production_companies.map((company) => company.name).join(", ")}
-                </div>
+          {/* Languages */}
+          <Card className="p-4">
+            <div className="flex items-center gap-2 text-zinc-300 mb-3">
+              <IoLanguage className="w-4 h-4" />
+              <h3 className="text-sm font-medium uppercase tracking-wider">Languages</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {details.spoken_languages?.map((lang) => (
+                <span
+                  key={lang.iso_639_1}
+                  className="text-xs text-zinc-400 bg-zinc-800/20 px-3 py-1.5 rounded-full"
+                >
+                  {lang.english_name}
+                </span>
+              ))}
+            </div>
+          </Card>
+
+          {/* Production Companies */}
+          {details.production_companies && details.production_companies.length > 0 && (
+            <Card className="p-4">
+              <div className="flex items-center gap-2 text-zinc-300 mb-3">
+                <IoBusinessSharp className="w-4 h-4" />
+                <h3 className="text-sm font-medium uppercase tracking-wider">Production</h3>
               </div>
-            )}
-          </div>
+              <p className="text-sm text-zinc-400">
+                {details.production_companies.map((company) => company.name).join(", ")}
+              </p>
+            </Card>
+          )}
         </div>
       </div>
 
-      {/* Right Column */}
+      {/* Right Column - Content */}
       <div className="space-y-8">
         {/* Title and Overview */}
         <div className="space-y-6">
-          <h1 className="text-2xl md:text-4xl font-bold text-white text-center md:text-left bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl lg:text-4xl font-bold text-white">
             {details.title}
           </h1>
-          <div className="bg-gradient-to-br from-zinc-900/80 to-zinc-950/80 rounded-2xl border border-zinc-800/50 p-6">
-            <p className={`text-base md:text-lg text-zinc-300 leading-relaxed
-              ${!isMobile || showAllOverview ? "line-clamp-none" : "line-clamp-3"}`}
+          <Card className="p-6">
+            <p className={`text-base lg:text-lg text-zinc-300 leading-relaxed
+              ${!isMobile || showAllOverview ? "" : "line-clamp-3"}`}
             >
               {details.overview}
             </p>
             {isMobile && (
               <button
                 onClick={() => setShowAllOverview(!showAllOverview)}
-                className="mt-4 text-center w-full text-zinc-400 text-sm hover:text-violet-400 transition-colors"
+                className="mt-4 text-sm text-zinc-400 hover:text-blue-400 transition-colors"
               >
                 {showAllOverview ? "Show Less" : "Show More"}
               </button>
             )}
-          </div>
+          </Card>
         </div>
 
-        {/* AI Recommendations Section */}
-        <div>
-          <AIRecommendations
-            isAiLoading={isAiLoading}
-            aiRecommendations={aiRecommendations}
-            saveToHistory={saveToHistory}
-            alert={alert}
-            toggleChat={toggleChat}
-            showChat={showChat}
-            setPrompt={setPrompt}
-            prompt={prompt}
-            handleSubmitPrompt={handleSubmitPrompt}
-          />
-        </div>
+        {/* AI Recommendations */}
+        <AIRecommendations
+          isAiLoading={isAiLoading}
+          aiRecommendations={aiRecommendations}
+          saveToHistory={saveToHistory}
+          alert={alert}
+          toggleChat={toggleChat}
+          showChat={showChat}
+          setPrompt={setPrompt}
+          prompt={prompt}
+          handleSubmitPrompt={handleSubmitPrompt}
+        />
       </div>
     </div>
   );

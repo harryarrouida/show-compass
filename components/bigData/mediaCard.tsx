@@ -2,7 +2,7 @@ import React from "react";
 import Link from "next/link";
 import { MappedMovie, MappedShow } from "@/types/types";
 import { IoBookmarkOutline, IoStar } from "react-icons/io5";
-import OptimizedImage from "../shared/optimizedImage";
+import OptimizedImage from "../shared/handlers/optimizedImage";
 
 interface MediaCardProps {
   item: MappedMovie | MappedShow;
@@ -48,13 +48,14 @@ export default function MediaCard({
             <OptimizedImage
               src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${item.poster_path}`}
               alt={title}
-              className="object-cover transform transition-transform duration-500 group-hover:scale-105"
+              className="object-cover"
               priority={item.id < 2 ? true : false}
               quality={75}
               loading="lazy"
               id={item.id}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10" />
           </div>
 
           <div className="mt-2 space-y-0.5 sm:space-y-1 flex justify-between items-center">

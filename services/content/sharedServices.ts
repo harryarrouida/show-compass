@@ -5,19 +5,25 @@ const BASE_URL = process.env.NEXT_PUBLIC_TMDB_BASE_URL;
 
 export const search = async (query: string) => {
   try {
-    // Search for both movies and shows
-    const [movieResponse, showResponse] = await Promise.all([
-      axios.get(
-        `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(
-          query
-        )}&language=en-US`
-      ),
-      axios.get(
-        `${BASE_URL}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(
-          query
-        )}&language=en-US`
-      ),
-    ]);
+    // Add delay between requests to avoid rate limiting
+    const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    // Search movies first
+    const movieResponse = await axios.get(
+      `${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(
+        query
+      )}&language=en-US`
+    );
+
+    // Wait 250ms before making second request
+    await delay(250);
+
+    // Then search shows
+    const showResponse = await axios.get(
+      `${BASE_URL}/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(
+        query
+      )}&language=en-US`
+    );
 
     const movies = movieResponse.data.results;
     const shows = showResponse.data.results;

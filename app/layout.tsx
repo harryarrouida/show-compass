@@ -7,7 +7,8 @@ import { TraktProvider } from '@/contexts/traktContext';
 import { HistoryProvider } from '@/contexts/historyContext';
 import { ToastProvider } from '@/contexts/toastContext';
 import { Suspense } from 'react';
-import Loading from '@/components/shared/loading';
+import Loading from '@/components/shared/loaders/loading';
+import { GenerationsProvider } from "@/contexts/GenerationsContext";
 
 const quicksand = Quicksand({ 
   subsets: ['latin'],
@@ -26,10 +27,10 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const isSomethingHappening = true;
+  const isSomethingHappening = false;
 
   const mainContent = isSomethingHappening ? (
-    <div className="min-h-screen flex items-center justify-center bg-neutral-950">
+    <div className="min-h-screen flex items-center justify-center bg-[#111111]">
       <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-6">
         <h1 className="text-3xl sm:text-4xl font-bold text-white">
           We&apos;re Currently Experiencing Some Issues
@@ -61,13 +62,15 @@ export default function RootLayout({
 
   return (
     <html lang="en" className={`${quicksand.variable} [scrollbar-width:none]`}>
-      <body className="bg-neutral-950 min-h-screen flex flex-col antialiased font-sans relative [&::-webkit-scrollbar]:hidden">
+      <body className="bg-[#111111] min-h-screen flex flex-col antialiased font-sans relative [&::-webkit-scrollbar]:hidden">
         <ToastProvider>
           <TraktProvider>
             <HistoryProvider>
-              <Navbar />
-              {mainContent}
-              <Footer />
+              <GenerationsProvider>
+                <Navbar />
+                {mainContent}
+                <Footer />
+              </GenerationsProvider>
             </HistoryProvider>
           </TraktProvider>
         </ToastProvider>

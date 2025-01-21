@@ -5,14 +5,14 @@ interface CardProps {
     onClick?: () => void;
 }
 
-export default function Card({ 
-    children, 
-    className = '', 
+export default function Card({
+    children,
+    className = '',
     hover = false,
-    onClick 
+    onClick
 }: CardProps) {
-    const baseClasses = 'bg-zinc-900/50 border border-zinc-800/50 rounded-lg overflow-hidden';
-    const hoverClasses = hover ? 'hover:border-zinc-700/50 hover:bg-zinc-800/30 transition-all duration-300' : '';
+    const baseClasses = 'bg-zinc-800/30 border border-zinc-700/50 rounded-xl';
+    const hoverClasses = hover ? 'hover:bg-zinc-800/40 hover:border-zinc-600/50 transition-all duration-300' : '';
     const clickClasses = onClick ? 'cursor-pointer' : '';
     
     return (
@@ -23,4 +23,4 @@ export default function Card({
             {children}
         </div>
     );
-} 
+}

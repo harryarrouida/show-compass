@@ -1,6 +1,6 @@
 import { IoStar, IoClose, IoBookmarkOutline } from "react-icons/io5";
 import { AIRecommendation } from "@/types/types";
-import OptimizedImage from "../shared/optimizedImage";
+import OptimizedImage from "../shared/handlers/optimizedImage";
 import Image from "next/image";
 
 interface RecommendationModalProps {
@@ -72,10 +72,10 @@ export function RecommendationModal({
                     e.stopPropagation();
                     onSave(selectedRec);
                   }}
-                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-violet-600/10 hover:bg-violet-500/20 rounded-xl transition-colors duration-300"
+                  className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600/10 hover:bg-blue-500/20 rounded-xl transition-colors duration-300"
                 >
-                  <IoBookmarkOutline className="w-5 h-5 text-violet-400" />
-                  <span className="text-violet-400 text-sm font-medium">
+                  <IoBookmarkOutline className="w-5 h-5 text-blue-400" />
+                  <span className="text-blue-400 text-sm font-medium">
                     Save to History
                   </span>
                 </button>
@@ -105,13 +105,13 @@ export function RecommendationModal({
           </div>
 
           {/* Save Button - Mobile */}
-          <div className="p-4 bg-zinc-900 border-t border-zinc-800 md:hidden mt-10">
+          <div className="p-4 bg-zinc-900 border-t border-blue-800/30 md:hidden mt-10">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onSave(selectedRec);
               }}
-              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-violet-600/20 hover:bg-violet-500 rounded-xl transition-colors duration-300"
+              className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600/20 hover:bg-blue-500 rounded-xl transition-colors duration-300"
             >
               <IoBookmarkOutline className="w-5 h-5 text-white" />
               <span className="text-white text-sm font-medium">

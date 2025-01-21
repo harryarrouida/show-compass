@@ -6,7 +6,7 @@ import { MappedMovie, MappedShow } from '@/types/types';
 import { searchMovies } from '@/services/content/movieServices';
 import { searchShows } from '@/services/content/showServices';
 import MediaCard from '@/components/bigData/mediaCard';
-import CardSkeleton from '@/components/shared/CardSkeleton';
+import CardSkeleton from '@/components/shared/loaders/CardSkeleton';
 import { IoClose } from 'react-icons/io5';
 
 export default function SearchComponent() {
@@ -36,7 +36,7 @@ export default function SearchComponent() {
                 // Combine and sort results by popularity
                 const combinedResults = [...movieResults, ...showResults]
                     .sort((a, b) => (b.popularity || 0 && b.vote_count || 0) - (a.popularity || 0 && a.vote_count || 0))
-                    .slice(0, 8); // Limit to top 8 results
+                    .slice(0, 5); // Limit to top 5 results
 
                 setResults(combinedResults);
             } catch (err) {
@@ -55,29 +55,27 @@ export default function SearchComponent() {
     }, [query]);
 
     return (
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 pt-16">
-            <div className="text-center mb-20 gap-4">
-                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 bg-gradient-to-r from-gray-100 via-gray-300 to-gray-100 bg-clip-text text-transparent animate-gradient tracking-tight">Discover Your Next Favorite Story</h1>
-                <p className="text-gray-300 text-base md:text-lg max-w-3xl mx-auto mb-14 leading-relaxed">
+        <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12 pt-16">
+            <div className="text-center mb-20">
+                <h1 className="w-full text-4xl md:text-6xl lg:text-7xl font-bold mb-8 text-white tracking-tight">Discover Your Next Favorite Story</h1>
+                <p className="text-zinc-300 text-base md:text-lg max-w-3xl mx-auto mb-14 leading-relaxed">
                     Discover personalized entertainment recommendations that match your interests. From critically acclaimed masterpieces to hidden gems, find your next great watch.
                 </p>
 
-                <div className="max-w-3xl mx-auto">
-                    <div className="relative group">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-gray-700/30 to-gray-900/30 rounded-full blur opacity-30 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <div className="mx-auto">
+                    <div className="max-w-3xl mx-auto">
                         <div className="relative">
                             <input
                                 type="text"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Search for a show..."
-                                aria-label="Search for shows or movies"
-                                className="w-full px-8 py-5 text-base md:text-lg rounded-full bg-zinc-900/40 backdrop-blur-xl border border-zinc-800/50 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-0 transition-all duration-300 ease-in-out"
+                                className="w-full px-8 py-5 rounded-full bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors"
                             />
                             {query && (
                                 <button
                                     onClick={() => setQuery('')}
-                                    className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                                    className="absolute right-6 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
                                     aria-label="Clear search"
                                 >
                                     <IoClose size={20} />
@@ -88,22 +86,21 @@ export default function SearchComponent() {
                     
                     {/* Results Section */}
                     {results.length > 0 && (
-                        <div className="mt-10 mx-auto">
-                            <div className="mx-auto grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-8">
+                        <div className="mt-10">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
                                 {results.map((item) => (
                                     <MediaCard key={item.id} item={item} activeTab="" />
                                 ))}
                             </div>
-                            
                         </div>
                     )}
 
                     {/* Loading State */}
                     {isLoading && (
                         <div className="mt-10">
-                            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-8">
-                                {[...Array(4)].map((_, index) => (
-                                    <CardSkeleton index={index} />
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                                {[...Array(5)].map((_, index) => (
+                                    <CardSkeleton key={index} index={index} />
                                 ))}
                             </div>
                         </div>
@@ -117,7 +114,7 @@ export default function SearchComponent() {
                     )}
 
                     {query.length >= 2 && !isLoading && results.length === 0 && !error && (
-                        <div className="text-gray-500 text-base text-center mt-10">
+                        <div className="text-zinc-500 text-base text-center mt-10">
                             No results found for "{query}"
                         </div>
                     )}
@@ -129,7 +126,7 @@ export default function SearchComponent() {
                                 <span key={suggestion}>
                                     <button
                                         onClick={() => setQuery(suggestion)}
-                                        className="text-violet-400 hover:text-violet-300 underline-offset-2 hover:underline focus:outline-none focus:ring-2 focus:ring-violet-500/20 rounded px-2 transition-colors duration-300"
+                                        className="text-blue-400 underline-offset-2 hover:underline rounded px-2 transition-colors"
                                     >
                                         {suggestion}
                                     </button>
