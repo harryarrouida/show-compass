@@ -104,7 +104,7 @@ const Trakt = () => {
         handleToken(code);
       }
     }
-  }, [isAuthenticated, handleToken]);
+  }, [isAuthenticated]);
 
   // Add useEffect to handle page changes
   useEffect(() => {

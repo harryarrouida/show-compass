@@ -1,7 +1,7 @@
 export default function CardSkeleton({ index }: { index: number }) {
   return (
     <div
-      className="relative w-[100px] md:w-[150px] lg:w-[180px] mb-10 cursor-pointer group"
+      className="mt-10 relative w-[100px] md:w-[150px] lg:w-[180px] mb-10 cursor-pointer group"
       key={index}
     >
       <div className="mx-auto w-full md:w-full lg:w-full group flex flex-col rounded-lg">

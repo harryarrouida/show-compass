@@ -105,7 +105,7 @@ export function RecommendationModal({
           </div>
 
           {/* Save Button - Mobile */}
-          <div className="p-4 bg-zinc-900 border-t border-blue-800/30 md:hidden mt-10">
+          <div className="p-4 bg-zinc-900 border-t border-border-primary md:hidden mt-10">
             <button
               onClick={(e) => {
                 e.stopPropagation();

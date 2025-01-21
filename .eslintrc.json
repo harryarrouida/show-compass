@@ -1,5 +1,9 @@
 {
-  "extends": "next/core-web-vitals",
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+  ],
   "rules": {
     "@typescript-eslint/no-unused-expressions": "off",
     "@typescript-eslint/no-unused-vars": "off",

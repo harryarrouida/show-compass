@@ -149,7 +149,7 @@ export default function DataGrid({
         {(isWithSearch ? filteredData : data)
           .slice(0, isWithSearch ? displayCount : undefined)
           .map((item, index) => (
-            <div key={item.id} className="w-full aspect-[2/3]">
+            <div key={item.id + index} className="w-full aspect-[2/3]">
               <MediaCard
                 item={item}
                 activeTab={activeTab}

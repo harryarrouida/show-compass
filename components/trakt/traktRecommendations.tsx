@@ -17,6 +17,7 @@ import Cookies from "js-cookie";
 import CryptoJS from "crypto-js";
 import Card from "@/components/shared/ui/Card";
 import { useGenerations } from "@/contexts/GenerationsContext";
+import CardSkeleton from "../shared/loaders/CardSkeleton";
 
 // Main component for AI-powered movie/show recommendations based on Trakt.tv data
 type MediaType = "movies" | "shows";
@@ -48,7 +49,8 @@ const TraktRecommendations = () => {
   const [watchlist, setWatchlist] = useState<any[]>([]);
   const [seen, setSeen] = useState<string[]>([]);
 
-  const { generationsLeft, useGeneration: markGenerationUsed } = useGenerations();
+  const { generationsLeft, useGeneration: markGenerationUsed } =
+    useGenerations();
 
   const {
     watchedMoviesCache,
@@ -133,7 +135,7 @@ const TraktRecommendations = () => {
     setRecommendationsDetails([]);
     setSelectedReason(null);
     setError(null);
-  }, [mediaType]);
+  }, [mediaType, numRecommendations]);
 
   // Helper function to clean AI responses and ensure valid JSON
   const cleanAndParseResponse = (response: string) => {
@@ -378,7 +380,7 @@ const TraktRecommendations = () => {
           throw new Error("No valid recommendations could be found");
         }
         setRecommendationsDetails(validRecommendations);
-        
+
         // Only set timeout and use generation if recommendations were successful
         setGenerateDisabled(true);
         const timeoutEnd = Date.now() + 3 * 60 * 1000;
@@ -401,7 +403,6 @@ const TraktRecommendations = () => {
         }, 1000);
 
         markGenerationUsed();
-        
       } catch (error: any) {
         console.error("Recommendation processing error:", error);
         throw new Error(
@@ -473,7 +474,8 @@ const TraktRecommendations = () => {
                 AI-Powered Recommendations
               </h2>
               <p className="text-zinc-400 text-xs sm:text-sm mt-0.5 sm:mt-1">
-                Discover your next favorite based on your unique taste ({generationsLeft} generations left)
+                Discover your next favorite based on your unique taste (
+                {generationsLeft} generations left)
               </p>
             </div>
           </div>
@@ -512,7 +514,9 @@ const TraktRecommendations = () => {
 
                   <select
                     value={numRecommendations}
-                    onChange={(e) => setNumRecommendations(Number(e.target.value) as 5 | 10)}
+                    onChange={(e) =>
+                      setNumRecommendations(Number(e.target.value) as 5 | 10)
+                    }
                     className="w-full sm:w-auto bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-zinc-200 
                               focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20
                               appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
@@ -528,18 +532,22 @@ const TraktRecommendations = () => {
                   <button
                     onClick={() => setFromWatchlist(!fromWatchlist)}
                     className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
-                              ${fromWatchlist 
-                                ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
-                                : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"}`}
+                              ${
+                                fromWatchlist
+                                  ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
+                                  : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
+                              }`}
                   >
                     {fromWatchlist ? "From Watchlist" : "General"}
                   </button>
                   <button
                     onClick={() => setAnimeOnly(!animeOnly)}
                     className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
-                              ${animeOnly
-                                ? "bg-blue-500/10 text-blue-300 border border-blue-500/20" 
-                                : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"}`}
+                              ${
+                                animeOnly
+                                  ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
+                                  : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
+                              }`}
                   >
                     {animeOnly ? "Anime Only" : `All ${mediaType}`}
                   </button>
@@ -670,10 +678,20 @@ const TraktRecommendations = () => {
         </div>
       </Card>
 
+      {loading && (
+        <div className="mt-4 sm:mt-8">
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+            {Array.from({ length: numRecommendations }).map((_, index) => (
+              <CardSkeleton key={index} index={index} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Recommendations Grid */}
       {recommendations.length > 0 && (
         <div className="mt-4 sm:mt-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
             {recommendationsDetails.map((rec, index) => (
               <RecommendationCard
                 key={index}

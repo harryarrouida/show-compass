@@ -126,6 +126,7 @@ User Profile:
 - Ratings: ${JSON.stringify(ratingDistribution)}
 - Decades: ${JSON.stringify(decadePreferences)}
 - Genres: ${JSON.stringify(favoriteGenres)}-${lengthPreference ? `- Length Preference: ${lengthPreference}` : ''}-${episodeCount ? `- Episode Count: ${JSON.stringify(episodeCount)}` : ''}-${status ? `- Show Status: ${status}` : ''}-${minimumRating ? `- Minimum Rating: ${minimumRating}` : ''}
+
 Watch History:
 ${watchedTitles
   .slice(0, 30)
@@ -133,7 +134,7 @@ ${watchedTitles
   .join(", ")}
 
 Watchlist (to be selected from):
-${watchlist.map((item) => `${item.title} (${item.overview})`).join(", ")}
+${watchlist.map((item) => item.title).join(", ")}
 
 JSON Format:
 {
