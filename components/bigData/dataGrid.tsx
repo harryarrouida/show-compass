@@ -85,7 +85,7 @@ export default function DataGrid({
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12">
+    <div className="mx-auto max-w-8xl lg:max-w-7xl px-2 sm:px-6 lg:px-12">
       <div className="mx-auto flex flex-col sm:flex-row justify-between items-center mb-16 gap-6 sm:gap-0">
         <div
           className={
@@ -145,7 +145,7 @@ export default function DataGrid({
         )}
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 sm:gap-8">
+      <div className="w-full grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 sm:gap-8">
         {(isWithSearch ? filteredData : data)
           .slice(0, isWithSearch ? displayCount : undefined)
           .map((item, index) => (
@@ -160,12 +160,10 @@ export default function DataGrid({
       </div>
 
       {isLoading && (
-        <div className="mt-10">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-            {[...Array(10)].map((_, index) => (
-              <CardSkeleton key={index} index={index} />
-            ))}
-          </div>
+        <div className="w-full grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+          {[...Array(10)].map((_, index) => (
+            <CardSkeleton key={index} index={index} />
+          ))}
         </div>
       )}
 

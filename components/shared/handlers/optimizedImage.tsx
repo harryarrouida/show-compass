@@ -40,33 +40,33 @@ export default function OptimizedImage({
     return null;
   }
 
-  // Handle TMDB image paths with different sizes
-  // const imageUrl = src.startsWith('https://')
-  //   ? src
-  //   : `${process.env.NEXT_PUBLIC_TMDB_ORIGINAL_URL || 'https://image.tmdb.org/t/p/original'}${src}`;
-  const imageUrl = src;
-  // Try different sizes if original fails
+  // Handle TMDB image paths - ensure we always have the full URL
+  const imageUrl = src.startsWith('http')
+    ? src
+    : `https://image.tmdb.org/t/p/w500${src}`; // Start with w500 size instead of original
+
+  const combinedClassName = `${className || ""} object-cover`.trim();
+
+  // Try different sizes if current size fails
   const handleImageError = (e: any) => {
     const imgElement = e.target as HTMLImageElement;
-    if (imgElement.src.includes("/original/")) {
-      // Try w500 size
-      imgElement.src = imgElement.src.replace("/original/", "/w500/");
-    } else if (imgElement.src.includes("/w500/")) {
+    const currentUrl = imgElement.src;
+
+    if (currentUrl.includes("/w500/")) {
       // Try w300 size
-      imgElement.src = imgElement.src.replace("/w500/", "/w300/");
+      const newUrl = currentUrl.replace("/w500/", "/w300/");
+      imgElement.src = newUrl;
+    } else if (currentUrl.includes("/w300/")) {
+      // Try w185 as final fallback
+      const newUrl = currentUrl.replace("/w300/", "/w185/");
+      imgElement.src = newUrl;
     } else {
-      console.error(`Error loading image: ${imageUrl}`, e);
+      console.error(`Error loading image: ${src}`);
       // You could set a fallback image here
       // imgElement.src = '/fallback-image.jpg';
     }
   };
 
-  const combinedClassName = `${
-    className || ""
-  } object-cover`.trim();
-
-  // console.log("src", src);
-  // console.log("imageUrl", imageUrl);
   return (
     <Image
       key={id || src}
@@ -74,13 +74,12 @@ export default function OptimizedImage({
       alt={alt}
       fill
       className={combinedClassName}
-      sizes={sizes || "100vw"}
+      sizes={sizes || "(max-width: 768px) 100vw, 33vw"}
       priority={priority}
       quality={quality || 75}
       loading={loading}
       placeholder="blur"
       blurDataURL={rgbDataURL(24, 24, 27, 128)}
-      unoptimized={src.includes('image.tmdb.org')}
       onError={handleImageError}
     />
   );
