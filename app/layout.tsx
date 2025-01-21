@@ -26,6 +26,39 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const isSomethingHappening = true;
+
+  const mainContent = isSomethingHappening ? (
+    <div className="min-h-screen flex items-center justify-center bg-neutral-950">
+      <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-6">
+        <h1 className="text-3xl sm:text-4xl font-bold text-white">
+          We&apos;re Currently Experiencing Some Issues
+        </h1>
+        <div className="space-y-4 text-zinc-400">
+          <p className="text-lg">
+            We&apos;re working hard to resolve this and get everything back to normal.
+          </p>
+          <p>
+            This may be due to scheduled maintenance or unexpected technical difficulties.
+            Please check back in a little while.
+          </p>
+        </div>
+        <div className="pt-4">
+          <div className="inline-flex items-center gap-2 text-violet-400">
+            <div className="w-2 h-2 bg-violet-400 rounded-full animate-pulse" />
+            <span>System Status: Updating</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <main className="flex-grow mb-16 relative">
+      <Suspense fallback={<Loading text="Loading..." />}>
+        {children}
+      </Suspense>
+    </main>
+  );
+
   return (
     <html lang="en" className={`${quicksand.variable} [scrollbar-width:none]`}>
       <body className="bg-neutral-950 min-h-screen flex flex-col antialiased font-sans relative [&::-webkit-scrollbar]:hidden">
@@ -33,11 +66,7 @@ export default function RootLayout({
           <TraktProvider>
             <HistoryProvider>
               <Navbar />
-              <main className="flex-grow mb-16 relative">
-                <Suspense fallback={<Loading text="Loading..." />}>
-                  {children}
-                </Suspense>
-              </main>
+              {mainContent}
               <Footer />
             </HistoryProvider>
           </TraktProvider>

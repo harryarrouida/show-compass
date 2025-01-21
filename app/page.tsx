@@ -15,6 +15,8 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [isSomethingHappening, setIsSomethingHappening] = useState(true);
+
   useEffect(() => {
     if (activeTab === "movies") {
       fetchMovies(page);
