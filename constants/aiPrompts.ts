@@ -8,7 +8,7 @@ export const generateDefaultPrompt = (
   },
   type: string,
   numRecommendations: number = 8
-) => `Provide ${numRecommendations} ${type} recommendations similar to the input media, formatted as JSON.
+) => `Provide ${numRecommendations} ${type} recommendations similar to the input media, focus on the plot and story design more than genres, formatted as JSON.
 
 Input Media:
 {
@@ -76,13 +76,13 @@ export const generateTraktRecommendationsPrompt = (
   type: string,
   numRecommendations: number,
   animeOnly: boolean,
-  lengthPreference?: 'short' | 'medium' | 'long',
+  lengthPreference?: "short" | "medium" | "long",
   episodeCount?: { min?: number; max?: number },
-  status?: 'ongoing' | 'completed' | 'both',
+  status?: "ongoing" | "completed" | "both",
   minimumRating?: number
 ) => `Generate ${numRecommendations} personalized ${type}${
   animeOnly ? " anime" : ""
-} recommendations based on viewing patterns to match exactly what they would like to watch.
+} recommendations based on viewing patterns to match exactly what they would like to watch, focus on the plot and story design more than genres.
 
 Recent Watch History:
 ${watchedTitles
@@ -93,7 +93,11 @@ ${watchedTitles
 User Preferences:
 - Genres: ${favoriteGenres.join(", ")}
 - Decades: ${JSON.stringify(decadePreferences)}
-- Ratings: ${JSON.stringify(ratingDistribution)}-${lengthPreference ? `- Length Preference: ${lengthPreference}` : ''}-${episodeCount ? `- Episode Count: ${JSON.stringify(episodeCount)}` : ''}-${status ? `- Show Status: ${status}` : ''}-${minimumRating ? `- Minimum Rating: ${minimumRating}` : ''}
+- Ratings: ${JSON.stringify(ratingDistribution)}-${
+  lengthPreference ? `- Length Preference: ${lengthPreference}` : ""
+}-${episodeCount ? `- Episode Count: ${JSON.stringify(episodeCount)}` : ""}-${
+  status ? `- Show Status: ${status}` : ""
+}-${minimumRating ? `- Minimum Rating: ${minimumRating}` : ""}
 - No already watched content: ${watchedTitles.map((t) => t.title).join(", ")}
 JSON Format:
 {
@@ -115,17 +119,21 @@ export const generateWatchlistPrompt = (
   type: string,
   numRecommendations: number,
   animeOnly: boolean,
-  lengthPreference?: 'short' | 'medium' | 'long',
+  lengthPreference?: "short" | "medium" | "long",
   episodeCount?: { min?: number; max?: number },
-  status?: 'ongoing' | 'completed' | 'both',
+  status?: "ongoing" | "completed" | "both",
   minimumRating?: number
 ) => `Generate ${numRecommendations} personalized ${type}${
   animeOnly ? " anime" : ""
-} recommendations from the user's watchlist based on their viewing patterns to match exactly what they would like to watch.
+} recommendations from the user's watchlist based on their viewing patterns to match exactly what they would like to watch, focus on the plot and story design more than genres.
 User Profile:
 - Ratings: ${JSON.stringify(ratingDistribution)}
 - Decades: ${JSON.stringify(decadePreferences)}
-- Genres: ${JSON.stringify(favoriteGenres)}-${lengthPreference ? `- Length Preference: ${lengthPreference}` : ''}-${episodeCount ? `- Episode Count: ${JSON.stringify(episodeCount)}` : ''}-${status ? `- Show Status: ${status}` : ''}-${minimumRating ? `- Minimum Rating: ${minimumRating}` : ''}
+- Genres: ${JSON.stringify(favoriteGenres)}-${
+  lengthPreference ? `- Length Preference: ${lengthPreference}` : ""
+}-${episodeCount ? `- Episode Count: ${JSON.stringify(episodeCount)}` : ""}-${
+  status ? `- Show Status: ${status}` : ""
+}-${minimumRating ? `- Minimum Rating: ${minimumRating}` : ""}
 
 Watch History:
 ${watchedTitles

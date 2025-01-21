@@ -159,13 +159,13 @@ export default function DataGrid({
           ))}
       </div>
 
-      {isLoading && (
+      {/* {isLoading && (
         <div className="w-full grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
           {[...Array(10)].map((_, index) => (
             <CardSkeleton key={index} index={index} />
           ))}
         </div>
-      )}
+      )} */}
 
       {(!isWithSearch && !isLoading) ||
       (isWithSearch &&

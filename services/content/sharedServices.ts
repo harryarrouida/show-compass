@@ -25,31 +25,16 @@ export const search = async (query: string) => {
       )}&language=en-US`
     );
 
-    const movies = movieResponse.data.results;
-    const shows = showResponse.data.results;
-
-    // console.log("movies", movies);
-    // console.log("shows", shows);
-
-    movies.filter(
-      (movie: any) =>
-        movie.poster_path !== null ||
-        movie.backdrop_path !== null ||
-        movie.vote_average !== 0 ||
-        movie.vote_average !== undefined ||
-        movie.popularity !== 0 ||
-        movie.popularity !== undefined ||
-        movie.title !== null
+    const movies = movieResponse.data.results.filter((movie: any) => 
+      movie.poster_path && 
+      movie.backdrop_path && 
+      movie.vote_average
     );
-    shows.filter(
-      (show: any) =>
-        show.poster_path !== null ||
-        show.backdrop_path !== null ||
-        show.vote_average !== 0 ||
-        show.vote_average !== undefined ||
-        show.popularity !== 0 ||
-        show.popularity !== undefined ||
-        show.title !== null
+
+    const shows = showResponse.data.results.filter((show: any) =>
+      show.poster_path &&
+      show.backdrop_path &&
+      show.vote_average
     );
 
     // Combine and map results
@@ -58,8 +43,8 @@ export const search = async (query: string) => {
         id: movie.id,
         title: movie.title,
         release_date: movie.release_date,
-        poster_path: movie.poster_path ? `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${movie.poster_path}` : null,
-        backdrop_path: movie.backdrop_path ? `${process.env.NEXT_PUBLIC_TMDB_BACKDROP_URL}${movie.backdrop_path}` : null,
+        poster_path: `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${movie.poster_path}`,
+        backdrop_path: `${process.env.NEXT_PUBLIC_TMDB_BACKDROP_URL}${movie.backdrop_path}`,
         vote_average: movie.vote_average,
         popularity: movie.popularity,
         type: "movie",
@@ -70,8 +55,8 @@ export const search = async (query: string) => {
         id: show.id,
         title: show.name,
         release_date: show.first_air_date,
-        poster_path: show.poster_path ? `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${show.poster_path}` : null,
-        backdrop_path: show.backdrop_path ? `${process.env.NEXT_PUBLIC_TMDB_BACKDROP_URL}${show.backdrop_path}` : null,
+        poster_path: `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${show.poster_path}`,
+        backdrop_path: `${process.env.NEXT_PUBLIC_TMDB_BACKDROP_URL}${show.backdrop_path}`,
         vote_average: show.vote_average,
         popularity: show.popularity,
         type: "show",
@@ -80,23 +65,17 @@ export const search = async (query: string) => {
       })),
     ];
 
-    // console.log("combinedResults", combinedResults);
-
     // Sort by title match and popularity
-    const sortedResults = combinedResults
-      .filter((item) => item.poster_path) // Only items with posters
-      .sort((a, b) => {
-        // Exact title match gets priority
-        const aExactMatch = a.title.toLowerCase() === query.toLowerCase();
-        const bExactMatch = b.title.toLowerCase() === query.toLowerCase();
-        if (aExactMatch && !bExactMatch) return -1;
-        if (!aExactMatch && bExactMatch) return 1;
+    const sortedResults = combinedResults.sort((a, b) => {
+      // Exact title match gets priority
+      const aExactMatch = a.title.toLowerCase() === query.toLowerCase();
+      const bExactMatch = b.title.toLowerCase() === query.toLowerCase();
+      if (aExactMatch && !bExactMatch) return -1;
+      if (!aExactMatch && bExactMatch) return 1;
 
-        // Then sort by popularity
-        return b.popularity - a.popularity;
-      });
-
-    // console.log("Sample result:", combinedResults[0]); // This will help debug what data is coming from TMDB
+      // Then sort by popularity
+      return b.popularity - a.popularity;
+    });
 
     return sortedResults.slice(0, 5); // Return top 5 results
   } catch (error) {

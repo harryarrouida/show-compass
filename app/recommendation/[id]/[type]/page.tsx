@@ -107,7 +107,7 @@ export default function RecommendationPage() {
                         "reason": "Reason for recommendation"
                       }
                     ]
-                  }`
+                  }`,
                 },
                 {
                   role: "user",
@@ -224,7 +224,7 @@ export default function RecommendationPage() {
                   "reason": "Reason for recommendation"
                 }
               ]
-            }`
+            }`,
           },
           {
             role: "user",
