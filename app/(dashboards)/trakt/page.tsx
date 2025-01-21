@@ -36,18 +36,6 @@ const Trakt = () => {
   const router = useRouter();
   const [watchlist, setWatchlist] = useState<any[]>([]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchWatchedData();
-    } else {
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get("code");
-      if (code) {
-        // console.log("code", code);
-        handleToken(code);
-      }
-    }
-  }, [isAuthenticated]);
 
   const fetchWatchedData = async () => {
     setIsLoading(true);
@@ -105,6 +93,18 @@ const Trakt = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchWatchedData();
+    } else {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get("code");
+      if (code) {
+        handleToken(code);
+      }
+    }
+  }, [isAuthenticated, handleToken]);
 
   // Add useEffect to handle page changes
   useEffect(() => {

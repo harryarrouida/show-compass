@@ -48,7 +48,7 @@ const TraktRecommendations = () => {
   const [watchlist, setWatchlist] = useState<any[]>([]);
   const [seen, setSeen] = useState<string[]>([]);
 
-  const { generationsLeft, useGeneration } = useGenerations();
+  const { generationsLeft, useGeneration: markGenerationUsed } = useGenerations();
 
   const {
     watchedMoviesCache,
@@ -400,7 +400,7 @@ const TraktRecommendations = () => {
           });
         }, 1000);
 
-        useGeneration();
+        markGenerationUsed();
         
       } catch (error: any) {
         console.error("Recommendation processing error:", error);
