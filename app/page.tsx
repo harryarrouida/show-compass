@@ -18,7 +18,7 @@ export default function Home() {
 
   useEffect(() => {
     // Check if the popup has been shown before
-    const hasSeenPopup = localStorage.getItem("hasSeenDonationPopup");
+    const hasSeenPopup = localStorage.getItem("hasSeenDonationPopupTOREMOVE");
     if (!hasSeenPopup) {
       setShowDonationPopup(true);
     }
