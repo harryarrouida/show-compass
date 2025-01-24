@@ -71,7 +71,7 @@ export default function Home() {
 
   return (
     <PageLayout>
-      {showDonationPopup && (
+{/*       {showDonationPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 sm:p-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-4 sm:p-8 max-w-2xl w-full shadow-xl mx-4 sm:mx-0">
             <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">👋 Hello there!</h2>
@@ -102,7 +102,7 @@ export default function Home() {
             </div>
           </div>
         </div>
-      )}
+      )} */}
       <div className="space-y-16">
         <div>
           <SearchComponent />
