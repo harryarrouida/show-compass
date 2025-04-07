@@ -20,6 +20,14 @@ const quicksand = Quicksand({
 export const metadata: Metadata = {
   title: "Movie Recommendations",
   description: "Find your next favorite movie or show",
+  manifest: "/manifest.json",
+  themeColor: "#000000",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "showcompass"
+  },
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
 };
 
 export default function RootLayout({
@@ -62,6 +70,16 @@ export default function RootLayout({
 
   return (
     <html lang="en" className={`${quicksand.variable} [scrollbar-width:none]`}>
+      <head>
+        <meta name="application-name" content="showcompass" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="showcompass" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <link rel="icon" href={`${process.env.NEXT_PUBLIC_BASE_URL}/public/icon.JPG`} />
+        <link rel="apple-touch-icon" href={`${process.env.NEXT_PUBLIC_BASE_URL}/public/icon.JPG`} />
+      </head>
       <body className="bg-[#111111] min-h-screen flex flex-col antialiased font-sans relative [&::-webkit-scrollbar]:hidden">
         <ToastProvider>
           <TraktProvider>
