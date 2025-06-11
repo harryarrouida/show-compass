@@ -1,17 +1,49 @@
 {
-    "name": "showcompass",
-    "short_name": "showcompass",
-    "description": "A Progressive Web App built with Next.js",
+    "name": "Showcompass - Your AI Guide to the Best Shows",
+    "short_name": "Showcompass",
+    "description": "Your AI Guide to the Best Shows",
     "start_url": "/",
     "display": "standalone",
+    "orientation": "portrait",
     "background_color": "#ffffff",
-    "theme_color": "#000000",
+    "theme_color": "#ffffff",
     "icons": [
-        {
-            "src": "/icons/icon.JPG",
-            "sizes": "192x192",
-            "type": "image/jpg",
-            "purpose": "maskable"
-        }
+      {
+        "src": "/icons/icon-72-72.png",
+        "sizes": "72x72",
+        "type": "image/png"
+      },
+      {
+        "src": "/icons/icon-96-96.png",
+        "sizes": "96x96",
+        "type": "image/png"
+      },
+      {
+        "src": "/icons/icon-144-144.png",
+        "sizes": "144x144",
+        "type": "image/png"
+      },
+      {
+        "src": "/icons/icon-192-192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "/icons/icon-512-512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ],
+    "splash_pages": null,
+    "shortcuts": [
+      {
+        "name": "Add New Show",
+        "short_name": "New Show",
+        "description": "Quickly add a new show to track",
+        "url": "/add-show",
+        "icons": [
+          { "src": "/icons/shortcut-new-habit.png", "sizes": "192x192" }
+        ]
+      }
     ]
-}  
+  }

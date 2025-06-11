@@ -18,10 +18,10 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
-  title: "Movie Recommendations",
-  description: "Find your next favorite movie or show",
+  title: "Showcompass",
+  description: "Your AI Guide to the Best Shows",
   manifest: "/manifest.json",
-  themeColor: "#000000",
+  themeColor: "#ffffff",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
