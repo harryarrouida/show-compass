@@ -9,8 +9,9 @@ import { ToastProvider } from '@/contexts/toastContext';
 import { Suspense } from 'react';
 import Loading from '@/components/shared/loaders/loading';
 import { GenerationsProvider } from "@/contexts/GenerationsContext";
+import { AuthProvider } from "@/contexts/AuthContext";
 
-const quicksand = Quicksand({ 
+const quicksand = Quicksand({
   subsets: ['latin'],
   variable: '--font-quicksand',
   display: 'swap',
@@ -82,15 +83,17 @@ export default function RootLayout({
       </head>
       <body className="bg-[#111111] min-h-screen flex flex-col antialiased font-sans relative [&::-webkit-scrollbar]:hidden">
         <ToastProvider>
-          <TraktProvider>
-            <HistoryProvider>
-              <GenerationsProvider>
-                <Navbar />
-                {mainContent}
-                <Footer />
-              </GenerationsProvider>
-            </HistoryProvider>
-          </TraktProvider>
+          <AuthProvider>
+            <TraktProvider>
+              <HistoryProvider>
+                <GenerationsProvider>
+                  <Navbar />
+                  {mainContent}
+                  <Footer />
+                </GenerationsProvider>
+              </HistoryProvider>
+            </TraktProvider>
+          </AuthProvider>
         </ToastProvider>
       </body>
     </html>
