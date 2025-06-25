@@ -12,6 +12,7 @@ import {
 } from 'firebase/auth';
 
 import { auth } from '@/config/Firebase';
+import { useRouter } from 'next/navigation';
 
 type AuthContextType = {
   currentUser: User | null;
@@ -37,6 +38,7 @@ type AuthProviderProps = {
 };
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -51,7 +53,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   const logout = () => {
-    return signOut(auth);
+    return signOut(auth).then(() => {
+      localStorage.removeItem('trakt_token');
+    }).then(() => {
+      router.push('/');
+    });
   };
 
   const googleSignIn = () => {
