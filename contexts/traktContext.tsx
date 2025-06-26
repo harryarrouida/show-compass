@@ -3,6 +3,7 @@
 
 import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { traktUser, traktToken, moviesWatched, showsWatched, traktHistory, traktWatched } from '@/services/trakt/traktServices';
+import { getCachedData, clearCache, clearAllCache } from '@/utils/cache';
 import axios from 'axios';
 
 interface TraktUser {
@@ -48,11 +49,11 @@ export function TraktProvider({ children }: { children: ReactNode }) {
       setAccessToken(null);
       setUser(null);
       localStorage.removeItem('traktToken');
-      // Clear cached data
-      localStorage.removeItem('watchedMoviesCache');
-      localStorage.removeItem('watchedShowsCache');
-      localStorage.removeItem('watchedMoviesCacheTimestamp');
-      localStorage.removeItem('watchedShowsCacheTimestamp');
+      
+      // Clear all Trakt-related cache
+      clearAllCache(/^(movies-watched|shows-watched|trakt)/);
+      
+      // Reset state
       setWatchedMoviesCache([]);
       setWatchedShowsCache([]);
       setWatchedMoviesDetails([]);
@@ -60,7 +61,7 @@ export function TraktProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Error during logout:', error);
       // Attempt force clear even if error
-      localStorage.clear();
+      clearAllCache();
     }
   };
 
@@ -88,6 +89,16 @@ export function TraktProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      // Check if we've already tried to use this code
+      const lastUsedCode = localStorage.getItem('lastUsedTraktCode');
+      if (lastUsedCode === code) {
+        console.warn('This authorization code has already been used');
+        throw new Error('This login link has expired. Please try logging in again.');
+      }
+      
+      // Store the code we're about to use
+      localStorage.setItem('lastUsedTraktCode', code);
+      
       const response = await fetch('/api/trakt/token', {
         method: 'POST',
         headers: {
@@ -99,13 +110,24 @@ export function TraktProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to authenticate');
+        console.error('Trakt token exchange error:', data);
+        
+        // Handle specific error cases
+        if (data.error === 'invalid_grant') {
+          throw new Error('Authentication code expired. Please try logging in again.');
+        }
+        
+        throw new Error(data.error_description || data.error || 'Failed to authenticate');
       }
 
       if (!data.access_token) {
         throw new Error('No access token received');
       }
 
+      // Clear the last used code on success
+      localStorage.removeItem('lastUsedTraktCode');
+      
+      // Store the token and update state
       localStorage.setItem('traktToken', data.access_token);
       setAccessToken(data.access_token);
       setIsAuthenticated(true);
@@ -137,50 +159,22 @@ export function TraktProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const cachedMovies = localStorage.getItem('watchedMoviesCache');
-      const cacheTimestamp = localStorage.getItem('watchedMoviesCacheTimestamp');
-      const CACHE_DURATION = 24 * 60 * 60 * 1000;
-
-      if (cachedMovies && cacheTimestamp) {
-        try {
-          const parsedMovies = JSON.parse(cachedMovies);
-          const timestamp = parseInt(cacheTimestamp);
-          
-          if (isNaN(timestamp)) {
-            throw new Error('Invalid cache timestamp');
-          }
-
-          if (Date.now() - timestamp < CACHE_DURATION) {
-            setWatchedMoviesCache(parsedMovies);
-            return parsedMovies;
-          }
-        } catch (cacheError) {
-          console.error('Cache error:', cacheError);
-          localStorage.removeItem('watchedMoviesCache');
-          localStorage.removeItem('watchedMoviesCacheTimestamp');
+      const cacheKey = `movies-watched-${accessToken}`;
+      const moviesData = await getCachedData<any[]>(cacheKey, async () => {
+        const moviesWatchedData = await moviesWatched(accessToken);
+        if (!Array.isArray(moviesWatchedData)) {
+          throw new Error('Invalid movies data received');
         }
-      }
-
-      const moviesWatchedData = await moviesWatched(accessToken);
-      if (!Array.isArray(moviesWatchedData)) {
-        throw new Error('Invalid movies data received');
-      }
-
-      setWatchedMoviesCache(moviesWatchedData);
+        return moviesWatchedData;
+      });
       
-      try {
-        localStorage.setItem('watchedMoviesCache', JSON.stringify(moviesWatchedData));
-        localStorage.setItem('watchedMoviesCacheTimestamp', Date.now().toString());
-      } catch (storageError) {
-        console.error('Failed to cache movies data:', storageError);
-      }
-      
-      return moviesWatchedData;
+      setWatchedMoviesCache(moviesData);
+      return moviesData;
     } catch (error) {
       console.error('Error fetching watched movies:', error);
       throw error;
     }
-  }
+  };
 
   const getUserWatchedShows = async () => {
     if (!accessToken) {
@@ -188,62 +182,27 @@ export function TraktProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const cachedShows = localStorage.getItem('watchedShowsCache');
-      const cacheTimestamp = localStorage.getItem('watchedShowsCacheTimestamp');
-      const CACHE_DURATION = 24 * 60 * 60 * 1000;
-
-      if (cachedShows && cacheTimestamp) {
-        try {
-          const parsedShows = JSON.parse(cachedShows);
-          const timestamp = parseInt(cacheTimestamp);
-
-          if (isNaN(timestamp)) {
-            throw new Error('Invalid cache timestamp');
-          }
-
-          if (Date.now() - timestamp < CACHE_DURATION) {
-            setWatchedShowsCache(parsedShows);
-            return parsedShows;
-          }
-        } catch (cacheError) {
-          console.error('Cache error:', cacheError);
-          localStorage.removeItem('watchedShowsCache');
-          localStorage.removeItem('watchedShowsCacheTimestamp');
+      const cacheKey = `shows-watched-${accessToken}`;
+      const showsData = await getCachedData<any[]>(cacheKey, async () => {
+        const showsWatchedData = await showsWatched(accessToken);
+        if (!Array.isArray(showsWatchedData)) {
+          throw new Error('Invalid shows data received');
         }
-      }
-
-      const showsWatchedData = await showsWatched(accessToken);
-      if (!Array.isArray(showsWatchedData)) {
-        throw new Error('Invalid shows data received');
-      }
-
-      setWatchedShowsCache(showsWatchedData);
+        return showsWatchedData;
+      });
       
-      try {
-        localStorage.setItem('watchedShowsCache', JSON.stringify(showsWatchedData));
-        localStorage.setItem('watchedShowsCacheTimestamp', Date.now().toString());
-      } catch (storageError) {
-        console.error('Failed to cache shows data:', storageError);
-      }
-      
-      return showsWatchedData;
+      setWatchedShowsCache(showsData);
+      return showsData;
     } catch (error) {
       console.error('Error fetching watched shows:', error);
       throw error;
     }
-  }
+  };
 
   const invalidateCache = () => {
-    try {
-      localStorage.removeItem('watchedMoviesCache');
-      localStorage.removeItem('watchedShowsCache');
-      localStorage.removeItem('watchedMoviesCacheTimestamp');
-      localStorage.removeItem('watchedShowsCacheTimestamp');
-      setWatchedMoviesCache([]);
-      setWatchedShowsCache([]);
-    } catch (error) {
-      console.error('Error invalidating cache:', error);
-    }
+    clearAllCache(/^(movies-watched|shows-watched|trakt)/);
+    setWatchedMoviesCache([]);
+    setWatchedShowsCache([]);
   };
 
   useEffect(() => {

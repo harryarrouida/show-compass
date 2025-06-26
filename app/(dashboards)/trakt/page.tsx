@@ -11,7 +11,6 @@ import { useHistory } from "@/contexts/historyContext";
 import DataGrid from "@/components/bigData/dataGrid";
 import PageLayout from "@/components/layout/PageLayout";
 import Loading from "@/components/shared/loaders/loading";
-import SmallLoader from "@/components/shared/loaders/smallLoader";
 
 const Trakt = () => {
   const {
@@ -35,7 +34,15 @@ const Trakt = () => {
   const { saveToHistory } = useHistory();
   const router = useRouter();
   const [watchlist, setWatchlist] = useState<any[]>([]);
+  const [isProcessingCode, setIsProcessingCode] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
+  useEffect(() => {
+    const token = localStorage.getItem('traktToken');
+    if (!token) {
+      router.push('/');
+    }
+  }, []);
 
   const fetchWatchedData = async () => {
     setIsLoading(true);
@@ -94,15 +101,38 @@ const Trakt = () => {
     }
   };
 
+  // Handle the auth code only once when component mounts
+  useEffect(() => {
+    const processAuthCode = async () => {
+      if (!isAuthenticated && !isProcessingCode) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get("code");
+        
+        if (code) {
+          setIsProcessingCode(true);
+          setAuthError(null);
+          
+          try {
+            await handleToken(code);
+            // Clean up URL after successful processing
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } catch (error) {
+            console.error("Authentication error:", error);
+            setAuthError(error instanceof Error ? error.message : 'Authentication failed');
+            // Clean up URL even on error
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        }
+      }
+    };
+    
+    processAuthCode();
+  }, []); // Run only once on mount
+
+  // Separate effect for data fetching after authentication
   useEffect(() => {
     if (isAuthenticated) {
       fetchWatchedData();
-    } else {
-      const urlParams = new URLSearchParams(window.location.search);
-      const code = urlParams.get("code");
-      if (code) {
-        handleToken(code);
-      }
     }
   }, [isAuthenticated]);
 
@@ -119,6 +149,12 @@ const Trakt = () => {
       <div className="min-h-[80vh] flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loading text="Connecting to Trakt..." />
+          {authError && (
+            <div className="text-red-500 mt-4 max-w-md mx-auto">
+              <p className="font-semibold">Error: {authError}</p>
+              <p className="text-sm mt-2">Please try again or contact support if the issue persists.</p>
+            </div>
+          )}
           <button
             onClick={() => router.push("/")}
             className="text-zinc-400 hover:text-zinc-200 text-sm mt-2 transition-colors"

@@ -10,8 +10,9 @@ import {
   signInWithPopup,
   User
 } from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
-import { auth } from '@/config/Firebase';
+import { auth, db } from '@/config/Firebase';
 import { useRouter } from 'next/navigation';
 
 type AuthContextType = {
@@ -44,12 +45,46 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const googleProvider = new GoogleAuthProvider();
 
-  const signup = (email: string, password: string) => {
-    return createUserWithEmailAndPassword(auth, email, password);
+  const createUserDocument = async (user: User) => {
+    const userRef = doc(db, 'users', user.uid);
+    
+    const userData = {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName || null,
+      photoURL: user.photoURL || null,
+      isPremium: false,
+      premiumPurchaseDate: null,
+      freeRecsCountToday: 0,
+      lastRecTimestamp: null,
+      dailyRecsLimitResetDate: null,
+      traktAccessToken: null,
+      traktRefreshToken: null,
+      traktExpiresAt: null,
+      createdAt: serverTimestamp(),
+      lastLoginAt: serverTimestamp(),
+    };
+
+    try {
+      await setDoc(userRef, userData, { merge: true });
+    } catch (error) {
+      console.error("Error creating user document:", error);
+    }
   };
 
-  const login = (email: string, password: string) => {
-    return signInWithEmailAndPassword(auth, email, password);
+  const signup = async (email: string, password: string) => {
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    await createUserDocument(result.user);
+    return result;
+  };
+
+  const login = async (email: string, password: string) => {
+    const result = await signInWithEmailAndPassword(auth, email, password);
+    const userRef = doc(db, 'users', result.user.uid);
+    await setDoc(userRef, {
+      lastLoginAt: serverTimestamp()
+    }, { merge: true });
+    return result;
   };
 
   const logout = () => {
@@ -60,8 +95,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     });
   };
 
-  const googleSignIn = () => {
-    return signInWithPopup(auth, googleProvider);
+  const googleSignIn = async () => {
+    const result = await signInWithPopup(auth, googleProvider);
+    await createUserDocument(result.user);
+    return result;
   };
 
   useEffect(() => {

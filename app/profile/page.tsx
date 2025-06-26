@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react";
-import { FaCrown, FaUserCircle, FaSignOutAlt, FaCheckCircle, FaStar, FaFilm, FaTv, FaRocket } from "react-icons/fa";
+import { FaCrown, FaUserCircle, FaSignOutAlt, FaCheckCircle, FaStar, FaFilm, FaTv, FaRocket, FaTimesCircle } from "react-icons/fa";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTraktContext } from "@/contexts/traktContext";
 
@@ -54,7 +54,8 @@ const premiumFeatures = [
 export default function Page() {
     const [activeTab, setActiveTab] = useState("premium");
     const { currentUser, logout: authLogout } = useAuth();
-    const { logout: traktLogout } = useTraktContext();
+    const { logout: traktLogout, login: traktLogin } = useTraktContext();
+    const token = localStorage.getItem('traktToken');
 
     const handleLogout = async () => {
         try {
@@ -74,29 +75,29 @@ export default function Page() {
             </div>
 
             <div className="flex flex-col md:flex-row w-full max-w-6xl bg-background-secondary rounded-xl shadow-xl overflow-hidden border border-border-primary">
-                {/* Left Sidebar */}
+            {/* Left Sidebar */}
                 <div className="w-full md:w-1/4 bg-background-secondary border-b md:border-b-0 md:border-r border-border-primary">
                     <div className="flex flex-row md:flex-col w-full">
-                        {tabs.map((tab) => (
-                            <button
-                                key={tab.key}
-                                onClick={() => setActiveTab(tab.key)}
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.key}
+                            onClick={() => setActiveTab(tab.key)}
                                 className={`flex items-center px-6 py-5 w-full text-left transition-colors
                                     ${activeTab === tab.key
                                         ? "bg-background-primary text-blue-400 font-semibold"
                                         : "hover:bg-background-primary/50 text-text-secondary"
                                     }
                                     focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500
-                                `}
-                            >
-                                {tab.icon}
+                            `}
+                        >
+                            {tab.icon}
                                 <span className="text-lg">{tab.label}</span>
-                            </button>
-                        ))}
-                    </div>
+                        </button>
+                    ))}
                 </div>
+            </div>
 
-                {/* Right Content */}
+            {/* Right Content */}
                 <div className="flex-1 bg-background-primary p-8 md:p-10">
                     {activeTab === "premium" && (
                         <div className="space-y-12">
@@ -180,20 +181,39 @@ export default function Page() {
                                 <div className="bg-gradient-to-br from-background-secondary to-background-primary border border-border-primary rounded-2xl p-8">
                                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
                                         <div className="flex-shrink-0">
-                                            <div className="w-16 h-16 rounded-2xl bg-green-500/20 flex items-center justify-center">
-                                                <FaCheckCircle className="text-green-500 text-2xl" />
+                                            <div className={`w-16 h-16 rounded-2xl ${token ? 'bg-green-500/20' : 'bg-red-500/20'} flex items-center justify-center`}>
+                                                {token ? (
+                                                    <FaCheckCircle className="text-green-500 text-2xl" />
+                                                ) : (
+                                                    <FaTimesCircle className="text-red-500 text-2xl" />
+                                                )}
                                             </div>
                                         </div>
                                         
                                         <div className="flex-grow">
                                             <h4 className="text-xl font-semibold text-white mb-2">Trakt Integration</h4>
-                                            <p className="text-text-secondary">Your account is successfully connected to Trakt. This allows you to sync your watchlist and track your viewing progress.</p>
+                                            {token ? (
+                                                <p className="text-text-secondary">Your account is successfully connected to Trakt. This allows you to sync your watchlist and track your viewing progress.</p>
+                                            ) : (
+                                                <p className="text-text-secondary">Connect your Trakt account to sync your watchlist and track your viewing progress across devices.</p>
+                                            )}
                                         </div>
 
                                         <div className="flex-shrink-0">
-                                            <div className="px-4 py-2 bg-green-500/10 text-green-500 rounded-full text-sm font-medium">
-                                                Connected
-                                            </div>
+                                            {token ? (
+                                                <div className="px-4 py-2 bg-green-500/10 text-green-500 rounded-full text-sm font-medium">
+                                                    Connected
+                                                </div>
+                                            ) : (
+                                                <button
+                                                    onClick={() => {
+                                                        traktLogin();
+                                                    }}
+                                                    className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-full text-sm font-medium transition-colors"
+                                                >
+                                                    Connect Trakt
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

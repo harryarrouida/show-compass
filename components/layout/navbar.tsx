@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-import { RiBookmarkLine, RiLoginCircleLine, RiMenuLine, RiCloseLine, RiMailLine, RiLock2Line, RiGoogleFill, RiUser3Line, RiProfileFill} from "react-icons/ri";
+import { RiBookmarkLine, RiLoginCircleLine, RiMenuLine, RiCloseLine, RiMailLine, RiLock2Line, RiGoogleFill, RiUser3Line, RiProfileFill } from "react-icons/ri";
 import { SiTrakt } from 'react-icons/si';
 import { useTraktContext } from '@/contexts/traktContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,7 +50,7 @@ function AuthModal({ open, onClose }: { open: boolean, onClose: () => void }) {
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/100">
             <div className="bg-background-secondary rounded-lg shadow-lg w-full max-w-sm p-6 relative">
                 <button
                     className="absolute top-3 right-3 text-text-secondary hover:text-white"
@@ -134,9 +134,14 @@ export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [authModalOpen, setAuthModalOpen] = useState(false);
     const pathname = usePathname();
+    const token = localStorage.getItem('traktToken');
 
     // If user is logged in via account, show trakt/saved, else show login modal button
     const isAccountConnected = !!currentUser;
+
+    const handleTraktLogin = () => {
+        traktLogin();
+    };
 
     return (
         <>
@@ -159,13 +164,25 @@ export default function Navbar() {
                                         <RiBookmarkLine />
                                         <span>Saved</span>
                                     </Link>
-                                    <Link
-                                        href="/trakt"
-                                        className={`flex items-center gap-2 px-3 py-2 transition-colors hover:text-blue-400 ${pathname === '/trakt' ? 'text-blue-400 underline-offset-2 underline' : 'text-text-secondary'}`}
-                                    >
-                                        <SiTrakt />
-                                        <span>Trakt</span>
-                                    </Link>
+                                    {
+                                        token ? (
+                                            <Link
+                                                href={"/trakt"}
+                                                className={`flex items-center gap-2 px-3 py-2 transition-colors hover:text-blue-400 ${pathname === '/trakt' ? 'text-blue-400 underline-offset-2 underline' : 'text-text-secondary'}`}
+                                            >
+                                                <SiTrakt className="text-green-400" />
+                                                <span>Trakt</span>
+                                            </Link>
+                                        ) : (
+                                            <button
+                                                onClick={handleTraktLogin}
+                                                className={`flex items-center gap-2 px-3 py-2 transition-colors hover:text-blue-400 ${pathname === '/trakt' ? 'text-blue-400 underline-offset-2 underline' : 'text-text-secondary'}`}
+                                            >
+                                                <SiTrakt className="text-red-400" />
+                                                <span>Trakt</span>
+                                            </button>
+                                        )
+                                    }
                                     <Link
                                         href="/profile"
                                         className={`flex items-center gap-2 px-3 py-2 transition-colors hover:text-blue-400 ${pathname === '/profile' ? 'text-blue-400 underline-offset-2 underline' : 'text-text-secondary'}`}
