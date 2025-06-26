@@ -1,6 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode
+} from 'react';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -10,11 +16,12 @@ import {
   signInWithPopup,
   User
 } from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 
 import { auth, db } from '@/config/Firebase';
 import { useRouter } from 'next/navigation';
 
+// Context type definition
 type AuthContextType = {
   currentUser: User | null;
   loading: boolean;
@@ -22,10 +29,14 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<any>;
   logout: () => Promise<void>;
   googleSignIn: () => Promise<any>;
+  isPremium: boolean;
+  refreshPremiumStatus: () => Promise<boolean>;
 };
 
+// Create the AuthContext
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Custom hook to use AuthContext
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -42,12 +53,69 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isPremium, setIsPremium] = useState(false);
 
   const googleProvider = new GoogleAuthProvider();
 
+  /**
+   * Checks if the given user is a premium user by querying Firestore.
+   * 
+   * @param user - The Firebase user object.
+   * @returns Promise<boolean> indicating premium status.
+   */
+  const checkPremium = async (user: User): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (!userDoc.exists()) {
+        console.log("User document doesn't exist in Firestore");
+        return false;
+      }
+      
+      const userData = userDoc.data();
+      return userData?.isPremium === true;
+    } catch (error) {
+      console.error("Error checking premium status:", error);
+      return false;
+    }
+  };
+
+  /**
+   * Refreshes the user's premium status by checking Firestore.
+   * This can be called after a payment to update the UI.
+   * 
+   * @returns Promise<boolean> The updated premium status
+   */
+  const refreshPremiumStatus = async (): Promise<boolean> => {
+    if (!currentUser) return false;
+    
+    const status = await checkPremium(currentUser);
+    setIsPremium(status);
+    return status;
+  };
+
+  // Update isPremium state when currentUser changes
+  useEffect(() => {
+    if (!currentUser) {
+      setIsPremium(false);
+      return;
+    }
+    (async () => {
+      const premium = await checkPremium(currentUser);
+      setIsPremium(premium);
+    })();
+  }, [currentUser]);
+
+  /**
+   * Creates or updates a user document in Firestore.
+   * @param user - The Firebase user object.
+   */
   const createUserDocument = async (user: User) => {
     const userRef = doc(db, 'users', user.uid);
-    
+
     const userData = {
       uid: user.uid,
       email: user.email,
@@ -72,35 +140,56 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
+  /**
+   * Signs up a new user with email and password.
+   * @param email - User's email.
+   * @param password - User's password.
+   */
   const signup = async (email: string, password: string) => {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     await createUserDocument(result.user);
     return result;
   };
 
+  /**
+   * Logs in a user with email and password.
+   * @param email - User's email.
+   * @param password - User's password.
+   */
   const login = async (email: string, password: string) => {
     const result = await signInWithEmailAndPassword(auth, email, password);
     const userRef = doc(db, 'users', result.user.uid);
-    await setDoc(userRef, {
-      lastLoginAt: serverTimestamp()
-    }, { merge: true });
+    await setDoc(
+      userRef,
+      { lastLoginAt: serverTimestamp() },
+      { merge: true }
+    );
     return result;
   };
 
+  /**
+   * Logs out the current user and removes Trakt token from localStorage.
+   */
   const logout = () => {
-    return signOut(auth).then(() => {
-      localStorage.removeItem('trakt_token');
-    }).then(() => {
-      router.push('/');
-    });
+    return signOut(auth)
+      .then(() => {
+        localStorage.removeItem('trakt_token');
+      })
+      .then(() => {
+        router.push('/');
+      });
   };
 
+  /**
+   * Signs in a user with Google popup.
+   */
   const googleSignIn = async () => {
     const result = await signInWithPopup(auth, googleProvider);
     await createUserDocument(result.user);
     return result;
   };
 
+  // Listen for auth state changes and update currentUser and loading state
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
@@ -109,13 +198,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return unsubscribe;
   }, []);
 
+  // Context value
   const value: AuthContextType = {
     currentUser,
     loading,
     signup,
     login,
     logout,
-    googleSignIn
+    googleSignIn,
+    isPremium,
+    refreshPremiumStatus,
   };
 
   return (

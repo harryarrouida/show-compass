@@ -16,8 +16,8 @@ A movie and TV show recommendation platform with AI-powered suggestions and Trak
 
 ## Component Structure
 - `/app`: Next.js pages and routing
-  - `/(stripe)`: Stripe payment pages
-  - `/api/(stripe)`: Stripe API endpoints
+  - `/stripe`: Stripe payment pages
+  - `/api/stripe`: Stripe API endpoints
 - `/components`: Reusable UI components
 - `/services`: API integration services
 - `/context`: Global state management
@@ -27,7 +27,7 @@ A movie and TV show recommendation platform with AI-powered suggestions and Trak
 Required environment variables:
 - NEXT_PUBLIC_TMDB_API_KEY
 - NEXT_PUBLIC_TRAKT_CLIENT_ID
-- NEXT_PUBLIC_GROQ_API_KEY
+- GROQ_API_KEY
 - STRIPE_SECRET_KEY
 - STRIPE_WEBHOOK_SECRET
 - NEXT_PUBLIC_BASE_URL
@@ -37,6 +37,21 @@ The application includes Stripe integration for premium features:
 1. One-time payment of $9.99 for premium access
 2. Webhook for handling successful payments
 3. Success and failure pages for payment flow
+
+### Implementation Details
+- **Checkout Flow**: Users click "Upgrade Now" on the profile page, which creates a Stripe checkout session
+- **Webhook Handling**: When payment is successful, the Stripe webhook updates the user's premium status in Firestore
+- **Premium Status Check**: The AuthContext includes a `refreshPremiumStatus` function to verify premium status
+- **UI Updates**: The profile page displays different content based on the user's premium status
+
+### Database Structure
+Premium users are marked in Firestore with:
+```
+{
+  isPremium: true,
+  premiumPurchaseDate: "ISO date string"
+}
+```
 
 To test the Stripe integration:
 1. Create a Stripe account and get API keys

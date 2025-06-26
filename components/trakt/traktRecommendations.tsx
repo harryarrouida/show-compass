@@ -78,14 +78,14 @@ const TraktRecommendations = () => {
   const encryptValue = (value: string) => {
     return CryptoJS.AES.encrypt(
       value,
-      process.env.NEXT_PUBLIC_COOKIE_SECRET || "immakeepitsimple"
+      process.env.COOKIE_SECRET || "immakeepitsimple"
     ).toString();
   };
 
   const decryptValue = (encrypted: string) => {
     const bytes = CryptoJS.AES.decrypt(
       encrypted,
-      process.env.NEXT_PUBLIC_COOKIE_SECRET || "immakeepitsimple"
+      process.env.COOKIE_SECRET || "immakeepitsimple"
     );
     return bytes.toString(CryptoJS.enc.Utf8);
   };
@@ -304,8 +304,8 @@ const TraktRecommendations = () => {
       }
 
       const groq = new Groq({
-        apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
-        dangerouslyAllowBrowser: true,
+        apiKey: process.env.GROQ_API_KEY
+        // dangerouslyAllowBrowser: true,
       });
 
       const prompt = fromWatchlist

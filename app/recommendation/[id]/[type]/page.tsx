@@ -91,8 +91,8 @@ export default function RecommendationPage() {
 
           try {
             const groq = new Groq({
-              apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY!,
-              dangerouslyAllowBrowser: true,
+              apiKey: process.env.GROQ_API_KEY!,
+              // dangerouslyAllowBrowser: false,
             });
 
             const completion = await groq.chat.completions.create({
@@ -209,8 +209,8 @@ export default function RecommendationPage() {
     setIsAiLoading(true);
     try {
       const groq = new Groq({
-        apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
-        dangerouslyAllowBrowser: true,
+        apiKey: process.env.GROQ_API_KEY,
+        // dangerouslyAllowBrowser: true,
       });
       const completion = await groq.chat.completions.create({
         messages: [

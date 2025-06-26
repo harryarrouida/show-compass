@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react";
-import { FaCrown, FaUserCircle, FaSignOutAlt, FaCheckCircle, FaStar, FaFilm, FaTv, FaRocket, FaTimesCircle } from "react-icons/fa";
+import { FaCrown, FaUserCircle, FaSignOutAlt, FaCheckCircle, FaStar, FaFilm, FaTv, FaRocket, FaTimesCircle, FaShieldAlt } from "react-icons/fa";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTraktContext } from "@/contexts/traktContext";
 import { useRouter } from "next/navigation";
@@ -36,26 +36,26 @@ const premiumFeatures = [
         description: "Control the recommendations based on your preferences"
     },
     {
-        icon: <FaFilm className="text-blue-400" />,
-        title: "Unlimited Recommendations",
-        description: "Get unlimited AI-powered movie and TV show recommendations"
+        icon: <FaShieldAlt className="text-blue-400" />,
+        title: "Priority Support",
+        description: "Get priority customer support for any questions or issues"
     },
     {
-        icon: <FaTv className="text-blue-400" />,
-        title: "Ad-Free Experience",
-        description: "Enjoy an ad-free browsing experience across the entire platform"
+        icon: <FaStar className="text-blue-400" />,
+        title: "Exclusive Content",
+        description: "Access to exclusive content and early feature releases"
     },
     {
         icon: <FaRocket className="text-blue-400" />,
-        title: "Advanced Filters",
-        description: "Control the recommendations based on your preferences"
+        title: "Enhanced Recommendations",
+        description: "Get more accurate and personalized recommendations"
     }
 ];
 
 export default function Page() {
     const [activeTab, setActiveTab] = useState("premium");
     const [isLoading, setIsLoading] = useState(false);
-    const { currentUser, logout: authLogout } = useAuth();
+    const { currentUser, logout: authLogout, isPremium } = useAuth();
     const { logout: traktLogout, login: traktLogin } = useTraktContext();
     const router = useRouter();
     const token = typeof window !== 'undefined' ? localStorage.getItem('traktToken') : null;
@@ -84,6 +84,7 @@ export default function Page() {
                 },
                 body: JSON.stringify({
                     userId: currentUser.uid,
+                    email: currentUser.email,
                 }),
             });
 
@@ -137,13 +138,32 @@ export default function Page() {
                     {activeTab === "premium" && (
                         <div className="space-y-12">
                             {/* Premium Card */}
-                            <div className="bg-gradient-to-br from-blue-900 to-background-secondary rounded-xl overflow-hidden shadow-xl border border-border-primary">
+                            <div className={`bg-gradient-to-br ${isPremium ? 'from-yellow-800 to-background-secondary' : 'from-blue-900 to-background-secondary'} rounded-xl overflow-hidden shadow-xl border ${isPremium ? 'border-yellow-500/30' : 'border-border-primary'}`}>
                                 <div className="p-8 md:p-10">
                                     <div className="flex items-center mb-6">
                                         <FaCrown className="text-yellow-400 text-4xl mr-4" />
-                                        <h2 className="text-3xl font-bold text-white">One lifetime payment</h2>
+                                        <h2 className="text-3xl font-bold text-white">
+                                            {isPremium ? "Premium Member" : "One lifetime payment"}
+                                        </h2>
                                     </div>
 
+                                    {isPremium ? (
+                                        <div>
+                                            <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-4 mb-6">
+                                                <div className="flex items-center gap-3">
+                                                    <FaCheckCircle className="text-green-400 text-xl" />
+                                                    <span className="text-white font-medium">
+                                                        You have full access to all premium features!
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <p className="text-text-secondary text-lg">
+                                                Thank you for supporting Show Compass. Enjoy unlimited recommendations, 
+                                                ad-free experience, and all premium features.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <>
                                     <p className="text-text-secondary text-lg mb-8">
                                         Unlock the full potential of Show Compass with our premium subscription.
                                         Get unlimited recommendations, ad-free experience, and more.
@@ -155,37 +175,54 @@ export default function Page() {
                                             <div className="text-text-secondary text-base">one time payment</div>
                                         </div>
 
-                                        <button 
-                                            onClick={handleCheckout}
-                                            disabled={isLoading}
-                                            className={`px-8 py-4 ${isLoading ? 'bg-blue-400' : 'bg-blue-500 hover:bg-blue-600'} text-white font-semibold rounded-lg transition-colors w-full sm:w-auto flex items-center justify-center gap-3 text-lg`}
-                                        >
-                                            {isLoading ? (
-                                                <>Processing...</>
-                                            ) : (
-                                                <>
-                                                    <FaStar className="text-yellow-300" />
-                                                    Upgrade Now
-                                                </>
-                                            )}
+                                                <button 
+                                                    onClick={handleCheckout}
+                                                    disabled={isLoading}
+                                                    className={`px-8 py-4 ${isLoading ? 'bg-blue-400' : 'bg-blue-500 hover:bg-blue-600'} text-white font-semibold rounded-lg transition-colors w-full sm:w-auto flex items-center justify-center gap-3 text-lg`}
+                                                >
+                                                    {isLoading ? (
+                                                        <>Processing...</>
+                                                    ) : (
+                                                        <>
+                                            <FaStar className="text-yellow-300" />
+                                            Upgrade Now
+                                                        </>
+                                                    )}
                                         </button>
                                     </div>
+                                        </>
+                                    )}
                                 </div>
                             </div>
 
                             {/* Premium Features */}
                             <div>
-                                <h3 className="text-2xl font-semibold text-white mb-6">Premium Features</h3>
+                                <h3 className="text-2xl font-semibold text-white mb-6">
+                                    {isPremium ? "Your Premium Features" : "Premium Features"}
+                                </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     {premiumFeatures.map((feature, index) => (
-                                        <div key={index} className="bg-background-secondary rounded-xl p-6 border border-border-primary hover:border-blue-500/50 transition-colors">
+                                        <div 
+                                            key={index} 
+                                            className={`${
+                                                isPremium 
+                                                    ? 'bg-background-secondary border-yellow-500/30 hover:border-yellow-500/50' 
+                                                    : 'bg-background-secondary border-border-primary hover:border-blue-500/50'
+                                            } rounded-xl p-6 border transition-colors`}
+                                        >
                                             <div className="flex items-center mb-4">
-                                                <div className="p-3 bg-background-primary rounded-lg mr-4">
+                                                <div className={`p-3 bg-background-primary rounded-lg mr-4 ${isPremium ? 'text-yellow-400' : ''}`}>
                                                     {feature.icon}
                                                 </div>
                                                 <h4 className="font-semibold text-lg text-white">{feature.title}</h4>
                                             </div>
                                             <p className="text-text-secondary text-base">{feature.description}</p>
+                                            {isPremium && (
+                                                <div className="mt-4 flex items-center text-green-400 text-sm">
+                                                    <FaCheckCircle className="mr-2" />
+                                                    <span>Active</span>
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -200,7 +237,7 @@ export default function Page() {
                                 <div className="w-20 h-20 rounded-full bg-background-primary flex items-center justify-center text-3xl font-bold text-blue-400">
                                     {currentUser?.email?.charAt(0).toUpperCase() || "U"}
                                 </div>
-                                <div>
+                                <div className="flex-grow">
                                     <div className="font-semibold text-xl text-white">
                                         {currentUser?.displayName || "User"}
                                     </div>
@@ -208,6 +245,14 @@ export default function Page() {
                                         {currentUser?.email || "user@example.com"}
                                     </div>
                                 </div>
+                                {isPremium && (
+                                    <div className="flex-shrink-0">
+                                        <div className="px-4 py-2 bg-yellow-500/10 text-yellow-500 rounded-full text-sm font-medium flex items-center gap-1">
+                                            <FaCrown className="text-yellow-400" />
+                                            Premium
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Account Management */}

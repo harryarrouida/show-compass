@@ -35,7 +35,9 @@ export default function FailurePage() {
         <h1 className="text-3xl font-bold text-white mb-4">Payment Failed</h1>
         
         <p className="text-text-secondary mb-8">
-          Your payment could not be processed. Please try again or contact support if the issue persists.
+          Your payment could not be processed. This could be due to insufficient funds, 
+          card restrictions, or the payment was canceled. Please try again using a different 
+          payment method or contact support if the issue persists.
         </p>
 
         <div className="flex flex-col gap-4">

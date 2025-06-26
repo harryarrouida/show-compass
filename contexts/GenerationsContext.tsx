@@ -14,7 +14,7 @@ const GenerationsContext = createContext<GenerationsContextType | undefined>(und
 
 const DAILY_LIMIT = 5;
 const STORAGE_KEY = 'lastGenerationReset';
-const ENCRYPTION_KEY = process.env.NEXT_PUBLIC_ENCRYPTION_KEY || 'wellthisistoosimple';
+const ENCRYPTION_KEY = process.env.APP_ENCRYPTION_KEY || 'wellthisistoosimple';
 
 const encrypt = (text: string) => {
   return CryptoJS.AES.encrypt(text, ENCRYPTION_KEY).toString();
