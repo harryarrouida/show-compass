@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FaCrown, FaUserCircle, FaSignOutAlt, FaCheckCircle, FaStar, FaFilm, FaTv, FaRocket, FaTimesCircle } from "react-icons/fa";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTraktContext } from "@/contexts/traktContext";
+import { useRouter } from "next/navigation";
 
 const tabs = [
     {
@@ -53,9 +54,11 @@ const premiumFeatures = [
 
 export default function Page() {
     const [activeTab, setActiveTab] = useState("premium");
+    const [isLoading, setIsLoading] = useState(false);
     const { currentUser, logout: authLogout } = useAuth();
     const { logout: traktLogout, login: traktLogin } = useTraktContext();
-    const token = localStorage.getItem('traktToken');
+    const router = useRouter();
+    const token = typeof window !== 'undefined' ? localStorage.getItem('traktToken') : null;
 
     const handleLogout = async () => {
         try {
@@ -63,6 +66,38 @@ export default function Page() {
             traktLogout();
         } catch (error) {
             console.error("Logout failed:", error);
+        }
+    };
+
+    const handleCheckout = async () => {
+        if (!currentUser) {
+            // Redirect to login or show message
+            return;
+        }
+
+        try {
+            setIsLoading(true);
+            const response = await fetch('/api/stripe/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    userId: currentUser.uid,
+                }),
+            });
+
+            const { url } = await response.json();
+            
+            if (url) {
+                window.location.href = url;
+            } else {
+                console.error('No checkout URL returned');
+                setIsLoading(false);
+            }
+        } catch (error) {
+            console.error('Error creating checkout session:', error);
+            setIsLoading(false);
         }
     };
 
@@ -120,9 +155,19 @@ export default function Page() {
                                             <div className="text-text-secondary text-base">one time payment</div>
                                         </div>
 
-                                        <button className="px-8 py-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg transition-colors w-full sm:w-auto flex items-center justify-center gap-3 text-lg">
-                                            <FaStar className="text-yellow-300" />
-                                            Upgrade Now
+                                        <button 
+                                            onClick={handleCheckout}
+                                            disabled={isLoading}
+                                            className={`px-8 py-4 ${isLoading ? 'bg-blue-400' : 'bg-blue-500 hover:bg-blue-600'} text-white font-semibold rounded-lg transition-colors w-full sm:w-auto flex items-center justify-center gap-3 text-lg`}
+                                        >
+                                            {isLoading ? (
+                                                <>Processing...</>
+                                            ) : (
+                                                <>
+                                                    <FaStar className="text-yellow-300" />
+                                                    Upgrade Now
+                                                </>
+                                            )}
                                         </button>
                                     </div>
                                 </div>
