@@ -3,7 +3,6 @@ import { RiRobot2Line } from "react-icons/ri";
 import { IoChevronForwardOutline, IoFilterOutline } from "react-icons/io5";
 import { IoChevronDownOutline, IoChevronUpOutline } from "react-icons/io5";
 import { useTraktContext } from "@/contexts/traktContext";
-import Groq from "groq-sdk";
 import { search } from "@/services/content/sharedServices";
 import { useHistory } from "@/contexts/historyContext";
 import {
@@ -18,6 +17,7 @@ import CryptoJS from "crypto-js";
 import Card from "@/components/shared/ui/Card";
 import { useGenerations } from "@/contexts/GenerationsContext";
 import CardSkeleton from "../shared/loaders/CardSkeleton";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Main component for AI-powered movie/show recommendations based on Trakt.tv data
 type MediaType = "movies" | "shows";
@@ -38,6 +38,7 @@ const TraktRecommendations = () => {
   );
   const [generateDisabled, setGenerateDisabled] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [userData, setUserData] = useState<any>(null);
 
   // UI state management
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
@@ -48,6 +49,7 @@ const TraktRecommendations = () => {
   const [fromWatchlist, setFromWatchlist] = useState<boolean>(false);
   const [watchlist, setWatchlist] = useState<any[]>([]);
   const [seen, setSeen] = useState<string[]>([]);
+  const { currentUser, isPremium, getUserData, updateUserRecStats } = useAuth();
 
   const { generationsLeft, useGeneration: markGenerationUsed } =
     useGenerations();
@@ -75,6 +77,11 @@ const TraktRecommendations = () => {
   const [showStatus, setShowStatus] = useState<ShowStatus>("both");
   const [minimumRating, setMinimumRating] = useState<number>(0);
 
+  // Constants for limits
+  const FREE_DAILY_LIMIT = 5;
+  const FREE_COOLDOWN = 3 * 60; // 3 minutes in seconds
+  const PREMIUM_COOLDOWN = 1.5 * 60; // 1.5 minutes in seconds
+
   const encryptValue = (value: string) => {
     return CryptoJS.AES.encrypt(
       value,
@@ -89,6 +96,16 @@ const TraktRecommendations = () => {
     );
     return bytes.toString(CryptoJS.enc.Utf8);
   };
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      if (currentUser) {
+        const data = await getUserData();
+        setUserData(data);
+      }
+    };
+    loadUserData();
+  }, [currentUser, getUserData]);
 
   useEffect(() => {
     const encryptedTimeout = Cookies.get("recommendationTimeout");
@@ -122,7 +139,6 @@ const TraktRecommendations = () => {
           setTimeRemaining(0);
         }
       } catch (error) {
-        // Handle invalid/tampered cookie
         Cookies.remove("recommendationTimeout");
         setGenerateDisabled(false);
         setTimeRemaining(0);
@@ -204,8 +220,8 @@ const TraktRecommendations = () => {
           item.media.vote_average >= 8
             ? "high"
             : item.media.vote_average >= 6
-            ? "medium"
-            : "low";
+              ? "medium"
+              : "low";
         acc[ratingKey] = (acc[ratingKey] || 0) + 1;
       }
       return acc;
@@ -265,19 +281,37 @@ const TraktRecommendations = () => {
     return prompt;
   };
 
+  // Start countdown timer
+  const startCooldownTimer = (seconds: number) => {
+    setGenerateDisabled(true);
+    setTimeRemaining(seconds);
+
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setGenerateDisabled(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return timer;
+  };
+
   // Main function to handle recommendation generation
   const handleRecommendations = async () => {
-    if (generateDisabled) {
-      setError(
-        `Please wait ${Math.ceil(timeRemaining / 60)} minutes and ${
-          timeRemaining % 60
-        } seconds before generating new recommendations`
-      );
+    if (!currentUser) {
+      setError("Please log in to generate recommendations");
       return;
     }
 
-    if (generationsLeft <= 0) {
-      setError("You have no generations left for today");
+    if (generateDisabled) {
+      setError(
+        `Please wait ${Math.ceil(timeRemaining / 60)} minutes and ${timeRemaining % 60
+        } seconds before generating new recommendations`
+      );
       return;
     }
 
@@ -294,61 +328,51 @@ const TraktRecommendations = () => {
             ? watchedMoviesCache
             : await getUserWatchedMovies()
           : watchedShowsCache.length > 0
-          ? watchedShowsCache
-          : await getUserWatchedShows();
-
-      // console.log(`Total ${mediaType} watched:`, watchedContent.length);
+            ? watchedShowsCache
+            : await getUserWatchedShows();
 
       if (!watchedContent || watchedContent.length === 0) {
         throw new Error(`No watched ${mediaType} found in your history`);
       }
 
-      const groq = new Groq({
-        apiKey: process.env.GROQ_API_KEY
-        // dangerouslyAllowBrowser: true,
-      });
-
       const prompt = fromWatchlist
-        ? await generatePromptFromWatchlist(
-            mediaType,
-            watchedContent,
-            watchlist
-          )
+        ? await generatePromptFromWatchlist(mediaType, watchedContent, watchlist)
         : await generatePrompt(mediaType, watchedContent);
 
       if (!prompt) {
         throw new Error("Failed to generate prompt");
       }
 
-      // console.log("Generated Prompt:", prompt);
-
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: `
-            You are a movie and TV show recommendation assistant. You will receive user input details and generate personalized recommendations. 
-            - Your responses MUST only be in valid JSON format.
-            `,
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        model: "llama-3.3-70b-versatile", // Best model
-        // model: "mixtral-8x7b-32768", // alternative model
-        temperature: 0.4, // Balanced creativity and relevance
-        top_p: 0.7, // Ensures diversity in recommendations
-        max_tokens: 4096, // Sufficient for 8-10 recommendations
-        response_format: { type: "json_object" }, // Enforces JSON output
-      });
-
-      const response = completion.choices[0]?.message?.content || "";
+      // Get the Firebase ID token
+      const token = await currentUser.getIdToken();
 
       try {
-        const parsed = cleanAndParseResponse(response);
+        console.log("Prompt:", prompt);
+        const response = await fetch("/api/groq", {
+          method: "POST",
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ prompt }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          if (response.status === 429) {
+            // Rate limit error
+            if (errorData.remainingTime) {
+              startCooldownTimer(errorData.remainingTime);
+            }
+            throw new Error(errorData.error);
+          }
+          throw new Error(errorData.error || "Failed to fetch recommendations");
+        }
+
+        const data = await response.json();
+        const parsed = cleanAndParseResponse(data.response);
         setRecommendations(parsed.recommendations);
+
         const recommendationsDetails = await Promise.all(
           parsed.recommendations.map(async (rec: any) => {
             try {
@@ -381,39 +405,22 @@ const TraktRecommendations = () => {
         }
         setRecommendationsDetails(validRecommendations);
 
-        // Only set timeout and use generation if recommendations were successful
-        setGenerateDisabled(true);
-        const timeoutEnd = Date.now() + 3 * 60 * 1000;
-        const encryptedTimeout = encryptValue(timeoutEnd.toString());
-        Cookies.set("recommendationTimeout", encryptedTimeout, {
-          expires: 1 / 480,
-        }); // expires in 3 minutes
-        setTimeRemaining(180); // 3 minutes in seconds
+        // Start cooldown timer with the server-provided cooldown time
+        if (data.cooldownSeconds) {
+          startCooldownTimer(data.cooldownSeconds);
+        }
 
-        const timer = setInterval(() => {
-          setTimeRemaining((prev) => {
-            if (prev <= 1) {
-              clearInterval(timer);
-              setGenerateDisabled(false);
-              Cookies.remove("recommendationTimeout");
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-
-        markGenerationUsed();
       } catch (error: any) {
         console.error("Recommendation processing error:", error);
         throw new Error(
-          `Failed to process recommendations: ${error?.message as string}`
+          error.message || "Failed to process recommendations"
         );
       }
     } catch (error: any) {
       console.error("Error generating recommendations:", error);
       setError(
         error.message ||
-          "An unexpected error occurred while generating recommendations"
+        "An unexpected error occurred while generating recommendations"
       );
       setRecommendations([]);
       setRecommendationsDetails([]);
@@ -474,8 +481,9 @@ const TraktRecommendations = () => {
                 AI-Powered Recommendations
               </h2>
               <p className="text-zinc-400 text-xs sm:text-sm mt-0.5 sm:mt-1">
-                Discover your next favorite based on your unique taste (
-                {generationsLeft} generations left)
+                {!isPremium
+                  ? "Free user - 5 recommendations per day"
+                  : "Premium user - Unlimited recommendations"}
               </p>
             </div>
           </div>
@@ -532,22 +540,20 @@ const TraktRecommendations = () => {
                   <button
                     onClick={() => setFromWatchlist(!fromWatchlist)}
                     className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
-                              ${
-                                fromWatchlist
-                                  ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
-                                  : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
-                              }`}
+                              ${fromWatchlist
+                        ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
+                        : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
+                      }`}
                   >
                     {fromWatchlist ? "From Watchlist" : "General"}
                   </button>
                   <button
                     onClick={() => setAnimeOnly(!animeOnly)}
                     className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
-                              ${
-                                animeOnly
-                                  ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
-                                  : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
-                              }`}
+                              ${animeOnly
+                        ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
+                        : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
+                      }`}
                   >
                     {animeOnly ? "Anime Only" : `All ${mediaType}`}
                   </button>
@@ -588,7 +594,7 @@ const TraktRecommendations = () => {
           </div>
 
           {/* Advanced Filters Section */}
-          {/* <div className="mt-4 border-t border-zinc-800/50 pt-4">
+          <div className="mt-4 border-t border-zinc-800/50 pt-4">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
               className="w-full flex items-center justify-between text-zinc-300 text-sm hover:text-white transition-colors px-2"
@@ -674,7 +680,7 @@ const TraktRecommendations = () => {
                 </div>
               </div>
             )}
-          </div> */}
+          </div>
         </div>
       </Card>
 

@@ -6,8 +6,6 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { RecommendationModal } from "@/components/AIRecommendations/RecommendationModal";
 import { RecommendationCard } from "@/components/AIRecommendations/RecommendationCard";
-import SmallLoader from "@/components/shared/loaders/smallLoader";
-import Card from "@/components/shared/ui/Card";
 import CardSkeleton from "../shared/loaders/CardSkeleton";
 
 interface AIRecommendationsProps {
