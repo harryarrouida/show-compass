@@ -4,6 +4,15 @@ import Stripe from 'stripe';
 /**
  * Initialize Stripe with the server-side secret key
  */
+
+if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not defined');
+}
+
+if (!process.env.STRIPE_PREMIUM_PRICE_ID) {
+    throw new Error('STRIPE_PREMIUM_PRICE_ID is not defined');
+}
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-05-28.basil',
 });

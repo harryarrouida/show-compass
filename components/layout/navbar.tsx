@@ -9,12 +9,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
 
 function AuthModal({ open, onClose }: { open: boolean, onClose: () => void }) {
-    const { login, signup, googleSignIn } = useAuth();
+    const { login, signup, googleSignIn, isPremium} = useAuth();
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -130,7 +131,7 @@ function AuthModal({ open, onClose }: { open: boolean, onClose: () => void }) {
 
 export default function Navbar() {
     const { isAuthenticated: isTraktAuthenticated, login: traktLogin } = useTraktContext();
-    const { currentUser } = useAuth();
+    const { currentUser, isPremium } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [authModalOpen, setAuthModalOpen] = useState(false);
     const pathname = usePathname();
@@ -189,6 +190,12 @@ export default function Navbar() {
                                     >
                                         <RiUser3Line />
                                         <span>Profile</span>
+                                        {isPremium && (
+                                            <span className="ml-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 text-xs font-bold text-white shadow border border-yellow-300 animate-pulse">
+                                                <svg width="16" height="16" fill="currentColor" className="inline-block mr-1 text-yellow-200"><circle cx="8" cy="8" r="7" stroke="gold" strokeWidth="2" fill="gold" /></svg>
+                                                Premium
+                                            </span>
+                                        )}
                                     </Link>
                                 </>
                             ) : (

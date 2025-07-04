@@ -27,6 +27,7 @@ import {
   RiChat1Line,
 } from "react-icons/ri";
 import { BsChatDots } from "react-icons/bs";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function RecommendationPage() {
   const [details, setDetails] = useState<ShowDetails | MovieDetails | null>(
@@ -47,6 +48,8 @@ export default function RecommendationPage() {
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  const {currentUser, isPremium} = useAuth();
+  
   useEffect(() => {
     const hasVisited = localStorage.getItem("hasVisitedRecommendations");
     if (!hasVisited && initialLoadComplete) {
@@ -90,42 +93,23 @@ export default function RecommendationPage() {
           setIsAiLoading(true);
 
           try {
-            const groq = new Groq({
-              apiKey: process.env.GROQ_API_KEY!,
-              // dangerouslyAllowBrowser: false,
+            const response = await fetch(`/api/groq/based-rec`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                mediaDetails,
+                type,
+              }),
             });
 
-            const completion = await groq.chat.completions.create({
-              messages: [
-                {
-                  role: "system",
-                  content: `You are a helpful assistant that provides recommendations. Your responses must be valid JSON with a 'recommendations' array containing objects with 'title' and 'reason' fields. The JSON must be complete and properly formatted. Example format:
-                  {
-                    "recommendations": [
-                      {
-                        "title": "Movie Title",
-                        "reason": "Reason for recommendation"
-                      }
-                    ]
-                  }`,
-                },
-                {
-                  role: "user",
-                  content: generateDefaultPrompt(
-                    mediaDetails as any,
-                    type as string
-                  ),
-                },
-              ],
-              model: "llama-3.1-8b-instant",
-              temperature: 0.2,
-              max_tokens: 1000,
-              response_format: { type: "json_object" },
-            });
+            console.log(response);
+            if (!response.ok) {
+              throw new Error("Failed to fetch recommendations");
+            }
 
-            const response = completion.choices[0]?.message?.content || "";
-            const cleanResponse = response.trim();
-            const parsed = JSON.parse(cleanResponse);
+            const parsed = await response.json();
 
             if (
               !parsed ||
@@ -208,48 +192,27 @@ export default function RecommendationPage() {
     e.preventDefault();
     setIsAiLoading(true);
     try {
-      const groq = new Groq({
-        apiKey: process.env.GROQ_API_KEY,
-        // dangerouslyAllowBrowser: true,
-      });
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: `You are a JSON-only response bot. Always respond with valid JSON matching this exact format:
-            {
-              "recommendations": [
-                {
-                  "title": "Movie Title",
-                  "reason": "Reason for recommendation"
-                }
-              ]
-            }`,
-          },
-          {
-            role: "user",
-            content: generateCustomPrompt(
-              details as any,
-              type as string,
-              prompt,
-              8
-            ),
-          },
-        ],
-        // model: "mixtral-8x7b-32768",
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.1,
-        top_p: 0.1,
-        max_tokens: 4096,
-        response_format: { type: "json_object" },
-      });
+      const userToken = currentUser ? await currentUser.getIdToken() : null;
 
-      const response = completion.choices[0]?.message?.content || "";
+      const response = await fetch(`/api/groq/refine-rec`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(userToken ? { Authorization: `Bearer ${userToken}` } : {}),
+        },
+        body: JSON.stringify({
+          details,
+          type,
+          prompt,
+        }),
+      });
+      console.log("AI response received:", response);
+      if (!response.ok) {
+        throw new Error("Failed to fetch refined recommendations");
+      }
+      const parsed = await response.json();
 
       try {
-        const cleanResponse = response.trim();
-        const parsed = JSON.parse(cleanResponse);
-
         if (
           !parsed ||
           !parsed.recommendations ||

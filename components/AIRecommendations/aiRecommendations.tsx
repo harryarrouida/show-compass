@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { RecommendationModal } from "@/components/AIRecommendations/RecommendationModal";
 import { RecommendationCard } from "@/components/AIRecommendations/RecommendationCard";
 import CardSkeleton from "../shared/loaders/CardSkeleton";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AIRecommendationsProps {
   isAiLoading: boolean;
@@ -39,6 +40,8 @@ export default function AIRecommendations({
     setIsDefaultRecs(!pathname?.includes("recommendation"));
   }, [pathname]);
 
+  const { currentUser, isPremium } = useAuth();
+
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -46,14 +49,19 @@ export default function AIRecommendations({
         <h2 className="text-lg font-medium text-zinc-200">
           Similar Recommendations
         </h2>
-        {!isDefaultRecs && (
-          <button
-            onClick={toggleChat}
-            className="text-sm text-zinc-400 hover:text-blue-400 transition-colors"
-          >
-            {showChat ? "Hide Chat" : "Refine Results"}
-          </button>
-        )}
+        {!isDefaultRecs &&
+          (isPremium ? (
+            <button
+              onClick={toggleChat}
+              className="text-sm text-zinc-400 hover:text-blue-400 transition-colors"
+            >
+              {showChat ? "Hide Chat" : "Refine Results"}
+            </button>
+          ) : (
+            <span className="text-sm text-zinc-400">
+              Free User: upgrade to refine results
+            </span>
+          ))}
       </div>
 
       {/* Chat Input Section */}

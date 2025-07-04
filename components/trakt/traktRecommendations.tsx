@@ -348,7 +348,7 @@ const TraktRecommendations = () => {
 
       try {
         console.log("Prompt:", prompt);
-        const response = await fetch("/api/groq", {
+        const response = await fetch("/api/groq/trakt-rec", {
           method: "POST",
           headers: {
             'Authorization': `Bearer ${token}`,

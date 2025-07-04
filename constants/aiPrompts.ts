@@ -1,67 +1,99 @@
-// COMPLETE RECOMMENDATION SYSTEM - ALL 4 PROMPT TYPES
+// Assuming analyzeViewingPatterns eventually provides this structure
+interface WatchedTitleWithRating {
+  title: string;
+  overview: string;
+  userRating?: number; // Added for explicit user rating
+}
 
-// ===== 1. GENERAL RECOMMENDATIONS (from all available content) =====
-export const generateTraktRecommendationsPrompt = (
-  watchedTitles: Array<{ title: string; overview: string }>,
+// ===== HELPER FUNCTIONS =====
+
+// Extract user's core preferences efficiently
+const extractUserEssentials = (
+  watchedTitles: Array<WatchedTitleWithRating>, // Now expecting userRating
   favoriteGenres: string[],
-  decadePreferences: any,
-  ratingDistribution: any,
-  seen: string[],
+  ratingDistribution: { high?: number; medium?: number; low?: number } // Assuming these are counts
+) => {
+  // Get top 3 genres
+  const topGenres = favoriteGenres.slice(0, 3);
+
+  // Get highest rated titles: PRIORITIZE titles with explicit userRating
+  // If userRating is present, sort by it. Otherwise, use what's provided, assuming some preference order.
+  const highestRated = watchedTitles
+    .filter(title => title.title && title.overview)
+    .sort((a, b) => (b.userRating || 0) - (a.userRating || 0)) // Sort by userRating, highest first
+    .slice(0, 5); // Top 5 for context
+
+  // Simple preference indicators based on rating distribution counts
+  let qualityLevel = "generally good"; // Default
+  if (ratingDistribution) {
+    const { high = 0, medium = 0, low = 0 } = ratingDistribution;
+    if (high > medium && high > low) {
+      qualityLevel = "high-quality, critically acclaimed, and deeply satisfying";
+    } else if (medium > high && medium > low) {
+      qualityLevel = "solid, consistently enjoyable, and well-made";
+    } else if (low > high && low > medium) {
+      qualityLevel = "diverse and entertaining (even if not always highly rated)";
+    }
+  }
+
+  return { topGenres, highestRated, qualityLevel };
+};
+
+// ===== 1. GENERAL RECOMMENDATIONS (USER HISTORY-BASED) =====
+export const generateTraktRecommendationsPrompt = (
+  watchedTitles: Array<WatchedTitleWithRating>, // Now expecting userRating for better highestRated
+  favoriteGenres: string[],
+  decadePreferences: any, // Potentially integrate this into prompt later if useful
+  ratingDistribution: { high?: number; medium?: number; low?: number },
+  seenTitles: string[], // Renamed from 'seen' for clarity
   type: string,
   numRecommendations: number,
   animeOnly: boolean,
   lengthPreference?: "short" | "medium" | "long",
   episodeCount?: { min?: number; max?: number },
   status?: "ongoing" | "completed" | "both",
-  minimumRating?: number
+  minimumRating?: number // Assuming this is a global rating (e.g., TMDB average)
 ) => {
-  const tasteProfile = analyzeTasteProfile(watchedTitles, favoriteGenres, ratingDistribution);
-  
-  return `You are an expert media analyst. Generate ${numRecommendations} ${type}${
-    animeOnly ? " anime" : ""
-  } recommendations based on deep taste analysis.
+  const { topGenres, highestRated, qualityLevel } = extractUserEssentials(watchedTitles, favoriteGenres, ratingDistribution);
 
-TASTE PROFILE ANALYSIS:
-${tasteProfile}
+  const ex = watchedTitles.length
+    ? `• **CRITICAL: NEVER recommend any of the following titles, as the user has already watched them:** ${watchedTitles.map(t => `"${t.title}"`).join(", ")}.` // Emphasize avoidance even more
+    : "";
 
-PREFERENCE CONSTRAINTS:
-- Primary genres of interest: ${favoriteGenres.join(", ")}
-- Preferred time periods: ${JSON.stringify(decadePreferences)}
-- Rating patterns: ${JSON.stringify(ratingDistribution)}${
-  lengthPreference ? `\n- Content length preference: ${lengthPreference}` : ""
-}${episodeCount ? `\n- Episode range: ${JSON.stringify(episodeCount)}` : ""}${
-  status ? `\n- Series status: ${status}` : ""
-}${minimumRating ? `\n- Minimum quality threshold: ${minimumRating}` : ""}
+  return `You are an expert recommendation engine. Generate ${numRecommendations} ${type}${animeOnly ? " anime" : ""} recommendations that will give the user the same **emotional satisfaction and overall viewing experience** as their favorite content.
 
-EXCLUSIONS: ${watchedTitles.map((t) => t.title).join(", ")}
+USER'S TASTE PROFILE:
+• Favorite genres: ${topGenres.join(", ")}
+• Quality preference: Prefers ${qualityLevel} content.
 
-INSTRUCTIONS:
-- Analyze the taste profile to understand storytelling preferences, thematic interests, and narrative complexity
-- Recommend content that matches the psychological and emotional resonance patterns
-- Focus on WHY content appeals based on core taste elements, not surface-level similarities
-- Avoid direct comparisons to specific watched content
-- Emphasize narrative depth, character development style, thematic resonance, and emotional tone
+CONSTRAINTS (Adhere to all applicable constraints strictly):
+${ex}
+• **Ensure all recommendations are diverse; do not recommend variations of the same title or repeatedly reference a single favorite in your reasons.**
 
-JSON Response Format:
+RECOMMENDATION STRATEGY:
+Find content that delivers the same **emotional payoff and viewing satisfaction** as their favorites. Focus on "if you loved X, you'll love Y because it offers a similar [emotional tone/narrative style/viewing experience]."
+• **IMPORTANT: Reasons should ONLY refer to the user's overall taste profile and preferences, NOT compare the recommendation to a specific watched title.**
+
+JSON FORMAT:
 {
   "recommendations": [
     {
       "title": "Title Name",
-      "reason": "Concise explanation of why this matches the user's core taste profile - focus on thematic elements, narrative style, emotional depth, and story structure that align with their preferences."
+      "reason": "Brief, compelling explanation of why this specifically delivers similar emotional payoff and viewing experience, based on the user's overall taste profile, distinct from other recommendations."
     }
   ]
 }
 
-Return ONLY valid JSON.`;
+Return ONLY valid JSON. Do not include any other text, preambles, or explanations.`;
 };
 
-// ===== 2. WATCHLIST RECOMMENDATIONS (prioritized from user's existing watchlist) =====
+// ===== 2. WATCHLIST RECOMMENDATIONS (SELECT FROM WATCHLIST) =====
 export const generateWatchlistPrompt = (
-  ratingDistribution: any,
-  decadePreferences: any,
-  favoriteGenres: any,
-  watchedTitles: Array<{ title: string; overview: string }>,
-  watchlist: Array<{ title: string }>,
+  ratingDistribution: { high?: number; medium?: number; low?: number },
+  decadePreferences: any, // Not used in current prompt, keep for compatibility or remove
+  favoriteGenres: string[],
+  watchedTitles: Array<WatchedTitleWithRating>, // Now expecting userRating
+  watchlist: Array<{ title: string; overview?: string }>, // Added overview for potential LLM use
   type: string,
   numRecommendations: number,
   animeOnly: boolean,
@@ -70,51 +102,41 @@ export const generateWatchlistPrompt = (
   status?: "ongoing" | "completed" | "both",
   minimumRating?: number
 ) => {
-  const tasteProfile = analyzeTasteProfile(watchedTitles, favoriteGenres, ratingDistribution);
-  const watchPreferences = analyzeWatchingBehavior(ratingDistribution, decadePreferences, favoriteGenres);
-  
-  return `You are an expert media curator. From the user's existing watchlist, prioritize and select ${numRecommendations} ${type}${
-    animeOnly ? " anime" : ""
-  } titles that best match their viewing psychology and taste preferences.
+  const { topGenres, highestRated, qualityLevel } = extractUserEssentials(watchedTitles, favoriteGenres, ratingDistribution);
 
-COMPREHENSIVE TASTE ANALYSIS:
-${tasteProfile}
+  const watchlistItemsString = watchlist.length
+    ? watchlist.map(item => `"${item.title}"${item.overview ? ` (${item.overview.substring(0, 50)}...)` : ''}`).join(", ")
+    : "No items provided in watchlist.";
 
-VIEWING BEHAVIOR PATTERNS:
-${watchPreferences}
+  return `You are an expert curator. From this user's watchlist, select ${numRecommendations} ${type}${animeOnly ? " anime" : ""} titles that best match their proven taste preferences for **emotional satisfaction and overall viewing quality**.
 
-SELECTION CONSTRAINTS:
-- Content length preference: ${lengthPreference || "flexible"}${
-  episodeCount ? `\n- Episode range: ${JSON.stringify(episodeCount)}` : ""
-}${status ? `\n- Series status: ${status}` : ""}${
-  minimumRating ? `\n- Quality threshold: ${minimumRating}+` : ""
-}
+USER'S PROVEN TASTE:
+• Favorite genres: ${topGenres.join(", ")}
+• Content they rated highest: ${highestRated.map(t => `"${t.title}" (rated ${t.userRating || 'N/A'})`).join(", ")}
+• Quality standard: Prefers ${qualityLevel} content.
 
-AVAILABLE WATCHLIST OPTIONS:
-${watchlist.map((item) => item.title).join(", ")}
+WATCHLIST OPTIONS (Choose ONLY from these titles):
+${watchlistItemsString}
 
-CURATION INSTRUCTIONS:
-- Analyze each watchlist title's narrative structure, thematic depth, and emotional resonance
-- Prioritize content that aligns with the user's core storytelling preferences and psychological engagement patterns
-- Consider viewing momentum - what would naturally follow their recent watching patterns
-- Focus on WHY each selection resonates with their established taste DNA
-- Avoid surface-level genre matching - dig into narrative psychology and emotional appeal
-- Select titles that offer the optimal viewing experience based on their demonstrated preferences
+SELECTION CRITERIA:
+Carefully pick titles *only* from the provided watchlist that are most likely to deliver the same **emotional payoff and quality experience** as their existing favorites.
+• **Ensure selected recommendations are diverse within the watchlist; do not recommend very similar items or focus on just one aspect.**
+• **IMPORTANT: Reasons should ONLY refer to the user's overall taste profile and preferences, NOT compare the recommendation to a specific watched title.**
 
-JSON Response Format:
+JSON FORMAT:
 {
   "recommendations": [
     {
       "title": "Title from Watchlist",
-      "reason": "Detailed analysis of why this title from their watchlist perfectly aligns with their viewing psychology, narrative preferences, and emotional engagement patterns established through their watch history."
+      "reason": "Concise explanation of why this watchlist item matches their proven taste profile and will deliver similar satisfaction to their favorites, highlighting its unique appeal."
     }
   ]
 }
 
-Return ONLY valid JSON.`;
+Return ONLY valid JSON. Do not include any other text, preambles, or explanations.`;
 };
 
-// ===== 3. MEDIA-SPECIFIC RECOMMENDATIONS (based on single clicked media) =====
+// ===== 3. MEDIA-SPECIFIC RECOMMENDATIONS =====
 export const generateDefaultPrompt = (
   mediaDetails: {
     title: string;
@@ -126,34 +148,28 @@ export const generateDefaultPrompt = (
   type: string,
   numRecommendations: number = 8
 ) => {
-  const mediaProfile = analyzeMediaProfile(mediaDetails);
-  
-  return `You are an expert content analyst. Generate ${numRecommendations} ${type} recommendations that capture the essence and appeal of the input media.
+  const genres = mediaDetails.genres.map(g => g.name).join(", ");
+  const year = new Date(mediaDetails.release_date).getFullYear();
 
-INPUT MEDIA ANALYSIS:
-${mediaProfile}
+  return `You are an expert content matcher. Generate ${numRecommendations} ${type} recommendations that deliver the same **overall viewing experience and emotional tone** as the input content.
 
-SOURCE MATERIAL:
-- Title: "${mediaDetails.title}"
-- Core Narrative: "${mediaDetails.overview}"
-- Thematic Categories: ${mediaDetails.genres.map((g) => g.name).join(", ")}
-- Production Era: ${new Date(mediaDetails.release_date).getFullYear()}
-- Quality Benchmark: ${mediaDetails.vote_average}/10
+SOURCE CONTENT:
+• Title: "${mediaDetails.title}"
+• Overview: "${mediaDetails.overview}"
+• Genres: ${genres}
+• Release Year: ${year}
+• Global Rating: ${mediaDetails.vote_average}/10
 
-RECOMMENDATION STRATEGY:
-- Identify the core emotional and thematic DNA of the source material
-- Focus on narrative structure, character dynamics, and storytelling approach
-- Emphasize WHY viewers connect with this type of content
-- Avoid surface-level genre matching - dig into psychological appeal
-- Consider pacing, tone, complexity level, and emotional resonance
-- Recommend content that satisfies the same viewing motivations
+MATCHING STRATEGY:
+Find content that gives viewers a similar **emotional and intellectual experience**. Focus on "If you enjoyed the atmosphere and themes of [Source Title], you'll likely appreciate [Recommendation Title] because..."
+• **Ensure all recommendations are diverse in their specific appeal and do not overly similar to each other.**
 
-JSON Response Format:
+JSON FORMAT:
 {
   "recommendations": [
     {
       "title": "Title Name",
-      "reason": "Analytical explanation of why this recommendation captures the same narrative essence, emotional resonance, and viewing satisfaction as the original - focus on storytelling DNA rather than surface similarities."
+      "reason": "Clear explanation of why this delivers a similar viewing experience and emotional satisfaction as the source content, emphasizing its distinct qualities."
     }
   ]
 }
@@ -161,7 +177,7 @@ JSON Response Format:
 Return ONLY valid JSON.`;
 };
 
-// ===== 4. CUSTOM CHAT RECOMMENDATIONS (media + user refinement) =====
+// ===== 4. CUSTOM CHAT RECOMMENDATIONS =====
 export const generateCustomPrompt = (
   details: {
     title?: string;
@@ -171,179 +187,39 @@ export const generateCustomPrompt = (
     vote_average?: number;
   },
   type: string,
-  prompt: string,
+  prompt: string, // The actual user query
   numRecommendations: number = 10
 ) => {
-  const mediaProfile = details?.title ? analyzeMediaProfile(details as any) : "No base media provided";
-  
-  return `You are an expert recommendation specialist. Generate ${numRecommendations} ${type} recommendations that blend the essence of the base media with the user's specific refinement request.
+  const hasBaseMedia = details?.title;
+  const baseContext = hasBaseMedia ?
+    `BASE CONTENT DETAILS:
+• Title: "${details.title}"
+• Overview: "${details.overview || "N/A"}"
+• Genres: ${details.genres?.map((g) => g.name).join(", ") || "N/A"}
+• Release Year: ${details.release_date ? new Date(details.release_date).getFullYear() : "N/A"}
+• Global Rating: ${details.vote_average || "N/A"}/10` :
+    "NO SPECIFIC BASE CONTENT PROVIDED. Focus solely on the user's request.";
 
-BASE MEDIA ANALYSIS:
-${mediaProfile}
+  return `You are an expert recommendation specialist. Generate ${numRecommendations} ${type} recommendations that perfectly fulfill the user's specific request, focusing on the **desired feeling or experience**.
 
-SOURCE REFERENCE:
-- Title: "${details?.title || "Not specified"}"
-- Narrative Core: "${details?.overview || "Not provided"}"
-- Thematic Elements: ${details?.genres?.map((g) => g.name).join(", ") || "Not specified"}
-- Era: ${details?.release_date ? new Date(details?.release_date).getFullYear() : "Not specified"}
-- Quality Level: ${details?.vote_average || "Not specified"}/10
+${baseContext}
 
-USER REFINEMENT REQUEST:
+USER'S SPECIFIC REQUEST:
 "${prompt}"
 
-SYNTHESIS STRATEGY:
-- Extract the core appeal and narrative DNA from the base media
-- Integrate the user's specific modifications and preferences
-- Focus on WHY the combination would create the desired viewing experience
-- Balance fidelity to the source material with the user's creative direction
-- Emphasize thematic resonance, emotional tone, and storytelling approach
-- Avoid literal interpretations - understand the psychological intent
+APPROACH:
+Analyze the user's request, considering the base content if provided, and find titles that directly match their stated preferences, desired themes, or specific criteria, emphasizing the **emotional and experiential outcome**.
+• **Provide diverse recommendations that broadly cover the user's request, avoiding overly similar suggestions.**
 
-JSON Response Format:
+JSON FORMAT:
 {
   "recommendations": [
     {
       "title": "Title Name",
-      "reason": "Comprehensive explanation of how this recommendation synthesizes the base media's core appeal with the user's specific refinement, focusing on narrative psychology and emotional satisfaction."
+      "reason": "Direct and concise explanation of how this content fulfills the user's specific request, highlighting relevant themes, genre elements, or tone that contribute to the desired experience."
     }
   ]
 }
 
 Return ONLY valid JSON.`;
-};
-
-// ===== HELPER FUNCTIONS =====
-
-// Analyze taste patterns from viewing history
-const analyzeTasteProfile = (
-  watchedTitles: Array<{ title: string; overview: string }>,
-  favoriteGenres: string[],
-  ratingDistribution: any
-) => {
-  const overviews = watchedTitles.map(t => t.overview).join(" ");
-  
-  const themeAnalysis = {
-    characterDriven: /character|personal|relationship|family|friendship|identity|growth|journey/gi,
-    darkThemes: /dark|death|survival|horror|psychological|thriller|mystery|crime/gi,
-    actionAdventure: /action|adventure|battle|fight|war|quest|epic|journey/gi,
-    emotional: /love|romance|emotional|heart|feel|touching|drama/gi,
-    complex: /complex|intricate|layered|deep|philosophical|thought|mind/gi,
-    supernatural: /magic|supernatural|fantasy|sci-fi|powers|abilities|mystical/gi,
-    realistic: /real|life|contemporary|modern|social|society|realistic/gi,
-    comedic: /comedy|humor|funny|laugh|wit|amusing|entertaining/gi,
-    suspenseful: /suspense|tension|mystery|thriller|twist|reveal/gi
-  };
-  
-  const patterns = Object.keys(themeAnalysis).filter(theme => {
-    const matches = overviews.match(themeAnalysis[theme]);
-    return matches && matches.length > watchedTitles.length * 0.25;
-  });
-  
-  const avgRating = ratingDistribution ? 
-    Object.keys(ratingDistribution).reduce((sum, rating) => 
-      sum + (parseFloat(rating) * ratingDistribution[rating]), 0
-    ) / Object.values(ratingDistribution).reduce((a, b) => a + b, 0) : null;
-  
-  let profile = `Demonstrates strong affinity for content emphasizing: ${patterns.join(", ")} storytelling elements.`;
-  
-  if (avgRating) {
-    if (avgRating >= 8) profile += " Exhibits discerning taste, consistently seeking critically acclaimed, high-caliber content.";
-    else if (avgRating >= 7) profile += " Appreciates well-executed content with solid production values and narrative craft.";
-    else profile += " Values entertainment and engagement over critical consensus, open to diverse quality levels.";
-  }
-  
-  // Enhanced genre psychology insights
-  if (favoriteGenres.includes("Drama")) profile += " Gravitates toward character-driven narratives with emotional depth and psychological complexity.";
-  if (favoriteGenres.includes("Thriller") || favoriteGenres.includes("Mystery")) profile += " Seeks intellectually engaging, suspenseful narratives with intricate plot development.";
-  if (favoriteGenres.includes("Fantasy") || favoriteGenres.includes("Sci-Fi")) profile += " Values imaginative world-building, speculative concepts, and escapist storytelling.";
-  if (favoriteGenres.includes("Comedy")) profile += " Appreciates wit, humor, and lighter narrative tones that provide emotional relief.";
-  if (favoriteGenres.includes("Horror")) profile += " Drawn to psychological intensity, atmospheric tension, and boundary-pushing content.";
-  if (favoriteGenres.includes("Action")) profile += " Enjoys dynamic pacing, physical conflict, and high-stakes narrative momentum.";
-  
-  return profile;
-};
-
-// Analyze viewing behavior patterns
-const analyzeWatchingBehavior = (
-  ratingDistribution: any,
-  decadePreferences: any,
-  favoriteGenres: any
-) => {
-  let behavior = "";
-  
-  if (ratingDistribution) {
-    const ratings = Object.keys(ratingDistribution).map(Number);
-    const avgRating = ratings.reduce((sum, rating, index) => 
-      sum + (rating * Object.values(ratingDistribution)[index]), 0
-    ) / Object.values(ratingDistribution).reduce((a, b) => a + b, 0);
-    
-    const ratingSpread = Math.max(...ratings) - Math.min(...ratings);
-    
-    if (ratingSpread > 5) behavior += "Exhibits selective viewing patterns with clear quality distinctions and strong opinions. ";
-    if (avgRating > 7.5) behavior += "Consistently gravitates toward critically acclaimed, high-quality content. ";
-    if (avgRating < 6.5) behavior += "More forgiving of production flaws, prioritizes entertainment value and personal enjoyment. ";
-  }
-  
-  if (decadePreferences) {
-    const preferredEras = Object.keys(decadePreferences).filter(decade => 
-      decadePreferences[decade] > 20
-    );
-    if (preferredEras.length <= 2) behavior += "Shows distinct era preferences, likely values specific production aesthetics or nostalgic elements. ";
-    else behavior += "Demonstrates temporal flexibility, focusing on content quality over production era. ";
-  }
-  
-  if (favoriteGenres && favoriteGenres.length) {
-    if (favoriteGenres.length <= 3) behavior += "Maintains focused genre preferences, seeking specific narrative experiences and emotional territories. ";
-    else behavior += "Exhibits genre flexibility, prioritizing storytelling craft and execution over categorical boundaries. ";
-  }
-  
-  return behavior || "Demonstrates balanced viewing patterns with openness to diverse content types and storytelling approaches.";
-};
-
-// Analyze individual media profile
-const analyzeMediaProfile = (mediaDetails: {
-  title: string;
-  overview: string;
-  genres: Array<{ name: string }>;
-  release_date: string;
-  vote_average: number;
-}) => {
-  const overview = mediaDetails.overview;
-  const genres = mediaDetails.genres.map(g => g.name);
-  const year = new Date(mediaDetails.release_date).getFullYear();
-  const rating = mediaDetails.vote_average;
-  
-  // Analyze narrative themes from overview
-  const narrativeThemes = [];
-  if (/character|personal|relationship|family|friendship|identity|growth|journey/gi.test(overview)) {
-    narrativeThemes.push("character-driven storytelling");
-  }
-  if (/dark|death|survival|horror|psychological|thriller|mystery|crime/gi.test(overview)) {
-    narrativeThemes.push("psychological intensity");
-  }
-  if (/action|adventure|battle|fight|war|quest|epic/gi.test(overview)) {
-    narrativeThemes.push("dynamic conflict");
-  }
-  if (/love|romance|emotional|heart|feel|touching|drama/gi.test(overview)) {
-    narrativeThemes.push("emotional resonance");
-  }
-  if (/complex|intricate|layered|deep|philosophical|thought|mind/gi.test(overview)) {
-    narrativeThemes.push("narrative complexity");
-  }
-  
-  // Production era insights
-  let eraContext = "";
-  if (year >= 2020) eraContext = "Contemporary production with modern storytelling sensibilities.";
-  else if (year >= 2010) eraContext = "Modern production balancing traditional and innovative approaches.";
-  else if (year >= 2000) eraContext = "Early 2000s aesthetic with foundational genre elements.";
-  else eraContext = "Classic production with timeless storytelling elements.";
-  
-  // Quality assessment
-  let qualityLevel = "";
-  if (rating >= 8.5) qualityLevel = "Exceptional critical acclaim and audience satisfaction.";
-  else if (rating >= 7.5) qualityLevel = "Strong critical reception with broad appeal.";
-  else if (rating >= 6.5) qualityLevel = "Solid entertainment value with niche appeal.";
-  else qualityLevel = "Cult or specialized appeal, prioritizing specific audience segments.";
-  
-  return `Core narrative DNA: ${narrativeThemes.join(", ")}. Genre framework: ${genres.join(", ")}. ${eraContext} ${qualityLevel} Appeals to viewers seeking ${narrativeThemes.length > 0 ? narrativeThemes[0] : "engaging narrative experiences"}.`;
 };
