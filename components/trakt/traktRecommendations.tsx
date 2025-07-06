@@ -19,69 +19,85 @@ import { useGenerations } from "@/contexts/GenerationsContext";
 import CardSkeleton from "../shared/loaders/CardSkeleton";
 import { useAuth } from "@/contexts/AuthContext";
 
-// Main component for AI-powered movie/show recommendations based on Trakt.tv data
+// Types
 type MediaType = "movies" | "shows";
-
-// Add new types
 type LengthPreference = "short" | "medium" | "long";
-type ShowStatus = "ongoing" | "completed" | "both";
+
+interface FilterOptions {
+  lengthPreference?: LengthPreference;
+  minimumRating?: number;
+  excludeGenres?: string[];
+  includeGenres?: string[];
+  releaseYearRange?: {
+    min?: number;
+    max?: number;
+  };
+}
+
+interface RecommendationState {
+  recommendations: any[];
+  recommendationsDetails: any[];
+  selectedRecommendation: any | null;
+  selectedReason: string | null;
+}
+
+interface UIState {
+  loading: boolean;
+  error: string | null;
+  generateDisabled: boolean;
+  timeRemaining: number;
+  showAdvancedFilters: boolean;
+}
 
 const TraktRecommendations = () => {
-  // Core state management
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [recommendations, setRecommendations] = useState<any[]>([]);
+  // Core state
   const [mediaType, setMediaType] = useState<MediaType>("shows");
   const [numRecommendations, setNumRecommendations] = useState<5 | 10>(5);
-  const [recommendationsDetails, setRecommendationsDetails] = useState<any[]>(
-    []
-  );
-  const [generateDisabled, setGenerateDisabled] = useState(false);
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [fromWatchlist, setFromWatchlist] = useState(false);
+  const [animeOnly, setAnimeOnly] = useState(false);
   const [userData, setUserData] = useState<any>(null);
-
-  // UI state management
-  const [selectedReason, setSelectedReason] = useState<string | null>(null);
-  const [selectedRecommendation, setSelectedRecommendation] =
-    useState<any>(null);
-
-  // Watchlist related state
-  const [fromWatchlist, setFromWatchlist] = useState<boolean>(false);
   const [watchlist, setWatchlist] = useState<any[]>([]);
   const [seen, setSeen] = useState<string[]>([]);
-  const { currentUser, isPremium, getUserData, updateUserRecStats } = useAuth();
 
-  const { generationsLeft, useGeneration: markGenerationUsed } =
-    useGenerations();
+  // Recommendation state
+  const [recState, setRecState] = useState<RecommendationState>({
+    recommendations: [],
+    recommendationsDetails: [],
+    selectedRecommendation: null,
+    selectedReason: null,
+  });
 
+  // UI state
+  const [uiState, setUIState] = useState<UIState>({
+    loading: false,
+    error: null,
+    generateDisabled: false,
+    timeRemaining: 0,
+    showAdvancedFilters: false,
+  });
+
+  // Filter state
+  const [filters, setFilters] = useState<FilterOptions>({
+    lengthPreference: undefined,
+    minimumRating: undefined,
+    excludeGenres: [],
+    includeGenres: [],
+    releaseYearRange: {},
+  });
+
+  // Contexts
+  const { currentUser, isPremium, getUserData } = useAuth();
+  const { generationsLeft } = useGenerations();
   const {
     watchedMoviesCache,
     watchedShowsCache,
     getUserWatchedMovies,
     getUserWatchedShows,
+    accessToken,
   } = useTraktContext();
   const { saveToHistory: saveToHistoryContext } = useHistory();
-  const { accessToken } = useTraktContext();
 
-  const [animeOnly, setAnimeOnly] = useState(false);
-
-  // Add new state for advanced filtering
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [lengthPreference, setLengthPreference] = useState<
-    LengthPreference | ""
-  >("");
-  const [episodeCount, setEpisodeCount] = useState<{
-    min?: number;
-    max?: number;
-  }>({});
-  const [showStatus, setShowStatus] = useState<ShowStatus>("both");
-  const [minimumRating, setMinimumRating] = useState<number>(0);
-
-  // Constants for limits
-  const FREE_DAILY_LIMIT = 5;
-  const FREE_COOLDOWN = 3 * 60; // 3 minutes in seconds
-  const PREMIUM_COOLDOWN = 1.5 * 60; // 1.5 minutes in seconds
-
+  // Encryption helpers
   const encryptValue = (value: string) => {
     return CryptoJS.AES.encrypt(
       value,
@@ -97,6 +113,7 @@ const TraktRecommendations = () => {
     return bytes.toString(CryptoJS.enc.Utf8);
   };
 
+  // Load user data on mount
   useEffect(() => {
     const loadUserData = async () => {
       if (currentUser) {
@@ -107,6 +124,7 @@ const TraktRecommendations = () => {
     loadUserData();
   }, [currentUser, getUserData]);
 
+  // Handle cooldown timer
   useEffect(() => {
     const encryptedTimeout = Cookies.get("recommendationTimeout");
     if (encryptedTimeout) {
@@ -116,54 +134,57 @@ const TraktRecommendations = () => {
         const now = Date.now();
 
         if (now < timeoutEnd) {
-          setGenerateDisabled(true);
-          setTimeRemaining(Math.ceil((timeoutEnd - now) / 1000));
+          setUIState(prev => ({
+            ...prev,
+            generateDisabled: true,
+            timeRemaining: Math.ceil((timeoutEnd - now) / 1000),
+          }));
 
-          // Start countdown timer
           const timer = setInterval(() => {
             const currentTime = Date.now();
             if (currentTime >= timeoutEnd) {
-              setGenerateDisabled(false);
-              setTimeRemaining(0);
+              setUIState(prev => ({
+                ...prev,
+                generateDisabled: false,
+                timeRemaining: 0,
+              }));
               Cookies.remove("recommendationTimeout");
               clearInterval(timer);
             } else {
-              setTimeRemaining(Math.ceil((timeoutEnd - currentTime) / 1000));
+              setUIState(prev => ({
+                ...prev,
+                timeRemaining: Math.ceil((timeoutEnd - currentTime) / 1000),
+              }));
             }
           }, 1000);
 
           return () => clearInterval(timer);
         } else {
           Cookies.remove("recommendationTimeout");
-          setGenerateDisabled(false);
-          setTimeRemaining(0);
         }
       } catch (error) {
         Cookies.remove("recommendationTimeout");
-        setGenerateDisabled(false);
-        setTimeRemaining(0);
       }
     }
   }, []);
 
+  // Reset recommendations when settings change
   useEffect(() => {
-    setRecommendations([]);
-    setRecommendationsDetails([]);
-    setSelectedReason(null);
-    setError(null);
+    setRecState({
+      recommendations: [],
+      recommendationsDetails: [],
+      selectedRecommendation: null,
+      selectedReason: null,
+    });
+    setUIState(prev => ({ ...prev, error: null }));
   }, [mediaType, numRecommendations]);
 
-  // Helper function to clean AI responses and ensure valid JSON
+  // Helper functions
   const cleanAndParseResponse = (response: string) => {
     try {
-      // Extract JSON from markdown if present
       const jsonMatch = response.match(/```(?:json)?([\s\S]*?)```/);
       let cleanResponse = jsonMatch ? jsonMatch[1].trim() : response.trim();
-
-      // Remove any non-JSON text
-      cleanResponse = cleanResponse
-        .replace(/^[^{]*/g, "")
-        .replace(/[^}]*$/g, "");
+      cleanResponse = cleanResponse.replace(/^[^{]*/g, "").replace(/[^}]*$/g, "");
       return JSON.parse(cleanResponse);
     } catch (error) {
       console.error("Failed to parse response:", error);
@@ -171,7 +192,6 @@ const TraktRecommendations = () => {
     }
   };
 
-  // Analyze viewing patterns and preferences
   const analyzeViewingPatterns = async (watchedContent: any[]) => {
     const recentContent = await Promise.all(
       watchedContent.map(async (item) => {
@@ -195,7 +215,6 @@ const TraktRecommendations = () => {
       })
     );
 
-    // Calculate viewing patterns from the cleaned data
     const genreCounts = recentContent.reduce((acc: any, item) => {
       item.media.genres?.forEach((genre: string) => {
         acc[genre] = (acc[genre] || 0) + 1;
@@ -220,8 +239,8 @@ const TraktRecommendations = () => {
           item.media.vote_average >= 8
             ? "high"
             : item.media.vote_average >= 6
-              ? "medium"
-              : "low";
+            ? "medium"
+            : "low";
         acc[ratingKey] = (acc[ratingKey] || 0) + 1;
       }
       return acc;
@@ -241,11 +260,30 @@ const TraktRecommendations = () => {
     };
   };
 
-  // Generates recommendations from user's watchlist
+  const generatePrompt = async (type: MediaType, watchedContent: any[]) => {
+    const {
+      favoriteGenres,
+      decadePreferences,
+      ratingDistribution,
+      watchedTitles,
+    } = await analyzeViewingPatterns(watchedContent);
+
+    return generateTraktRecommendationsPrompt(
+      watchedTitles as any,
+      favoriteGenres,
+      decadePreferences,
+      ratingDistribution,
+      seen,
+      type,
+      numRecommendations,
+      animeOnly,
+      filters
+    );
+  };
+
   const generatePromptFromWatchlist = async (
     type: MediaType,
-    watchedContent: any[],
-    watchlist: any[]
+    watchedContent: any[]
   ): Promise<string> => {
     if (!fromWatchlist || !accessToken) return "";
 
@@ -265,7 +303,7 @@ const TraktRecommendations = () => {
       watchedTitles,
     } = await analyzeViewingPatterns(watchedContent);
 
-    const prompt = generateWatchlistPrompt(
+    return generateWatchlistPrompt(
       ratingDistribution,
       decadePreferences,
       favoriteGenres,
@@ -273,163 +311,165 @@ const TraktRecommendations = () => {
       watchlistItems,
       mediaType,
       numRecommendations,
-      animeOnly
+      animeOnly,
+      filters
     );
-
-    // console.log("Watchlist Prompt:", prompt);
-
-    return prompt;
   };
 
-  // Start countdown timer
   const startCooldownTimer = (seconds: number) => {
-    setGenerateDisabled(true);
-    setTimeRemaining(seconds);
+    setUIState(prev => ({
+      ...prev,
+      generateDisabled: true,
+      timeRemaining: seconds,
+    }));
 
     const timer = setInterval(() => {
-      setTimeRemaining((prev) => {
-        if (prev <= 1) {
+      setUIState(prev => {
+        if (prev.timeRemaining <= 1) {
           clearInterval(timer);
-          setGenerateDisabled(false);
-          return 0;
+          return { ...prev, generateDisabled: false, timeRemaining: 0 };
         }
-        return prev - 1;
+        return { ...prev, timeRemaining: prev.timeRemaining - 1 };
       });
     }, 1000);
 
     return timer;
   };
 
-  // Main function to handle recommendation generation
   const handleRecommendations = async () => {
     if (!currentUser) {
-      setError("Please log in to generate recommendations");
+      setUIState(prev => ({ ...prev, error: "Please log in to generate recommendations" }));
       return;
     }
 
-    if (generateDisabled) {
-      setError(
-        `Please wait ${Math.ceil(timeRemaining / 60)} minutes and ${timeRemaining % 60
-        } seconds before generating new recommendations`
-      );
+    if (uiState.generateDisabled) {
+      setUIState(prev => ({
+        ...prev,
+        error: `Please wait ${Math.ceil(uiState.timeRemaining / 60)} minutes and ${
+          uiState.timeRemaining % 60
+        } seconds before generating new recommendations`,
+      }));
       return;
     }
 
-    setLoading(true);
-    setError(null);
-    setRecommendations([]);
-    setRecommendationsDetails([]);
+    setUIState(prev => ({
+      ...prev,
+      loading: true,
+      error: null,
+    }));
+
+    setRecState({
+      recommendations: [],
+      recommendationsDetails: [],
+      selectedRecommendation: null,
+      selectedReason: null,
+    });
 
     try {
-      // Get watched content from cache or fetch new
       const watchedContent =
         mediaType === "movies"
           ? watchedMoviesCache.length > 0
             ? watchedMoviesCache
             : await getUserWatchedMovies()
           : watchedShowsCache.length > 0
-            ? watchedShowsCache
-            : await getUserWatchedShows();
+          ? watchedShowsCache
+          : await getUserWatchedShows();
 
       if (!watchedContent || watchedContent.length === 0) {
         throw new Error(`No watched ${mediaType} found in your history`);
       }
 
       const prompt = fromWatchlist
-        ? await generatePromptFromWatchlist(mediaType, watchedContent, watchlist)
+        ? await generatePromptFromWatchlist(mediaType, watchedContent)
         : await generatePrompt(mediaType, watchedContent);
 
       if (!prompt) {
         throw new Error("Failed to generate prompt");
       }
 
-      // Get the Firebase ID token
       const token = await currentUser.getIdToken();
 
-      try {
-        console.log("Prompt:", prompt);
-        const response = await fetch("/api/groq/trakt-rec", {
-          method: "POST",
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ prompt }),
-        });
+      const response = await fetch("/api/groq/trakt-rec", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt }),
+      });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          if (response.status === 429) {
-            // Rate limit error
-            if (errorData.remainingTime) {
-              startCooldownTimer(errorData.remainingTime);
-            }
-            throw new Error(errorData.error);
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 429) {
+          if (errorData.remainingTime) {
+            startCooldownTimer(errorData.remainingTime);
           }
-          throw new Error(errorData.error || "Failed to fetch recommendations");
+          throw new Error(errorData.error);
         }
+        throw new Error(errorData.error || "Failed to fetch recommendations");
+      }
 
-        const data = await response.json();
-        const parsed = cleanAndParseResponse(data.response);
-        setRecommendations(parsed.recommendations);
+      const data = await response.json();
+      const parsed = cleanAndParseResponse(data.response);
 
-        const recommendationsDetails = await Promise.all(
-          parsed.recommendations.map(async (rec: any) => {
-            try {
-              const searchResults = await search(rec.title);
-              if (!searchResults.length) {
-                console.error(`No search results found for: ${rec.title}`);
-                return null;
-              }
-              const mediaMatch = searchResults[0];
-              return {
-                ...rec,
-                media: {
-                  ...mediaMatch,
-                  backdrop_path: mediaMatch.backdrop_path || "",
-                },
-              };
-            } catch (searchError) {
-              console.error(`Error searching for ${rec.title}:`, searchError);
+      const recommendationsDetails = await Promise.all(
+        parsed.recommendations.map(async (rec: any) => {
+          try {
+            const searchResults = await search(rec.title);
+            if (!searchResults.length) {
+              console.error(`No search results found for: ${rec.title}`);
               return null;
             }
-          })
-        );
+            const mediaMatch = searchResults[0];
+            return {
+              ...rec,
+              media: {
+                ...mediaMatch,
+                backdrop_path: mediaMatch.backdrop_path || "",
+              },
+            };
+          } catch (searchError) {
+            console.error(`Error searching for ${rec.title}:`, searchError);
+            return null;
+          }
+        })
+      );
 
-        // Filter out null results and set recommendations
-        const validRecommendations = recommendationsDetails.filter(
-          (rec) => rec !== null
-        );
-        if (validRecommendations.length === 0) {
-          throw new Error("No valid recommendations could be found");
-        }
-        setRecommendationsDetails(validRecommendations);
+      const validRecommendations = recommendationsDetails.filter(
+        (rec) => rec !== null
+      );
 
-        // Start cooldown timer with the server-provided cooldown time
-        if (data.cooldownSeconds) {
-          startCooldownTimer(data.cooldownSeconds);
-        }
+      if (validRecommendations.length === 0) {
+        throw new Error("No valid recommendations could be found");
+      }
 
-      } catch (error: any) {
-        console.error("Recommendation processing error:", error);
-        throw new Error(
-          error.message || "Failed to process recommendations"
-        );
+      setRecState({
+        recommendations: parsed.recommendations,
+        recommendationsDetails: validRecommendations,
+        selectedRecommendation: null,
+        selectedReason: null,
+      });
+
+      if (data.cooldownSeconds) {
+        startCooldownTimer(data.cooldownSeconds);
       }
     } catch (error: any) {
       console.error("Error generating recommendations:", error);
-      setError(
-        error.message ||
-        "An unexpected error occurred while generating recommendations"
-      );
-      setRecommendations([]);
-      setRecommendationsDetails([]);
+      setUIState(prev => ({
+        ...prev,
+        error: error.message || "An unexpected error occurred while generating recommendations",
+      }));
+      setRecState({
+        recommendations: [],
+        recommendationsDetails: [],
+        selectedRecommendation: null,
+        selectedReason: null,
+      });
     } finally {
-      setLoading(false);
+      setUIState(prev => ({ ...prev, loading: false }));
     }
   };
 
-  // Save recommendation to user history
   const handleSaveToHistory = (recommendation: any) => {
     if (!recommendation.media) return;
     saveToHistoryContext(
@@ -440,31 +480,8 @@ const TraktRecommendations = () => {
     );
   };
 
-  // Update generatePrompt to include new filters
-  const generatePrompt = async (type: MediaType, watchedContent: any[]) => {
-    const {
-      favoriteGenres,
-      decadePreferences,
-      ratingDistribution,
-      watchedTitles,
-    } = await analyzeViewingPatterns(watchedContent);
-
-    const prompt = generateTraktRecommendationsPrompt(
-      watchedTitles as any,
-      favoriteGenres,
-      decadePreferences,
-      ratingDistribution,
-      seen,
-      type,
-      numRecommendations,
-      animeOnly,
-      lengthPreference || undefined,
-      Object.keys(episodeCount).length > 0 ? episodeCount : undefined,
-      showStatus !== "both" ? showStatus : undefined,
-      minimumRating > 0 ? minimumRating : undefined
-    );
-
-    return prompt;
+  const updateFilter = (key: keyof FilterOptions, value: any) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   return (
@@ -496,17 +513,15 @@ const TraktRecommendations = () => {
               approaches.
             </p>
 
-            {error && (
+            {uiState.error && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-300 text-sm">
-                {error}
+                {uiState.error}
               </div>
             )}
 
-            {/* Mobile-first controls layout */}
+            {/* Primary Controls */}
             <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
-              {/* Primary controls stacked on mobile */}
               <div className="flex flex-col gap-2 sm:flex-row sm:gap-3 flex-1">
-                {/* Media Type & Number Selection */}
                 <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
                   <select
                     value={mediaType}
@@ -535,7 +550,6 @@ const TraktRecommendations = () => {
                   </select>
                 </div>
 
-                {/* Filter Buttons */}
                 <div className="flex gap-2 sm:gap-3">
                   <button
                     onClick={() => setFromWatchlist(!fromWatchlist)}
@@ -560,26 +574,25 @@ const TraktRecommendations = () => {
                 </div>
               </div>
 
-              {/* Generate Button - Full width on mobile */}
               <button
                 onClick={handleRecommendations}
-                disabled={loading || generateDisabled || generationsLeft <= 0}
+                disabled={uiState.loading || uiState.generateDisabled || generationsLeft <= 0}
                 className="w-full sm:w-auto group flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 
                           bg-gradient-to-r from-blue-600 to-blue-500 
                           rounded-xl text-sm text-white font-medium transition-all duration-300
                           disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? (
+                {uiState.loading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
                     <span>Analyzing...</span>
                   </>
-                ) : generateDisabled ? (
+                ) : uiState.generateDisabled ? (
                   <>
                     <RiRobot2Line className="w-4 h-4 transition-transform group-hover:rotate-12" />
                     <span>
-                      Wait {Math.floor(timeRemaining / 60)}:
-                      {(timeRemaining % 60).toString().padStart(2, "0")}
+                      Wait {Math.floor(uiState.timeRemaining / 60)}:
+                      {(uiState.timeRemaining % 60).toString().padStart(2, "0")}
                     </span>
                   </>
                 ) : (
@@ -596,27 +609,27 @@ const TraktRecommendations = () => {
           {/* Advanced Filters Section */}
           <div className="mt-4 border-t border-zinc-800/50 pt-4">
             <button
-              onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              onClick={() => setUIState(prev => ({ ...prev, showAdvancedFilters: !prev.showAdvancedFilters }))}
               className="w-full flex items-center justify-between text-zinc-300 text-sm hover:text-white transition-colors px-2"
             >
               <div className="flex items-center gap-2">
                 <IoFilterOutline className="w-4 h-4" />
-                Advanced Filters (still in development)
+                Advanced Filters
               </div>
-              {showAdvancedFilters ? (
+              {uiState.showAdvancedFilters ? (
                 <IoChevronUpOutline className="w-4 h-4" />
               ) : (
                 <IoChevronDownOutline className="w-4 h-4" />
               )}
             </button>
 
-            {showAdvancedFilters && (
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {uiState.showAdvancedFilters && (
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-zinc-400 text-sm">Length</label>
+                  <label className="block text-zinc-400 text-sm">Length Preference</label>
                   <select
-                    value={lengthPreference}
-                    onChange={(e) => setLengthPreference(e.target.value as LengthPreference | "")}
+                    value={filters.lengthPreference || ""}
+                    onChange={(e) => updateFilter("lengthPreference", e.target.value || undefined)}
                     className="w-full bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
                   >
                     <option value="">Any Length</option>
@@ -627,55 +640,68 @@ const TraktRecommendations = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-zinc-400 text-sm">Episode Range</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      placeholder="Min"
-                      value={episodeCount.min || ""}
-                      onChange={(e) => setEpisodeCount((prev) => ({
-                        ...prev,
-                        min: parseInt(e.target.value) || undefined,
-                      }))}
-                      className="w-1/2 bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
-                    />
-                    <input
-                      type="number"
-                      placeholder="Max"
-                      value={episodeCount.max || ""}
-                      onChange={(e) => setEpisodeCount((prev) => ({
-                        ...prev,
-                        max: parseInt(e.target.value) || undefined,
-                      }))}
-                      className="w-1/2 bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-zinc-400 text-sm">Status</label>
-                  <select
-                    value={showStatus}
-                    onChange={(e) => setShowStatus(e.target.value as ShowStatus)}
-                    className="w-full bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
-                  >
-                    <option value="both">Any Status</option>
-                    <option value="ongoing">Ongoing</option>
-                    <option value="completed">Completed</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
                   <label className="block text-zinc-400 text-sm">Minimum Rating</label>
                   <input
                     type="number"
                     min="5"
                     max="9"
                     step="0.5"
-                    value={minimumRating}
-                    onChange={(e) => setMinimumRating(parseFloat(e.target.value))}
+                    value={filters.minimumRating || ""}
+                    onChange={(e) => updateFilter("minimumRating", e.target.value ? parseFloat(e.target.value) : undefined)}
                     className="w-full bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
                     placeholder="Any rating"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-zinc-400 text-sm">Release Year Range</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      min="1900"
+                      max="2024"
+                      value={filters.releaseYearRange?.min || ""}
+                      onChange={(e) => updateFilter("releaseYearRange", {
+                        ...filters.releaseYearRange,
+                        min: e.target.value ? parseInt(e.target.value) : undefined
+                      })}
+                      className="flex-1 bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
+                      placeholder="From"
+                    />
+                    <input
+                      type="number"
+                      min="1900"
+                      max="2024"
+                      value={filters.releaseYearRange?.max || ""}
+                      onChange={(e) => updateFilter("releaseYearRange", {
+                        ...filters.releaseYearRange,
+                        max: e.target.value ? parseInt(e.target.value) : undefined
+                      })}
+                      className="flex-1 bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
+                      placeholder="To"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-zinc-400 text-sm">Exclude Genres</label>
+                  <input
+                    type="text"
+                    value={filters.excludeGenres?.join(", ") || ""}
+                    onChange={(e) => updateFilter("excludeGenres", e.target.value.split(",").map(g => g.trim()).filter(g => g))}
+                    className="w-full bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
+                    placeholder="Horror, Romance, ..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-zinc-400 text-sm">Include Genres</label>
+                  <input
+                    type="text"
+                    value={filters.includeGenres?.join(", ") || ""}
+                    onChange={(e) => updateFilter("includeGenres", e.target.value.split(",").map(g => g.trim()).filter(g => g))}
+                    className="w-full bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
+                    placeholder="Sci-Fi, Thriller, ..."
                   />
                 </div>
               </div>
@@ -684,7 +710,7 @@ const TraktRecommendations = () => {
         </div>
       </Card>
 
-      {loading && (
+      {uiState.loading && (
         <div className="mt-4 sm:mt-8">
           <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
             {Array.from({ length: numRecommendations }).map((_, index) => (
@@ -695,15 +721,20 @@ const TraktRecommendations = () => {
       )}
 
       {/* Recommendations Grid */}
-      {recommendations.length > 0 && (
+      {recState.recommendations.length > 0 && (
         <div className="mt-4 sm:mt-8">
           <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-            {recommendationsDetails.map((rec, index) => (
+            {recState.recommendationsDetails.map((rec, idx) => (
               <RecommendationCard
-                key={index}
-                index={index}
+                key={idx}
+                index={idx}
                 recommendation={rec}
-                onSelect={setSelectedRecommendation}
+                onSelect={(r) =>
+                  setRecState((prev) => ({
+                    ...prev,
+                    selectedRecommendation: r,
+                  }))
+                }
                 onSave={handleSaveToHistory}
               />
             ))}
@@ -711,10 +742,16 @@ const TraktRecommendations = () => {
         </div>
       )}
 
-      {selectedRecommendation && (
+      {/* Recommendation Modal */}
+      {recState.selectedRecommendation && (
         <RecommendationModal
-          recommendation={selectedRecommendation}
-          onClose={() => setSelectedRecommendation(null)}
+          recommendation={recState.selectedRecommendation}
+          onClose={() =>
+            setRecState((prev) => ({
+              ...prev,
+              selectedRecommendation: null,
+            }))
+          }
           onSave={handleSaveToHistory}
         />
       )}

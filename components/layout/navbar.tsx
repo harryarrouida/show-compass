@@ -1,12 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { RiBookmarkLine, RiLoginCircleLine, RiMenuLine, RiCloseLine, RiMailLine, RiLock2Line, RiGoogleFill, RiUser3Line, RiProfileFill } from "react-icons/ri";
 import { SiTrakt } from 'react-icons/si';
 import { useTraktContext } from '@/contexts/traktContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePathname } from 'next/navigation';
+import { traktToken } from '@/services/trakt/traktServices';
 
 function AuthModal({ open, onClose }: { open: boolean, onClose: () => void }) {
     const { login, signup, googleSignIn, isPremium} = useAuth();
@@ -47,6 +48,8 @@ function AuthModal({ open, onClose }: { open: boolean, onClose: () => void }) {
             setLoading(false);
         }
     };
+
+
 
     if (!open) return null;
 
