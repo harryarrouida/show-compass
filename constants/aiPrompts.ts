@@ -106,7 +106,7 @@ const analyzeViewingPatterns = (watchedTitles: WatchedTitleWithRating[]) => {
   if (darkThemes > lightThemes * 1.5) {
     patterns.emotionalTolerance = "high - comfortable with intense, challenging content";
   } else if (lightThemes > darkThemes * 1.5) {
-    patterns.emotionalTolerance = "prefers uplifting, positive emotional experiences";
+    patterns.emotionalTolerance = "preffers uplifting, positive emotional experiences";
   }
 
   if (complexThemes > watchedTitles.length * 0.3) {
@@ -161,9 +161,7 @@ const buildConstraintsSection = (
 export const generateTraktRecommendationsPrompt = (
   watchedTitles: WatchedTitleWithRating[],
   favoriteGenres: string[],
-  decadePreferences: any,
   ratingDistribution: RatingDistribution,
-  seenTitles: string[],
   type: string,
   numRecommendations: number,
   animeOnly: boolean,
@@ -315,14 +313,13 @@ export const generateDefaultPrompt = (
     emotionalTone = "exciting and adrenaline-driven";
   }
 
-  return `You are an expert in emotional storytelling and psychological content curation. Generate ${numRecommendations} ${type} recommendations that deliver the same **emotional resonance and psychological satisfaction** as the source content.
+  return `You are an expert in emotional storytelling and psychological content curation. Generate EXACTLY ${numRecommendations} ${type} recommendations that deliver the same **emotional resonance and psychological satisfaction** as the source content.
 
 SOURCE CONTENT EMOTIONAL ANALYSIS:
 • **Title:** "${mediaDetails.title}"
 • **Emotional Core:** "${mediaDetails.overview}"
 • **Emotional Tone:** ${emotionalTone}
 • **Genre Atmosphere:** ${genres}
-• **Era Context:** ${year}
 • **Audience Resonance:** ${mediaDetails.vote_average}/10 (${mediaDetails.vote_average >= 8 ? 'highly resonant' : mediaDetails.vote_average >= 6 ? 'solidly engaging' : 'niche appeal'})
 
 EMOTIONAL MATCHING METHODOLOGY:
@@ -390,11 +387,10 @@ export const generateCustomPrompt = (
 • **Title:** "${details.title}"
 • **Emotional Anchor:** "${details.overview || "N/A"}"
 • **Genre Atmosphere:** ${details.genres?.map(g => g.name).join(", ") || "N/A"}
-• **Era/Setting:** ${details.release_date ? new Date(details.release_date).getFullYear() : "N/A"}
 • **Audience Resonance:** ${details.vote_average || "N/A"}/10` :
     "NO BASE CONTENT PROVIDED. Focus entirely on fulfilling the user's emotional and experiential request.";
 
-  return `You are an expert emotional curator and content specialist. Generate ${numRecommendations} ${type} recommendations that perfectly fulfill the user's specific request, focusing on the **desired emotional experience and psychological satisfaction**.
+  return `You are an expert emotional curator and content specialist. Generate EXACTLY ${numRecommendations} ${type} recommendations that perfectly fulfill the user's specific request, focusing on the **desired emotional experience and psychological satisfaction**.
 
 ${baseContext}
 

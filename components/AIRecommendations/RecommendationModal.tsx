@@ -32,7 +32,7 @@ export function RecommendationModal({
             priority={true}
             className="object-cover"
             loading="eager"
-            quality={75}
+            quality={100}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/70 to-transparent" />
         </div>

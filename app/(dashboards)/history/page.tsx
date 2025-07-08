@@ -47,7 +47,39 @@ export default function HistoryPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const displayHistory = showAll ? historyContext : historyContext.slice(0, 10).sort((a, b) => b.timestamp - a.timestamp);
+  // Group history items by date (YYYY-MM-DD)
+  const groupedHistory = historyContext.reduce((acc: Record<string, HistoryItem[]>, item) => {
+    const date = new Date(item.timestamp).toLocaleDateString();
+    if (!acc[date]) acc[date] = [];
+    acc[date].push(item);
+    return acc;
+  }, {});
+
+  // Sort dates descending
+  const sortedDates = Object.keys(groupedHistory).sort((a, b) => {
+    return new Date(b).getTime() - new Date(a).getTime();
+  });
+
+  // For showAll=false, only show the most recent N items (across all dates)
+  const MAX_ITEMS = 10;
+  let displayDates: string[] = sortedDates;
+  let displayGrouped: Record<string, HistoryItem[]> = groupedHistory;
+  if (!showAll) {
+    let count = 0;
+    displayDates = [];
+    displayGrouped = {};
+    for (const date of sortedDates) {
+      const items = groupedHistory[date];
+      if (count >= MAX_ITEMS) break;
+      const remaining = MAX_ITEMS - count;
+      const slice = items.slice(0, remaining);
+      if (slice.length > 0) {
+        displayDates.push(date);
+        displayGrouped[date] = slice;
+        count += slice.length;
+      }
+    }
+  }
 
   const toggleShowAll = () => {
     setShowAll(!showAll);
@@ -79,55 +111,64 @@ export default function HistoryPage() {
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-            {isLoading ? (
-              Array.from({ length: 10 }).map((_, index) => (
-                <CardSkeleton key={index} index={index} />
-              ))
-            ) : (
-              displayHistory.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => setSelectedItem(item as HistoryItem)}
-                  className="mx-auto group relative w-[100px] md:w-[150px] lg:w-[180px] cursor-pointer"
-                >
-                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
-                    <OptimizedImage
-                      src={`${item.data.poster_path}`}
-                      alt={item.data.title || ""}
-                      className="object-cover"
-                      sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 20vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0" />
-                  </div>
-
-                  <div className="mt-2 space-y-0.5 sm:space-y-1 flex justify-between items-center">
-                    <h3 className="text-xs sm:text-sm font-medium text-zinc-300 line-clamp-1">
-                      {item.data.title}
-                    </h3>
-                    {item.data.vote_average && (
-                      <span className="flex items-center">
-                        <IoStar
-                          className="text-amber-400 mx-0.5 sm:mx-1"
-                          size={10}
-                        />
-                        {item.data.vote_average.toFixed(1)}
-                      </span>
-                    )}
-                  </div>
-
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteFromHistory(item.id);
-                    }}
-                    className="hidden sm:block md:block absolute z-10 top-1 sm:top-2 right-1 sm:right-2 p-1.5 sm:p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300 opacity-0 group-hover:opacity-100"
-                  >
-                    <IoTrashOutline className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
-                  </button>
+          <div className="space-y-8">
+            {displayDates.map((date) => (
+              <div key={date}>
+                <div className="mb-2 text-zinc-400 text-sm font-semibold uppercase tracking-wider">
+                  {date}
                 </div>
-              ))
-            )}
+                <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+                  {isLoading ? (
+                    Array.from({ length: 10 }).map((_, index) => (
+                      <CardSkeleton key={index} index={index} />
+                    ))
+                  ) : (
+                    displayGrouped[date].map((item) => (
+                      <div
+                        key={item.timestamp}
+                        onClick={() => setSelectedItem(item as HistoryItem)}
+                        className="mx-auto group relative w-[100px] md:w-[150px] lg:w-[180px] cursor-pointer"
+                      >
+                        <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
+                          <OptimizedImage
+                            src={`${item.data.poster_path}`}
+                            alt={item.data.title || ""}
+                            className="object-cover"
+                            sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 20vw"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0" />
+                        </div>
+
+                        <div className="mt-2 space-y-0.5 sm:space-y-1 flex justify-between items-center">
+                          <h3 className="text-xs sm:text-sm font-medium text-zinc-300 line-clamp-1">
+                            {item.data.title}
+                          </h3>
+                          {item.data.vote_average && (
+                            <span className="flex items-center">
+                              <IoStar
+                                className="text-amber-400 mx-0.5 sm:mx-1"
+                                size={10}
+                              />
+                              {item.data.vote_average.toFixed(1)}
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteFromHistory(item.timestamp);
+                          }}
+                          className="hidden sm:block md:block absolute z-10 top-1 sm:top-2 right-1 sm:right-2 p-1.5 sm:p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300 opacity-0 group-hover:opacity-100"
+                        >
+                          <IoTrashOutline className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-6 mt-6 sm:mt-8">

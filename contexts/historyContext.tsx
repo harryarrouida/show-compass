@@ -3,6 +3,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { MappedMovie, MappedShow, MovieDetails, ShowDetails } from '@/types/types';
 import { useToast } from '@/contexts/toastContext';
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, query, orderBy } from 'firebase/firestore';
+import { deleteDoc } from 'firebase/firestore';
+import { app, db, auth } from '@/config/Firebase';
 
 interface HistoryItem {
     id: number;
@@ -29,53 +32,114 @@ export function HistoryProvider({ children }: { children: React.ReactNode }) {
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [alert, setAlert] = useState<string | null>(null);
 
+
+    // Fetch history from Firestore on mount
     useEffect(() => {
-        const savedHistory = localStorage.getItem('viewHistory');
-        if (savedHistory) {
-            setHistory(JSON.parse(savedHistory).sort((a: HistoryItem, b: HistoryItem) => b.timestamp - a.timestamp));
-        }
+        const fetchHistory = async () => {
+            try {
+                const user = auth.currentUser;
+                if (!user) return;
+                const userHistoryRef = collection(db, 'users', user.uid, 'history');
+                const q = query(userHistoryRef, orderBy('timestamp', 'desc'));
+                const querySnapshot = await getDocs(q);
+                const items: HistoryItem[] = [];
+                querySnapshot.forEach((docSnap) => {
+                    items.push(docSnap.data() as HistoryItem);
+                });
+                setHistory(items);
+            } catch (error) {
+                console.error('Error fetching history from Firestore:', error);
+            }
+        };
+        fetchHistory();
     }, []);
 
-    useEffect(() => {
-        localStorage.setItem('viewHistory', JSON.stringify(history));
-    }, [history]);
-
-    const saveToHistory = (
+    const saveToHistory = async (
         media: MappedMovie | MappedShow,
         mediaType: 'movie' | 'show',
         reason: string,
         from: MovieDetails | ShowDetails | string
     ) => {
-        const newItem: HistoryItem = {
-            id: media.id,
-            mediaType,
-            timestamp: Date.now(),
-            data: media,
-            reason,
-            from
-        };
-
-        setHistory(prevHistory => {
-            // Check if item already exists
-            if (prevHistory.some(historyItem => historyItem.id === media.id)) {
+        console.log('[saveToHistory] called with:', { media, mediaType, reason, from });
+        try {
+            const user = auth.currentUser;
+            console.log('[saveToHistory] currentUser:', user);
+            if (!user) {
+                showToast("You must be logged in to save history", "error");
+                return;
+            }
+            // Check if this media already exists in Firestore for this user
+            const userHistoryRef = collection(db, 'users', user.uid, 'history');
+            const q = query(userHistoryRef, orderBy('timestamp', 'desc'));
+            const querySnapshot = await getDocs(q);
+            let alreadyExists = false;
+            querySnapshot.forEach((docSnap) => {
+                const data = docSnap.data() as HistoryItem;
+                if (data.id === media.id && data.mediaType === mediaType) {
+                    alreadyExists = true;
+                }
+            });
+            if (alreadyExists) {
                 showToast("Already in history", "info");
-                return prevHistory;
+                return;
             }
 
-            // Add new item
+            const timestamp = Date.now();
+            const newItem: HistoryItem = {
+                id: media.id,
+                mediaType,
+                timestamp,
+                data: media,
+                reason,
+                from
+            };
+            console.log('[saveToHistory] newItem:', newItem);
+
+            const itemDocRef = doc(userHistoryRef, String(timestamp));
+            console.log('[saveToHistory] itemDocRef:', itemDocRef);
+            await setDoc(itemDocRef, newItem);
+            console.log('[saveToHistory] setDoc success');
+
+            setHistory(prevHistory => [newItem, ...prevHistory]);
             showToast("Saved to history", "success");
-            return [...prevHistory, newItem];
-        });
+        } catch (error) {
+            console.error('[saveToHistory] Error saving to Firestore:', error);
+            showToast("Failed to save to history", "error");
+        }
     };
 
-    const deleteFromHistory = (id: number) => {
-        setHistory(prevHistory => prevHistory.filter(item => item.id !== id));
+    // Firestore deleteDoc import
+
+    const deleteFromHistory = async (timestamp: number) => {
+        try {
+            const user = auth.currentUser;
+            if (!user) return;
+            const userHistoryRef = collection(db, 'users', user.uid, 'history');
+            const itemDocRef = doc(userHistoryRef, String(timestamp));
+            await deleteDoc(itemDocRef);
+            setHistory(prevHistory => prevHistory.filter(item => item.timestamp !== timestamp));
+        } catch (error) {
+            console.error('Error deleting from Firestore:', error);
+        }
     }
 
-    const clearHistory = () => {
-        setHistory([]);
-        localStorage.removeItem('viewHistory');
-        showToast("History cleared", "success");
+    const clearHistory = async () => {
+        try {
+            const user = auth.currentUser;
+            if (!user) return;
+            const userHistoryRef = collection(db, 'users', user.uid, 'history');
+            const q = query(userHistoryRef);
+            const querySnapshot = await getDocs(q);
+            const batchDeletes: Promise<any>[] = [];
+            for (const docSnap of querySnapshot.docs) {
+                batchDeletes.push(deleteDoc(docSnap.ref));
+            }
+            await Promise.all(batchDeletes);
+            setHistory([]);
+            showToast("History cleared", "success");
+        } catch (error) {
+            console.error('Error clearing Firestore history:', error);
+        }
     };
 
     return (

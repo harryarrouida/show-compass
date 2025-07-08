@@ -4,6 +4,8 @@ import { IoChevronForwardOutline, IoFilterOutline } from "react-icons/io5";
 import { IoChevronDownOutline, IoChevronUpOutline } from "react-icons/io5";
 import { useTraktContext } from "@/contexts/traktContext";
 import { search } from "@/services/content/sharedServices";
+import { getMovieDetails } from "@/services/content/movieServices";
+import { getShowDetails } from "@/services/content/showServices";
 import { useHistory } from "@/contexts/historyContext";
 import {
   generateTraktRecommendationsPrompt,
@@ -421,11 +423,19 @@ const TraktRecommendations = () => {
               return null;
             }
             const mediaMatch = searchResults[0];
+            
+            let fullMediaDetails;
+            if (mediaType === "movies") {
+              fullMediaDetails = await getMovieDetails(mediaMatch.id);
+            } else {
+              fullMediaDetails = await getShowDetails(mediaMatch.id);
+            }
+
             return {
               ...rec,
               media: {
-                ...mediaMatch,
-                backdrop_path: mediaMatch.backdrop_path || "",
+                ...fullMediaDetails,
+                backdrop_path: fullMediaDetails?.backdrop_path || "",
               },
             };
           } catch (searchError) {

@@ -12,10 +12,7 @@ import {
 import Groq from "groq-sdk";
 import MediaDetails from "@/components/AIRecommendations/mediaDetails";
 import { AIRecommendation } from "@/types/types";
-import {
-  generateDefaultPrompt,
-  generateCustomPrompt,
-} from "@/constants/aiPrompts";
+
 import { search } from "@/services/content/sharedServices";
 import { useHistory } from "@/contexts/historyContext";
 import Loading from "@/components/shared/loaders/loading";
@@ -303,62 +300,7 @@ export default function RecommendationPage() {
                 prompt={prompt}
                 handleSubmitPrompt={handleSubmitPrompt}
                 isMobile={isMobile}
-                isPremiumUser={isPremium}
-                onUpgrade={() => setAlert("Thank you for considering an upgrade!")}
               />
-
-              {showIntroModal && (
-                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-                  <div className="bg-zinc-900 rounded-xl p-6 max-w-md w-full relative border border-violet-500/20 mx-4 sm:mx-0">
-                    <button
-                      onClick={closeIntroModal}
-                      className="absolute top-3 right-3 p-1.5 text-zinc-400 hover:text-white rounded-lg bg-zinc-800/50 hover:bg-zinc-800 transition-colors"
-                    >
-                      <IoClose size={20} />
-                    </button>
-
-                    <h2 className="text-xl sm:text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                      <RiRobot2Line className="text-violet-400" />
-                      <span className="text-sm sm:text-base text-zinc-300 uppercase">
-                        Welcome to AI Recommendations!
-                      </span>
-                    </h2>
-
-                    <div className="space-y-5">
-                      <div className="flex items-start sm:items-center gap-3 text-zinc-300">
-                        <RiQuestionLine className="text-violet-400 text-xl flex-shrink-0 mt-1 sm:mt-0" />
-                        <p className="text-sm sm:text-base">
-                          Get personalized recommendations based on your
-                          selected movie or show
-                        </p>
-                      </div>
-
-                      <div className="flex items-start sm:items-center gap-3 text-zinc-300">
-                        <BsChatDots className="text-violet-400 text-xl flex-shrink-0 mt-1 sm:mt-0" />
-                        <p className="text-sm sm:text-base">
-                          Ask specific questions to refine recommendations to
-                          your taste
-                        </p>
-                      </div>
-
-                      <div className="flex items-start sm:items-center gap-3 text-zinc-300">
-                        <RiHistoryLine className="text-violet-400 text-xl flex-shrink-0 mt-1 sm:mt-0" />
-                        <p className="text-sm sm:text-base">
-                          Save recommendations to your history for later (click
-                          on a recommendation to open modal)
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={closeIntroModal}
-                      className="mt-8 w-full bg-violet-600 hover:bg-violet-700 text-white font-medium py-3 px-4 rounded-xl transition-colors text-sm sm:text-base"
-                    >
-                      Get Started
-                    </button>
-                  </div>
-                </div>
-              )}
             </>
           )}
         </>

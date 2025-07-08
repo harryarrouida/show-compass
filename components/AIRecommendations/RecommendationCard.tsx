@@ -2,7 +2,6 @@ import { IoStar } from "react-icons/io5";
 import { AIRecommendation } from "@/types/types";
 import Image from "next/image";
 import OptimizedImage from "@/components/shared/handlers/optimizedImage";
-import { useGenerations } from '@/contexts/GenerationsContext';
 
 interface RecommendationCardProps {
   recommendation: AIRecommendation;
@@ -17,7 +16,6 @@ export function RecommendationCard({
   onSave,
   index,
 }: RecommendationCardProps) {
-  const { generationsLeft } = useGenerations();
   
   return (
     <div

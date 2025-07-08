@@ -10,6 +10,7 @@ import SmallLoader from "@/components/shared/loaders/smallLoader";
 import Card from "@/components/shared/ui/Card";
 import CardSkeleton from "../shared/loaders/CardSkeleton";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AIRecommendationsProps {
   isAiLoading: boolean;
@@ -21,8 +22,6 @@ interface AIRecommendationsProps {
   setPrompt: (prompt: string) => void;
   prompt: string;
   handleSubmitPrompt: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
-  isPremiumUser: boolean; // NEW PROP
-  onUpgrade?: () => void; // NEW PROP (optional)
 }
 
 export default function AIRecommendations({
@@ -35,14 +34,13 @@ export default function AIRecommendations({
   setPrompt,
   prompt,
   handleSubmitPrompt,
-  isPremiumUser,
-  onUpgrade,
 }: AIRecommendationsProps) {
   const pathname = usePathname();
   const [isDefaultRecs, setIsDefaultRecs] = useState(true);
   const [selectedRec, setSelectedRec] = useState<AIRecommendation | null>(null);
 
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
+  const { isPremium: isPremiumUser } = useAuth();
 
   useEffect(() => {
     setIsDefaultRecs(!pathname?.includes("recommendation"));
@@ -79,7 +77,7 @@ export default function AIRecommendations({
       <div className="relative">
         {isAiLoading ? (
           <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {Array.from({ length: 10 }).map((_, index) => (
+            {Array.from({ length: 8 }).map((_, index) => (
               <CardSkeleton key={index} index={index} />
             ))}
           </div>
@@ -178,7 +176,6 @@ export default function AIRecommendations({
             className="inline-flex items-center justify-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-colors"
             onClick={() => {
               setShowUpgradePrompt(false);
-              if (onUpgrade) onUpgrade();
             }}
           >
             Upgrade Now

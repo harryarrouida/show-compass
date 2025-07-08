@@ -49,6 +49,8 @@ export async function POST(req: NextRequest) {
       response_format: { type: "json_object" },
     });
 
+    console.log("Prompt for based-rec:", generateDefaultPrompt(mediaDetails as any, type as string));
+
     const response = completion.choices[0]?.message?.content || "";
     const cleanResponse = response.trim();
     const parsed = JSON.parse(cleanResponse);

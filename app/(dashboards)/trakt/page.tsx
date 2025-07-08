@@ -31,9 +31,7 @@ const Trakt = () => {
   const [mappedMovies, setMappedMovies] = useState<any[]>([]);
   const [mappedShows, setMappedShows] = useState<any[]>([]);
   const [page, setPage] = useState(1);
-  const { saveToHistory } = useHistory();
   const router = useRouter();
-  const [watchlist, setWatchlist] = useState<any[]>([]);
   const [isProcessingCode, setIsProcessingCode] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
 
