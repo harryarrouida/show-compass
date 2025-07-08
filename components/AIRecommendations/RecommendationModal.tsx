@@ -88,13 +88,22 @@ export function RecommendationModal({
                 {selectedRec.title}
               </h2>
 
-              <div className="flex items-center justify-center md:justify-start gap-4 text-sm md:text-base text-zinc-300">
+              <div className="flex items-center justify-center md:justify-start gap-4 text-sm md:text-base text-zinc-300 flex-wrap">
                 <span>{selectedRec.media?.release_date?.split("-")[0]}</span>
-                {selectedRec.media?.vote_average && (
+                {selectedRec.media?.vote_average ? (
                   <div className="flex items-center gap-1.5">
                     <IoStar className="text-amber-400 w-5 h-5" />
                     <span>{selectedRec.media.vote_average.toFixed(1)}</span>
                   </div>
+                ) : null}
+                {"number_of_seasons" in selectedRec.media && selectedRec.media.number_of_seasons !== undefined && (
+                  <span>{selectedRec.media.number_of_seasons} Seasons</span>
+                )}
+                {"number_of_episodes" in selectedRec.media && selectedRec.media.number_of_episodes !== undefined && (
+                  <span>{selectedRec.media.number_of_episodes} Episodes</span>
+                )}
+                {"runtime" in selectedRec.media && selectedRec.media.runtime !== undefined && (
+                  <span>{selectedRec.media.runtime} min</span>
                 )}
               </div>
 

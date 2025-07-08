@@ -71,6 +71,15 @@ export default function RecommendationPage() {
     }
   }, [initialLoadComplete]);
 
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => {
+        setAlert(null);
+      }, 5000); // Clear alert after 5 seconds
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
+
   const closeIntroModal = () => {
     setShowIntroModal(false);
     localStorage.setItem("hasVisitedRecommendations", "true");
@@ -124,12 +133,11 @@ export default function RecommendationPage() {
                 try {
                   const searchResults = await search(rec.title);
                   if (searchResults && searchResults.length > 0) {
+                    const firstResult = searchResults[0];
+                    const mediaDetails = await (type === 'movie' ? getMovieDetails(firstResult.id) : getShowDetails(firstResult.id));
                     return {
                       ...rec,
-                      media: {
-                        ...searchResults[0],
-                        type: type,
-                      },
+                      media: mediaDetails,
                     };
                   }
                   return rec;
@@ -190,6 +198,12 @@ export default function RecommendationPage() {
 
   const handleSubmitPrompt = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!isPremium) {
+      setAlert("Please upgrade to a premium account to use this feature.");
+      return;
+    }
+
     setIsAiLoading(true);
     try {
       const userToken = currentUser ? await currentUser.getIdToken() : null;
@@ -226,12 +240,11 @@ export default function RecommendationPage() {
             try {
               const searchResults = await search(rec.title);
               if (searchResults && searchResults.length > 0) {
+                const firstResult = searchResults[0];
+                const mediaDetails = await (type === 'movie' ? getMovieDetails(firstResult.id) : getShowDetails(firstResult.id));
                 return {
                   ...rec,
-                  media: {
-                    ...searchResults[0],
-                    type: type,
-                  },
+                  media: mediaDetails,
                 };
               }
               return rec;
@@ -290,6 +303,8 @@ export default function RecommendationPage() {
                 prompt={prompt}
                 handleSubmitPrompt={handleSubmitPrompt}
                 isMobile={isMobile}
+                isPremiumUser={isPremium}
+                onUpgrade={() => setAlert("Thank you for considering an upgrade!")}
               />
 
               {showIntroModal && (

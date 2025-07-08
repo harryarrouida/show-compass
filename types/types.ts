@@ -24,7 +24,7 @@ interface MediaDetails {
 export interface AIRecommendation {
     title: string;
     reason: string;
-    media?: MediaDetails;
+    media?: MovieDetails | ShowDetails;
 }
 
 /** Service Response Types */

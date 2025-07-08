@@ -29,7 +29,7 @@ interface FilterOptions {
   minimumRating?: number;
 }
 
-// ===== HELPER FUNCTIONS =====
+// ===== ENHANCED HELPER FUNCTIONS =====
 
 const extractUserEssentials = (
   watchedTitles: WatchedTitleWithRating[],
@@ -40,22 +40,80 @@ const extractUserEssentials = (
 
   const highestRated = watchedTitles
     .filter(title => title.title && title.overview)
-    // .sort((a, b) => (b.userRating || 0) - (a.userRating || 0))
-    // .slice(0, 5);
+    .sort((a, b) => (b.userRating || 0) - (a.userRating || 0))
+    .slice(0, 5);
 
+  // Enhanced emotional profiling with more nuanced categories
   let emotionalProfile = "varied emotional experiences";
+  let emotionalIntensity = "moderate";
+  
   if (ratingDistribution) {
     const { high = 0, medium = 0, low = 0 } = ratingDistribution;
-    if (high > medium && high > low) {
-      emotionalProfile = "deeply moving, transformative experiences that resonate long after viewing";
-    } else if (medium > high && medium > low) {
-      emotionalProfile = "consistently engaging and emotionally satisfying content";
-    } else if (low > high && low > medium) {
-      emotionalProfile = "diverse emotional journeys, even unconventional ones";
+    const total = high + medium + low;
+    
+    if (total > 0) {
+      const highPercentage = (high / total) * 100;
+      const mediumPercentage = (medium / total) * 100;
+      
+      // Determine emotional intensity
+      if (highPercentage > 60) {
+        emotionalIntensity = "high - seeks profound, transformative experiences";
+      } else if (mediumPercentage > 50) {
+        emotionalIntensity = "balanced - appreciates consistent emotional engagement";
+      } else {
+        emotionalIntensity = "exploratory - open to diverse emotional journeys";
+      }
+      
+      // Determine emotional preference
+      if (high > medium && high > low) {
+        emotionalProfile = "deeply moving, transformative experiences that create lasting emotional impact";
+      } else if (medium > high && medium > low) {
+        emotionalProfile = "consistently engaging content with reliable emotional satisfaction";
+      } else if (low > high && low > medium) {
+        emotionalProfile = "experimental and unconventional emotional journeys";
+      } else {
+        emotionalProfile = "balanced emotional experiences across different intensities";
+      }
     }
   }
 
-  return { topGenres, highestRated, emotionalProfile };
+  return { topGenres, highestRated, emotionalProfile, emotionalIntensity };
+};
+
+const analyzeViewingPatterns = (watchedTitles: WatchedTitleWithRating[]) => {
+  const patterns = {
+    preferredNarrativeStyle: "varied",
+    emotionalTolerance: "moderate",
+    complexityPreference: "balanced"
+  };
+
+  // Analyze overviews for narrative patterns
+  const overviews = watchedTitles.map(t => t.overview).filter(Boolean);
+  
+  // Look for keywords that indicate preferences
+  const darkThemes = overviews.filter(o => 
+    /dark|death|murder|crime|psychological|thriller|horror/i.test(o)
+  ).length;
+  
+  const lightThemes = overviews.filter(o => 
+    /comedy|romance|family|adventure|friendship|love/i.test(o)
+  ).length;
+  
+  const complexThemes = overviews.filter(o => 
+    /complex|philosophical|existential|mystery|intricate|layered/i.test(o)
+  ).length;
+
+  if (darkThemes > lightThemes * 1.5) {
+    patterns.emotionalTolerance = "high - comfortable with intense, challenging content";
+  } else if (lightThemes > darkThemes * 1.5) {
+    patterns.emotionalTolerance = "prefers uplifting, positive emotional experiences";
+  }
+
+  if (complexThemes > watchedTitles.length * 0.3) {
+    patterns.complexityPreference = "high - appreciates layered, thought-provoking narratives";
+  }
+
+  return patterns;
 };
 
 const buildConstraintsSection = (
@@ -73,32 +131,33 @@ const buildConstraintsSection = (
   
   if (filters?.lengthPreference) {
     const lengthMap = {
-      short: "Short series (max 12 episodes)",
-      medium: "Medium series (12-24 episodes)", 
-      long: "Long series (24+ episodes)"
+      short: "Short series (max 12 episodes) - focused, concise storytelling",
+      medium: "Medium series (12-24 episodes) - balanced narrative development", 
+      long: "Long series (24+ episodes) - extensive character and world development"
     };
     constraints.push(`• **Length:** ${lengthMap[filters.lengthPreference]}`);
   }
   
   if (filters?.status) {
     const statusMap = {
-      ongoing: "Currently airing series only",
-      completed: "Completed series only",
-      both: "Both ongoing and completed series"
+      ongoing: "Currently airing series only - fresh, evolving narratives",
+      completed: "Completed series only - fully realized story arcs",
+      both: "Both ongoing and completed series - diverse completion states"
     };
     constraints.push(`• **Status:** ${statusMap[filters.status]}`);
   }
   
   if (filters?.minimumRating) {
-    constraints.push(`• **Quality Standard:** Minimum ${filters.minimumRating}/10 rating`);
+    constraints.push(`• **Quality Standard:** Minimum ${filters.minimumRating}/10 rating - proven emotional impact`);
   }
   
-  constraints.push("• **Diversity:** Ensure all recommendations offer distinct emotional experiences and avoid repetitive suggestions");
+  constraints.push("• **Diversity:** Ensure recommendations offer distinct emotional experiences while maintaining thematic coherence");
+  constraints.push("• **Emotional Authenticity:** Prioritize content with genuine emotional depth over superficial genre matching");
   
   return constraints.join("\n");
 };
 
-// ===== 1. GENERAL RECOMMENDATIONS (USER HISTORY-BASED) =====
+// ===== 1. ENHANCED GENERAL RECOMMENDATIONS =====
 export const generateTraktRecommendationsPrompt = (
   watchedTitles: WatchedTitleWithRating[],
   favoriteGenres: string[],
@@ -110,47 +169,63 @@ export const generateTraktRecommendationsPrompt = (
   animeOnly: boolean,
   filters?: FilterOptions
 ) => {
-  const { topGenres, emotionalProfile } = extractUserEssentials(
+  const { topGenres, emotionalProfile, emotionalIntensity } = extractUserEssentials(
     watchedTitles, 
     favoriteGenres, 
     ratingDistribution
   );
 
+  const viewingPatterns = analyzeViewingPatterns(watchedTitles);
   const constraints = buildConstraintsSection(watchedTitles, animeOnly, filters);
 
-  return `You are an expert emotional curator and recommendation engine. Your mission is to find ${numRecommendations} ${type} that will deliver the same **emotional fulfillment and deeply satisfying viewing experience** as the user's most cherished content.
+  // Extract emotional themes from highest rated content
+  const emotionalThemes = watchedTitles
+    .filter(t => t.userRating && t.userRating >= 8)
+    .map(t => t.overview)
+    .join(" ");
 
-USER'S EMOTIONAL PROFILE:
+  return `You are an expert emotional curator and recommendation engine specializing in psychological resonance. Your mission is to find ${numRecommendations} ${type} that will deliver the same **emotional fulfillment and deeply satisfying viewing experience** as the user's most cherished content.
+
+USER'S EMOTIONAL DNA:
 • **Core Genres:** ${topGenres.join(", ")}
 • **Emotional Preference:** Seeks ${emotionalProfile}
-• **Viewing Philosophy:** Values content that creates lasting emotional impact and meaningful connections
+• **Emotional Intensity:** ${emotionalIntensity}
+• **Narrative Style:** ${viewingPatterns.preferredNarrativeStyle}
+• **Emotional Tolerance:** ${viewingPatterns.emotionalTolerance}
+• **Complexity Preference:** ${viewingPatterns.complexityPreference}
+
+EMOTIONAL CONTEXT FROM LOVED CONTENT:
+${emotionalThemes ? `The user's highest-rated content suggests they connect with: "${emotionalThemes.substring(0, 300)}..."` : "Limited emotional context available"}
 
 CONSTRAINTS:
 ${constraints}
 
-RECOMMENDATION PHILOSOPHY:
-Focus on the **emotional journey and psychological satisfaction** each title provides. Think: "This recommendation will make the user feel the same way their favorite content does - whether that's wonder, excitement, catharsis, or deep contemplation."
+ADVANCED CURATION STRATEGY:
+1. **Emotional Resonance Matching:** Analyze the psychological and emotional patterns from their viewing history
+2. **Feeling-State Replication:** Find content that creates the same internal emotional state
+3. **Satisfaction Curve:** Match the emotional journey and resolution style they prefer
+4. **Subconscious Appeal:** Consider what draws them beyond conscious genre preferences
 
-Consider:
-- What emotions does this content evoke?
-- How does it make viewers feel during and after watching?
-- What kind of emotional or intellectual satisfaction does it provide?
-- Does it create the same sense of connection and engagement?
+EVALUATION CRITERIA:
+- **Emotional Authenticity:** Does this content have genuine emotional depth?
+- **Psychological Satisfaction:** Will this fulfill their specific emotional needs?
+- **Resonance Potential:** How likely is this to create lasting emotional impact?
+- **Narrative Harmony:** Does this match their preferred storytelling rhythm?
 
 JSON FORMAT:
 {
   "recommendations": [
     {
       "title": "Title Name",
-      "reason": "Compelling explanation focused on the emotional experience and psychological satisfaction this content delivers, matching the user's proven taste for deeply resonant storytelling."
+      "reason": "Deep explanation of the emotional experience this provides, focusing on the specific feelings, psychological satisfaction, and why it matches their proven emotional preferences and viewing patterns."
     }
   ]
 }
 
-Return ONLY valid JSON. Focus on emotional resonance over plot similarities.`;
+Return ONLY valid JSON. Focus on emotional resonance and psychological fulfillment over surface-level similarities.`;
 };
 
-// ===== 2. WATCHLIST RECOMMENDATIONS (SELECT FROM WATCHLIST) =====
+// ===== 2. ENHANCED WATCHLIST RECOMMENDATIONS =====
 export const generateWatchlistPrompt = (
   ratingDistribution: RatingDistribution,
   decadePreferences: any,
@@ -162,54 +237,62 @@ export const generateWatchlistPrompt = (
   animeOnly: boolean,
   filters?: FilterOptions
 ) => {
-  const { topGenres, highestRated, emotionalProfile } = extractUserEssentials(
+  const { topGenres, highestRated, emotionalProfile, emotionalIntensity } = extractUserEssentials(
     watchedTitles, 
     favoriteGenres, 
     ratingDistribution
   );
 
+  const viewingPatterns = analyzeViewingPatterns(watchedTitles);
+  const constraints = buildConstraintsSection(watchedTitles, animeOnly, filters);
+
   const watchlistDisplay = watchlist.length
-    ? watchlist.map(item => 
-        `"${item.title}"${item.overview ? ` - ${item.overview.substring(0, 60)}...` : ''}`
+    ? watchlist.map((item, index) => 
+        `${index + 1}. "${item.title}"${item.overview ? ` - ${item.overview.substring(0, 80)}...` : ''}`
       ).join("\n")
     : "No watchlist items provided.";
 
-  const constraints = buildConstraintsSection(watchedTitles, animeOnly, filters);
-
-  return `You are an expert emotional curator. From this user's watchlist, select ${numRecommendations} ${type} titles that will provide the most **emotionally satisfying and fulfilling viewing experiences** based on their proven taste preferences.
+  return `You are an expert emotional curator and priority strategist. From this user's watchlist, select ${numRecommendations} ${type} titles that will provide the most **emotionally satisfying and psychologically fulfilling viewing experiences** based on their proven taste preferences.
 
 USER'S EMOTIONAL BLUEPRINT:
 • **Favorite Genres:** ${topGenres.join(", ")}
 • **Highest Rated Content:** ${highestRated.map(t => `"${t.title}" (${t.userRating || 'loved'}/10)`).join(", ")}
-• **Emotional Preference:** Craves ${emotionalProfile}
-• **What They Value:** Content that creates deep emotional connections and lasting impact
+• **Emotional Craving:** ${emotionalProfile}
+• **Emotional Intensity:** ${emotionalIntensity}
+• **Viewing Patterns:** ${viewingPatterns.complexityPreference}, ${viewingPatterns.emotionalTolerance}
 
-WATCHLIST OPTIONS (Choose ONLY from these):
+WATCHLIST ANALYSIS POOL:
 ${watchlistDisplay}
 
 CONSTRAINTS:
 ${constraints}
 
-CURATION STRATEGY:
-Analyze each watchlist item for its **emotional potential and psychological resonance**. Ask yourself:
-- Which titles will create the most meaningful emotional experience?
-- What feelings will these evoke that match their established preferences?
-- How will these satisfy their craving for ${emotionalProfile}?
+STRATEGIC CURATION APPROACH:
+1. **Emotional Fit Assessment:** Analyze each watchlist item's emotional potential against their proven preferences
+2. **Satisfaction Prediction:** Which titles will create the most meaningful emotional experiences?
+3. **Timing Optimization:** Consider their current emotional state and viewing readiness
+4. **Resonance Maximization:** Prioritize content that matches their emotional intensity and tolerance levels
+
+SELECTION CRITERIA:
+- **Immediate Emotional Appeal:** Will this capture their attention based on their preferences?
+- **Sustained Engagement:** Does this match their complexity and narrative preferences?
+- **Emotional Payoff:** Will this provide the emotional satisfaction they seek?
+- **Personal Relevance:** How well does this align with their emotional DNA?
 
 JSON FORMAT:
 {
   "recommendations": [
     {
       "title": "Title from Watchlist",
-      "reason": "Focus on the emotional journey and psychological satisfaction this watchlist item will provide, explaining why it matches their proven taste for deeply resonant content."
+      "reason": "Detailed analysis of why this watchlist item perfectly matches their emotional preferences, considering their specific patterns for ${emotionalProfile} and how it will provide the psychological satisfaction they seek."
     }
   ]
 }
 
-Return ONLY valid JSON. Prioritize emotional resonance over surface-level genre matching.`;
+Return ONLY valid JSON. Prioritize emotional resonance and personal fit over arbitrary selection.`;
 };
 
-// ===== 3. MEDIA-SPECIFIC RECOMMENDATIONS =====
+// ===== 3. ENHANCED MEDIA-SPECIFIC RECOMMENDATIONS =====
 export const generateDefaultPrompt = (
   mediaDetails: MediaDetails,
   type: string,
@@ -217,39 +300,60 @@ export const generateDefaultPrompt = (
 ) => {
   const genres = mediaDetails.genres.map(g => g.name).join(", ");
   const year = new Date(mediaDetails.release_date).getFullYear();
+  
+  // Analyze emotional themes in the overview
+  const emotionalKeywords = mediaDetails.overview.toLowerCase();
+  let emotionalTone = "balanced";
+  
+  if (/dark|death|murder|crime|psychological|thriller|horror|tragic/.test(emotionalKeywords)) {
+    emotionalTone = "intense and psychologically challenging";
+  } else if (/comedy|funny|light|cheerful|uplifting|joy/.test(emotionalKeywords)) {
+    emotionalTone = "uplifting and emotionally positive";
+  } else if (/romance|love|relationship|heart/.test(emotionalKeywords)) {
+    emotionalTone = "emotionally intimate and relationship-focused";
+  } else if (/adventure|action|exciting|thrilling/.test(emotionalKeywords)) {
+    emotionalTone = "exciting and adrenaline-driven";
+  }
 
-  return `You are an expert in emotional storytelling and content curation. Generate ${numRecommendations} ${type} recommendations that deliver the same **emotional resonance and psychological satisfaction** as the source content.
+  return `You are an expert in emotional storytelling and psychological content curation. Generate ${numRecommendations} ${type} recommendations that deliver the same **emotional resonance and psychological satisfaction** as the source content.
 
-SOURCE CONTENT ANALYSIS:
+SOURCE CONTENT EMOTIONAL ANALYSIS:
 • **Title:** "${mediaDetails.title}"
 • **Emotional Core:** "${mediaDetails.overview}"
-• **Genre Elements:** ${genres}
-• **Era:** ${year}
-• **Audience Connection:** ${mediaDetails.vote_average}/10
+• **Emotional Tone:** ${emotionalTone}
+• **Genre Atmosphere:** ${genres}
+• **Era Context:** ${year}
+• **Audience Resonance:** ${mediaDetails.vote_average}/10 (${mediaDetails.vote_average >= 8 ? 'highly resonant' : mediaDetails.vote_average >= 6 ? 'solidly engaging' : 'niche appeal'})
 
-EMOTIONAL MATCHING STRATEGY:
-Focus on the **feelings, atmosphere, and emotional journey** rather than surface plot similarities. Consider:
-- What emotions does the source content evoke?
-- What psychological needs does it fulfill?
-- How does it make viewers feel during and after the experience?
-- What kind of emotional catharsis or satisfaction does it provide?
+EMOTIONAL MATCHING METHODOLOGY:
+1. **Feeling-State Analysis:** What specific emotions does the source content evoke?
+2. **Psychological Needs:** What deeper human needs does it fulfill (catharsis, escape, connection, growth)?
+3. **Emotional Journey:** How does it take viewers through emotional transformation?
+4. **Satisfaction Type:** What kind of emotional resolution or experience does it provide?
 
-Find content that creates the same **emotional state and viewing satisfaction**. Think: "If the source content made you feel [specific emotion/experience], these recommendations will give you that same feeling through different but equally powerful storytelling."
+RECOMMENDATION PHILOSOPHY:
+Think: "If someone loved [source content] for how it made them FEEL, what other content would create that same emotional state through different but equally powerful storytelling?"
+
+Focus on:
+- **Emotional Resonance:** Same feelings, different story
+- **Psychological Satisfaction:** Same internal rewards and fulfillment
+- **Atmospheric Harmony:** Similar emotional environment and tone
+- **Narrative Rhythm:** Compatible pacing and emotional flow
 
 JSON FORMAT:
 {
   "recommendations": [
     {
       "title": "Title Name",
-      "reason": "Clear explanation of the emotional experience this provides and why it creates the same psychological satisfaction as the source content, emphasizing the feelings and atmosphere it evokes."
+      "reason": "Precise explanation of the emotional experience this provides and why it creates the same psychological satisfaction as the source content. Focus on the specific feelings, atmosphere, and emotional journey rather than plot mechanics."
     }
   ]
 }
 
-Return ONLY valid JSON. Focus on emotional resonance over plot mechanics.`;
+Return ONLY valid JSON. Prioritize emotional and psychological alignment over superficial similarities.`;
 };
 
-// ===== 4. CUSTOM CHAT RECOMMENDATIONS =====
+// ===== 4. ENHANCED CUSTOM CHAT RECOMMENDATIONS =====
 export const generateCustomPrompt = (
   details: Partial<MediaDetails>,
   type: string,
@@ -257,10 +361,34 @@ export const generateCustomPrompt = (
   numRecommendations: number = 10
 ) => {
   const hasBaseMedia = details?.title;
+  
+  // Analyze the user's prompt for emotional intent
+  const promptAnalysis = {
+    emotionalIntent: "general",
+    intensityLevel: "moderate",
+    specificNeeds: []
+  };
+  
+  const promptLower = prompt.toLowerCase();
+  
+  if (/sad|depressing|cry|emotional|heartbreaking/.test(promptLower)) {
+    promptAnalysis.emotionalIntent = "cathartic and emotionally intense";
+    promptAnalysis.intensityLevel = "high";
+  } else if (/happy|funny|comedy|light|cheerful|uplifting/.test(promptLower)) {
+    promptAnalysis.emotionalIntent = "uplifting and mood-boosting";
+  } else if (/scary|horror|thriller|suspense|tense/.test(promptLower)) {
+    promptAnalysis.emotionalIntent = "thrilling and adrenaline-inducing";
+    promptAnalysis.intensityLevel = "high";
+  } else if (/romantic|love|relationship|date/.test(promptLower)) {
+    promptAnalysis.emotionalIntent = "romantically satisfying and emotionally intimate";
+  } else if (/complex|deep|philosophical|thought-provoking/.test(promptLower)) {
+    promptAnalysis.emotionalIntent = "intellectually stimulating and contemplative";
+  }
+
   const baseContext = hasBaseMedia ?
-    `EMOTIONAL CONTEXT FROM BASE CONTENT:
+    `EMOTIONAL FOUNDATION FROM BASE CONTENT:
 • **Title:** "${details.title}"
-• **Emotional Foundation:** "${details.overview || "N/A"}"
+• **Emotional Anchor:** "${details.overview || "N/A"}"
 • **Genre Atmosphere:** ${details.genres?.map(g => g.name).join(", ") || "N/A"}
 • **Era/Setting:** ${details.release_date ? new Date(details.release_date).getFullYear() : "N/A"}
 • **Audience Resonance:** ${details.vote_average || "N/A"}/10` :
@@ -270,27 +398,33 @@ export const generateCustomPrompt = (
 
 ${baseContext}
 
-USER'S EMOTIONAL REQUEST:
-"${prompt}"
+USER'S EMOTIONAL REQUEST ANALYSIS:
+• **Raw Request:** "${prompt}"
+• **Emotional Intent:** ${promptAnalysis.emotionalIntent}
+• **Intensity Level:** ${promptAnalysis.intensityLevel}
+• **Underlying Need:** The user seeks content that will create specific feelings and psychological states
 
-APPROACH:
-Analyze the user's request for the underlying **emotional needs and experiential desires**. Consider:
-- What feelings are they seeking?
-- What kind of emotional journey do they want?
-- What psychological satisfaction are they craving?
-- How can you match their desired emotional state?
+ADVANCED CURATION APPROACH:
+1. **Intent Decoding:** What emotional state are they trying to achieve?
+2. **Need Fulfillment:** What psychological needs are they expressing?
+3. **Experience Design:** How can content create their desired emotional journey?
+4. **Satisfaction Optimization:** What will leave them feeling emotionally fulfilled?
 
-Focus on content that will create the **exact emotional experience** they're seeking, whether that's excitement, contemplation, catharsis, wonder, or any other feeling.
+RECOMMENDATION STRATEGY:
+- **Emotional Precision:** Match the exact emotional experience they're seeking
+- **Psychological Satisfaction:** Fulfill their underlying emotional needs
+- **Atmospheric Alignment:** Create the right emotional environment
+- **Experience Quality:** Ensure high emotional payoff and satisfaction
 
 JSON FORMAT:
 {
   "recommendations": [
     {
       "title": "Title Name",
-      "reason": "Direct explanation of how this content fulfills their emotional request, focusing on the feelings, atmosphere, and psychological satisfaction it provides rather than just plot elements."
+      "reason": "Detailed explanation of how this content fulfills their specific emotional request, focusing on the precise feelings, atmosphere, and psychological satisfaction it provides. Connect directly to their stated needs and desired emotional experience."
     }
   ]
 }
 
-Return ONLY valid JSON. Prioritize emotional fulfillment over literal interpretation.`;
+Return ONLY valid JSON. Focus on emotional precision and psychological fulfillment over literal interpretation.`;
 }

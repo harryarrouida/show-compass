@@ -607,7 +607,10 @@ const TraktRecommendations = () => {
           </div>
 
           {/* Advanced Filters Section */}
-          <div className="mt-4 border-t border-zinc-800/50 pt-4">
+
+                {
+                  mediaType === "shows" && (
+                             <div className="mt-4 border-t border-zinc-800/50 pt-4">
             <button
               onClick={() => setUIState(prev => ({ ...prev, showAdvancedFilters: !prev.showAdvancedFilters }))}
               className="w-full flex items-center justify-between text-zinc-300 text-sm hover:text-white transition-colors px-2"
@@ -707,6 +710,8 @@ const TraktRecommendations = () => {
               </div>
             )}
           </div>
+                  )
+                }
         </div>
       </Card>
 
