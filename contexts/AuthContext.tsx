@@ -67,16 +67,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
    */
   const checkPremium = async (user: User): Promise<boolean> => {
     if (!user) return false;
-    
+
     try {
       const userRef = doc(db, 'users', user.uid);
       const userDoc = await getDoc(userRef);
-      
+
       if (!userDoc.exists()) {
         console.log("User document doesn't exist in Firestore");
         return false;
       }
-      
+
       const userData = userDoc.data();
       return userData?.isPremium === true;
     } catch (error) {
@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
    */
   const refreshPremiumStatus = async (): Promise<boolean> => {
     if (!currentUser) return false;
-    
+
     const status = await checkPremium(currentUser);
     setIsPremium(status);
     return status;
@@ -117,25 +117,31 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
    */
   const createUserDocument = async (user: User) => {
     const userRef = doc(db, 'users', user.uid);
-
-    const userData = {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName || null,
-      photoURL: user.photoURL || null,
-      isPremium: false,
-      premiumPurchaseDate: null,
-      lastRecDay: null,
-      todayUsedRecs: 0,
-      lastRecTimestamp: null,
-      traktAccessToken: null,
-      traktRefreshToken: null,
-      traktExpiresAt: null,
-      createdAt: serverTimestamp(),
-      lastLoginAt: serverTimestamp(),
-    };
-
     try {
+      const userDoc = await getDoc(userRef);
+      let isPremium = false;
+      let premiumPurchaseDate = null;
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        isPremium = data.isPremium || false;
+        premiumPurchaseDate = data.premiumPurchaseDate || null;
+      }
+      const userData = {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName || null,
+        photoURL: user.photoURL || null,
+        isPremium,
+        premiumPurchaseDate,
+        lastRecDay: null,
+        todayUsedRecs: 0,
+        lastRecTimestamp: null,
+        traktAccessToken: null,
+        traktRefreshToken: null,
+        traktExpiresAt: null,
+        createdAt: serverTimestamp(),
+        lastLoginAt: serverTimestamp(),
+      };
       await setDoc(userRef, userData, { merge: true });
     } catch (error) {
       console.error("Error creating user document:", error);
@@ -161,6 +167,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const login = async (email: string, password: string) => {
     const result = await signInWithEmailAndPassword(auth, email, password);
     const userRef = doc(db, 'users', result.user.uid);
+    // Ensure we do not override isPremium on login, just update lastLoginAt
     await setDoc(
       userRef,
       { lastLoginAt: serverTimestamp() },
@@ -194,16 +201,16 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Add function to get user data
   const getUserData = async () => {
     if (!currentUser) return null;
-    
+
     try {
       const userRef = doc(db, 'users', currentUser.uid);
       const userDoc = await getDoc(userRef);
-      
+
       if (!userDoc.exists()) {
         console.error("User document doesn't exist");
         return null;
       }
-      
+
       return userDoc.data();
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -214,27 +221,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Add function to update user's recommendation stats
   const updateUserRecStats = async () => {
     if (!currentUser) return;
-    
+
     try {
       const userRef = doc(db, 'users', currentUser.uid);
       const today = new Date().toISOString().split('T')[0];
-      
+
       // Get current user data
       const userDoc = await getDoc(userRef);
       if (!userDoc.exists()) return;
-      
+
       const userData = userDoc.data();
-      
+
       // Reset count if it's a new day
-      const todayUsedRecs = userData.lastRecDay === today ? 
+      const todayUsedRecs = userData.lastRecDay === today ?
         (userData.todayUsedRecs || 0) + 1 : 1;
-      
+
       await setDoc(userRef, {
         lastRecDay: today,
         todayUsedRecs,
         lastRecTimestamp: serverTimestamp()
       }, { merge: true });
-      
+
       return todayUsedRecs;
     } catch (error) {
       console.error("Error updating user rec stats:", error);
