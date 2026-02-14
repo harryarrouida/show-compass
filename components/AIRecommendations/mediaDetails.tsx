@@ -5,7 +5,7 @@ import { ShowDetails, MovieDetails } from "@/types/types";
 import AIRecommendations from "@/components/AIRecommendations/aiRecommendations";
 import { AIRecommendation } from "@/types/types";
 import { useState } from "react";
-import { IoStarOutline, IoStar, IoTime, IoCalendar, IoLanguage, IoBusinessSharp, IoChevronDown, IoChevronUp } from "react-icons/io5";
+import { IoStar, IoTime, IoCalendar, IoLanguage, IoBusinessSharp } from "react-icons/io5";
 import Card from "@/components/shared/ui/Card";
 import OptimizedImage from "../shared/handlers/optimizedImage";
 
@@ -41,7 +41,6 @@ export default function MediaDetails({
   isMobile,
 }: MediaDetailsProps) {
   const [showAllOverview, setShowAllOverview] = useState(false);
-  const [showAllDetails, setShowAllDetails] = useState(false);
 
   return (
     <div className="relative w-full">
@@ -63,7 +62,7 @@ export default function MediaDetails({
 
         {/* Hero Content */}
         <div className="relative h-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-          <div className="flex flex-col md:flex-row items-end md:items-end h-full pb-12 md:pb-16 gap-6 md:gap-8">
+          <div className="flex flex-col md:flex-row items-end h-full pb-12 md:pb-16 gap-6 md:gap-8">
             {/* Poster - Overlapping */}
             <div className="relative w-[180px] sm:w-[220px] md:w-[260px] lg:w-[300px] flex-shrink-0 
                           transform md:translate-y-16 lg:translate-y-20
@@ -250,31 +249,31 @@ export default function MediaDetails({
                 </p>
                 {isMobile && details.overview.length > 200 && (
                   <button
-                    onClick={() => setShowAll Overview(!showAllOverview)}
-                className="mt-4 text-sm text-blue-400 hover:text-blue-300
-                transition-colors font-medium"
+                    onClick={() => setShowAllOverview(!showAllOverview)}
+                    className="mt-4 text-sm text-blue-400 hover:text-blue-300 
+                             transition-colors font-medium"
                   >
-                {showAllOverview ? "Show Less" : "Read More"}
-              </button>
+                    {showAllOverview ? "Show Less" : "Read More"}
+                  </button>
                 )}
-            </Card>
-          </div>
+              </Card>
+            </div>
 
-          {/* AI Recommendations */}
-          <AIRecommendations
-            isAiLoading={isAiLoading}
-            aiRecommendations={aiRecommendations}
-            saveToHistory={saveToHistory}
-            alert={alert}
-            toggleChat={toggleChat}
-            showChat={showChat}
-            setPrompt={setPrompt}
-            prompt={prompt}
-            handleSubmitPrompt={handleSubmitPrompt}
-          />
+            {/* AI Recommendations */}
+            <AIRecommendations
+              isAiLoading={isAiLoading}
+              aiRecommendations={aiRecommendations}
+              saveToHistory={saveToHistory}
+              alert={alert}
+              toggleChat={toggleChat}
+              showChat={showChat}
+              setPrompt={setPrompt}
+              prompt={prompt}
+              handleSubmitPrompt={handleSubmitPrompt}
+            />
+          </div>
         </div>
       </div>
     </div>
-    </div >
   );
 }
