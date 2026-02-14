@@ -9,13 +9,8 @@ import {
   MappedMovie,
   MappedShow,
 } from "@/types/types";
-import Groq from "groq-sdk";
 import MediaDetails from "@/components/AIRecommendations/mediaDetails";
 import { AIRecommendation } from "@/types/types";
-import {
-  generateDefaultPrompt,
-  generateCustomPrompt,
-} from "@/constants/aiPrompts";
 import { search } from "@/services/content/sharedServices";
 import { useHistory } from "@/contexts/historyContext";
 import Loading from "@/components/shared/loaders/loading";
@@ -24,9 +19,9 @@ import {
   RiRobot2Line,
   RiQuestionLine,
   RiHistoryLine,
-  RiChat1Line,
 } from "react-icons/ri";
 import { BsChatDots } from "react-icons/bs";
+import { getAIRecommendations } from "@/app/actions/recommendations";
 
 export default function RecommendationPage() {
   const [details, setDetails] = useState<ShowDetails | MovieDetails | null>(
@@ -42,7 +37,7 @@ export default function RecommendationPage() {
   const [alert, setAlert] = useState<string | null>(null);
   const [showChat, setShowChat] = useState(false);
   const [prompt, setPrompt] = useState("");
-  const { saveToHistory: saveToHistoryContext } = useHistory();
+  const { history, saveToHistory: saveToHistoryContext } = useHistory();
   const [showIntroModal, setShowIntroModal] = useState(false);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -90,53 +85,25 @@ export default function RecommendationPage() {
           setIsAiLoading(true);
 
           try {
-            const groq = new Groq({
-              apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY!,
-              dangerouslyAllowBrowser: true,
-            });
+            // Prepare history for context
+            const recentHistory = history
+              .slice(0, 5)
+              .map(item => ({
+                title: item.data.title,
+                reason: item.reason
+              }));
 
-            const completion = await groq.chat.completions.create({
-              messages: [
-                {
-                  role: "system",
-                  content: `You are a helpful assistant that provides recommendations. Your responses must be valid JSON with a 'recommendations' array containing objects with 'title' and 'reason' fields. The JSON must be complete and properly formatted. Example format:
-                  {
-                    "recommendations": [
-                      {
-                        "title": "Movie Title",
-                        "reason": "Reason for recommendation"
-                      }
-                    ]
-                  }`,
-                },
-                {
-                  role: "user",
-                  content: generateDefaultPrompt(
-                    mediaDetails as any,
-                    type as string
-                  ),
-                },
-              ],
-              model: "llama-3.1-8b-instant",
-              temperature: 0.2,
-              max_tokens: 1000,
-              response_format: { type: "json_object" },
-            });
-
-            const response = completion.choices[0]?.message?.content || "";
-            const cleanResponse = response.trim();
-            const parsed = JSON.parse(cleanResponse);
-
-            if (
-              !parsed ||
-              !parsed.recommendations ||
-              !Array.isArray(parsed.recommendations)
-            ) {
-              throw new Error("Invalid response format");
-            }
+            const start = performance.now();
+            const recommendations = await getAIRecommendations(
+              mediaDetails as any,
+              type as string,
+              recentHistory
+            );
+            const end = performance.now();
+            console.log(`AI Response time: ${end - start}ms`);
 
             const recommendationsWithMedia = await Promise.all(
-              parsed.recommendations.map(async (rec: AIRecommendation) => {
+              recommendations.map(async (rec: AIRecommendation) => {
                 try {
                   const searchResults = await search(rec.title);
                   if (searchResults && searchResults.length > 0) {
@@ -186,7 +153,7 @@ export default function RecommendationPage() {
     if (id && type) {
       fetchDetails();
     }
-  }, [id, type]);
+  }, [id, type, history]); // Add history to dependency array
 
   const saveToHistory = (recommendation: AIRecommendation) => {
     if (!recommendation.media) return;
@@ -208,91 +175,52 @@ export default function RecommendationPage() {
     e.preventDefault();
     setIsAiLoading(true);
     try {
-      const groq = new Groq({
-        apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
-        dangerouslyAllowBrowser: true,
-      });
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: `You are a JSON-only response bot. Always respond with valid JSON matching this exact format:
-            {
-              "recommendations": [
-                {
-                  "title": "Movie Title",
-                  "reason": "Reason for recommendation"
-                }
-              ]
-            }`,
-          },
-          {
-            role: "user",
-            content: generateCustomPrompt(
-              details as any,
-              type as string,
-              prompt,
-              8
-            ),
-          },
-        ],
-        // model: "mixtral-8x7b-32768",
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.1,
-        top_p: 0.1,
-        max_tokens: 4096,
-        response_format: { type: "json_object" },
-      });
+      // Prepare history for context
+      const recentHistory = history
+        .slice(0, 5)
+        .map(item => ({
+          title: item.data.title,
+          reason: item.reason
+        }));
 
-      const response = completion.choices[0]?.message?.content || "";
+      const recommendations = await getAIRecommendations(
+        details as any,
+        type as string,
+        recentHistory,
+        prompt
+      );
 
-      try {
-        const cleanResponse = response.trim();
-        const parsed = JSON.parse(cleanResponse);
-
-        if (
-          !parsed ||
-          !parsed.recommendations ||
-          !Array.isArray(parsed.recommendations)
-        ) {
-          throw new Error("Invalid response format");
-        }
-
-        const recommendationsWithMedia = await Promise.all(
-          parsed.recommendations.map(async (rec: AIRecommendation) => {
-            try {
-              const searchResults = await search(rec.title);
-              if (searchResults && searchResults.length > 0) {
-                return {
-                  ...rec,
-                  media: {
-                    ...searchResults[0],
-                    type: type,
-                  },
-                };
-              }
-              return rec;
-            } catch (error) {
-              console.error(`Error fetching details for ${rec.title}:`, error);
-              return rec;
+      const recommendationsWithMedia = await Promise.all(
+        recommendations.map(async (rec: AIRecommendation) => {
+          try {
+            const searchResults = await search(rec.title);
+            if (searchResults && searchResults.length > 0) {
+              return {
+                ...rec,
+                media: {
+                  ...searchResults[0],
+                  type: type,
+                },
+              };
             }
-          })
-        );
+            return rec;
+          } catch (error) {
+            console.error(`Error fetching details for ${rec.title}:`, error);
+            return rec;
+          }
+        })
+      );
 
-        const sortedRecommendations = recommendationsWithMedia
-          .filter((rec) => rec.media)
-          .sort((a, b) => {
-            if (!a.media?.popularity) return 1;
-            if (!b.media?.popularity) return -1;
-            return b.media.popularity - a.media.popularity;
-          });
+      const sortedRecommendations = recommendationsWithMedia
+        .filter((rec) => rec.media)
+        .sort((a, b) => {
+          if (!a.media?.popularity) return 1;
+          if (!b.media?.popularity) return -1;
+          return b.media.popularity - a.media.popularity;
+        });
 
-        setAiRecommendations(sortedRecommendations);
-        setPrompt("");
-      } catch (error) {
-        console.error("Failed to parse AI response:", error);
-        setAiRecommendations([]);
-      }
+      setAiRecommendations(sortedRecommendations);
+      setPrompt("");
     } catch (error) {
       console.error("AI Error:", error);
       setAiRecommendations([]);

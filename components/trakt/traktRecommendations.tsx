@@ -204,8 +204,8 @@ const TraktRecommendations = () => {
           item.media.vote_average >= 8
             ? "high"
             : item.media.vote_average >= 6
-            ? "medium"
-            : "low";
+              ? "medium"
+              : "low";
         acc[ratingKey] = (acc[ratingKey] || 0) + 1;
       }
       return acc;
@@ -269,8 +269,7 @@ const TraktRecommendations = () => {
   const handleRecommendations = async () => {
     if (generateDisabled) {
       setError(
-        `Please wait ${Math.ceil(timeRemaining / 60)} minutes and ${
-          timeRemaining % 60
+        `Please wait ${Math.ceil(timeRemaining / 60)} minutes and ${timeRemaining % 60
         } seconds before generating new recommendations`
       );
       return;
@@ -294,8 +293,8 @@ const TraktRecommendations = () => {
             ? watchedMoviesCache
             : await getUserWatchedMovies()
           : watchedShowsCache.length > 0
-          ? watchedShowsCache
-          : await getUserWatchedShows();
+            ? watchedShowsCache
+            : await getUserWatchedShows();
 
       // console.log(`Total ${mediaType} watched:`, watchedContent.length);
 
@@ -310,10 +309,10 @@ const TraktRecommendations = () => {
 
       const prompt = fromWatchlist
         ? await generatePromptFromWatchlist(
-            mediaType,
-            watchedContent,
-            watchlist
-          )
+          mediaType,
+          watchedContent,
+          watchlist
+        )
         : await generatePrompt(mediaType, watchedContent);
 
       if (!prompt) {
@@ -326,22 +325,39 @@ const TraktRecommendations = () => {
         messages: [
           {
             role: "system",
-            content: `
-            You are a movie and TV show recommendation assistant. You will receive user input details and generate personalized recommendations. 
-            - Your responses MUST only be in valid JSON format.
-            `,
+            content: `You are an expert cinematic taste analyst specializing in understanding viewers' OVERALL EMOTIONAL and ATMOSPHERIC preferences.
+
+CORE PRINCIPLES:
+1. Analyze AGGREGATE PATTERNS from the user's entire viewing history
+2. NEVER mention specific titles from their watch history
+3. Focus on MOOD, ATMOSPHERE, and EMOTIONAL RESONANCE
+4. Provide VARIED recommendations that all fit their taste profile
+5. Explain matches using emotional and atmospheric qualities
+
+FORBIDDEN PHRASES:
+- "Similar to [specific title]"
+- "Found in shows like X and Y"
+- "Fans of [title] will enjoy"
+- Any reference to specific watched content
+
+REQUIRED APPROACH:
+- Analyze their GLOBAL taste profile (emotional tones, pacing, atmosphere, themes)
+- Match based on OVERALL PREFERENCES, not individual titles
+- Explain using MOOD and ATMOSPHERIC compatibility
+- Ensure VARIETY in recommendations
+
+Your responses MUST be valid JSON only.`,
           },
           {
             role: "user",
             content: prompt,
           },
         ],
-        model: "llama-3.3-70b-versatile", // Best model
-        // model: "mixtral-8x7b-32768", // alternative model
-        temperature: 0.4, // Balanced creativity and relevance
-        top_p: 0.7, // Ensures diversity in recommendations
-        max_tokens: 4096, // Sufficient for 8-10 recommendations
-        response_format: { type: "json_object" }, // Enforces JSON output
+        model: "llama-3.3-70b-versatile",
+        temperature: 0.8, // Higher for more variety between generations
+        top_p: 0.95, // Wider sampling for diverse recommendations
+        max_tokens: 4096,
+        response_format: { type: "json_object" },
       });
 
       const response = completion.choices[0]?.message?.content || "";
@@ -413,7 +429,7 @@ const TraktRecommendations = () => {
       console.error("Error generating recommendations:", error);
       setError(
         error.message ||
-          "An unexpected error occurred while generating recommendations"
+        "An unexpected error occurred while generating recommendations"
       );
       setRecommendations([]);
       setRecommendationsDetails([]);
@@ -433,14 +449,17 @@ const TraktRecommendations = () => {
     );
   };
 
-  // Update generatePrompt to include new filters
+  // Update generatePrompt to include new filters with randomization
   const generatePrompt = async (type: MediaType, watchedContent: any[]) => {
+    // Shuffle watched content for variety between generations
+    const shuffled = [...watchedContent].sort(() => Math.random() - 0.5);
+
     const {
       favoriteGenres,
       decadePreferences,
       ratingDistribution,
       watchedTitles,
-    } = await analyzeViewingPatterns(watchedContent);
+    } = await analyzeViewingPatterns(shuffled);
 
     const prompt = generateTraktRecommendationsPrompt(
       watchedTitles as any,
@@ -532,22 +551,20 @@ const TraktRecommendations = () => {
                   <button
                     onClick={() => setFromWatchlist(!fromWatchlist)}
                     className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
-                              ${
-                                fromWatchlist
-                                  ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
-                                  : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
-                              }`}
+                              ${fromWatchlist
+                        ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
+                        : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
+                      }`}
                   >
                     {fromWatchlist ? "From Watchlist" : "General"}
                   </button>
                   <button
                     onClick={() => setAnimeOnly(!animeOnly)}
                     className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
-                              ${
-                                animeOnly
-                                  ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
-                                  : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
-                              }`}
+                              ${animeOnly
+                        ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
+                        : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
+                      }`}
                   >
                     {animeOnly ? "Anime Only" : `All ${mediaType}`}
                   </button>

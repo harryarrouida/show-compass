@@ -10,7 +10,7 @@ export interface CacheItem<T> {
     timestamp: number;
 }
 
-interface MediaDetails {
+export interface MediaDetails {
     id: number;
     vote_average: number;
     title: string;
