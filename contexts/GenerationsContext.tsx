@@ -21,8 +21,14 @@ const encrypt = (text: string) => {
 };
 
 const decrypt = (ciphertext: string) => {
-  const bytes = CryptoJS.AES.decrypt(ciphertext, ENCRYPTION_KEY);
-  return bytes.toString(CryptoJS.enc.Utf8);
+  try {
+    const bytes = CryptoJS.AES.decrypt(ciphertext, ENCRYPTION_KEY);
+    const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+    return decrypted || null;
+  } catch (error) {
+    console.error("Decryption failed:", error);
+    return null;
+  }
 };
 
 export function GenerationsProvider({ children }: { children: ReactNode }) {
@@ -31,7 +37,7 @@ export function GenerationsProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const encryptedLastReset = Cookies.get(STORAGE_KEY);
     const today = new Date().toDateString();
-    
+
     if (!encryptedLastReset || decrypt(encryptedLastReset) !== today) {
       // Reset generations if it's a new day
       setGenerationsLeft(DAILY_LIMIT);
@@ -41,7 +47,9 @@ export function GenerationsProvider({ children }: { children: ReactNode }) {
       const encryptedGenerations = Cookies.get('generationsLeft');
       if (encryptedGenerations) {
         const decryptedGenerations = decrypt(encryptedGenerations);
-        setGenerationsLeft(parseInt(decryptedGenerations));
+        if (decryptedGenerations) {
+          setGenerationsLeft(parseInt(decryptedGenerations));
+        }
       }
     }
   }, []);

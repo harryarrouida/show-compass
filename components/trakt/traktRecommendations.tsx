@@ -83,11 +83,17 @@ const TraktRecommendations = () => {
   };
 
   const decryptValue = (encrypted: string) => {
-    const bytes = CryptoJS.AES.decrypt(
-      encrypted,
-      process.env.NEXT_PUBLIC_COOKIE_SECRET || "immakeepitsimple"
-    );
-    return bytes.toString(CryptoJS.enc.Utf8);
+    try {
+      const bytes = CryptoJS.AES.decrypt(
+        encrypted,
+        process.env.NEXT_PUBLIC_COOKIE_SECRET || "immakeepitsimple"
+      );
+      const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+      return decrypted || null;
+    } catch (error) {
+      console.error("Cookie decryption failed:", error);
+      return null;
+    }
   };
 
   useEffect(() => {
@@ -95,6 +101,7 @@ const TraktRecommendations = () => {
     if (encryptedTimeout) {
       try {
         const timeoutEndStr = decryptValue(encryptedTimeout);
+        if (!timeoutEndStr) return;
         const timeoutEnd = parseInt(timeoutEndStr);
         const now = Date.now();
 

@@ -10,7 +10,7 @@ import { Suspense } from 'react';
 import Loading from '@/components/shared/loaders/loading';
 import { GenerationsProvider } from "@/contexts/GenerationsContext";
 
-const quicksand = Quicksand({ 
+const quicksand = Quicksand({
   subsets: ['latin'],
   variable: '--font-quicksand',
   display: 'swap',
@@ -77,8 +77,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-title" content="showcompass" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <link rel="icon" href={`${process.env.NEXT_PUBLIC_BASE_URL}/public/icon.JPG`} />
-        <link rel="apple-touch-icon" href={`${process.env.NEXT_PUBLIC_BASE_URL}/public/icon.JPG`} />
+        <link rel="icon" href="/icon.JPG" />
+        <link rel="apple-touch-icon" href="/icon.JPG" />
       </head>
       <body className="bg-[#111111] min-h-screen flex flex-col antialiased font-sans relative [&::-webkit-scrollbar]:hidden">
         <ToastProvider>
