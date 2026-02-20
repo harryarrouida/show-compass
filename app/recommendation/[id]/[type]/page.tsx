@@ -85,22 +85,16 @@ export default function RecommendationPage() {
           setIsAiLoading(true);
 
           try {
-            // Prepare history for context
-            const recentHistory = history
-              .slice(0, 5)
-              .map(item => ({
-                title: item.data.title,
-                reason: item.reason
-              }));
-
-            const start = performance.now();
+            // Pass full history so server action can extract taste chains
             const recommendations = await getAIRecommendations(
               mediaDetails as any,
               type as string,
-              recentHistory
+              history.map((item) => ({
+                title: item.data.title,
+                reason: item.reason,
+                from: item.from,
+              }))
             );
-            const end = performance.now();
-            console.log(`AI Response time: ${end - start}ms`);
 
             const recommendationsWithMedia = await Promise.all(
               recommendations.map(async (rec: AIRecommendation) => {
@@ -175,18 +169,15 @@ export default function RecommendationPage() {
     e.preventDefault();
     setIsAiLoading(true);
     try {
-      // Prepare history for context
-      const recentHistory = history
-        .slice(0, 5)
-        .map(item => ({
-          title: item.data.title,
-          reason: item.reason
-        }));
-
+      // Pass full history for taste chain extraction
       const recommendations = await getAIRecommendations(
         details as any,
         type as string,
-        recentHistory,
+        history.map((item) => ({
+          title: item.data.title,
+          reason: item.reason,
+          from: item.from,
+        })),
         prompt
       );
 

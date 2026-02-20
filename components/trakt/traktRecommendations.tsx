@@ -9,6 +9,7 @@ import { useHistory } from "@/contexts/historyContext";
 import {
   generateTraktRecommendationsPrompt,
   generateWatchlistPrompt,
+  type TieredHistory,
 } from "@/constants/aiPrompts";
 import { RecommendationCard } from "@/components/AIRecommendations/RecommendationCard";
 import { RecommendationModal } from "@/components/AIRecommendations/RecommendationModal";
@@ -162,73 +163,109 @@ const TraktRecommendations = () => {
     }
   };
 
-  // Analyze viewing patterns and preferences
+  // ─── Tiered history analysis ──────────────────────────────────────────────
+  // Strategy:
+  //   Tier 1 (signature): fetch TMDB details for up to SIGNATURE_LIMIT titles
+  //                       selected by a weighted random sample (to vary across
+  //                       generations). Includes overview + rating for deep
+  //                       atmospheric analysis.
+  //   Tier 2 (breadth):   send ALL titles as a compact comma-separated list so
+  //                       the AI understands the user's full taste breadth and
+  //                       avoids recommending already-watched content.
+  //
+  // This replaces the old approach that fetched TMDB data for EVERY title
+  // (expensive: O(n) API calls) with a fixed O(SIGNATURE_LIMIT) calls.
+  const SIGNATURE_LIMIT = 25;
+
   const analyzeViewingPatterns = async (watchedContent: any[]) => {
-    const recentContent = await Promise.all(
-      watchedContent.map(async (item) => {
-        const searchResults = await search(item.title);
-        const mediaMatch = searchResults[0];
-        return {
-          ...item,
-          media: {
-            title: mediaMatch?.title,
-            year: mediaMatch?.release_date
-              ? new Date(mediaMatch.release_date).getFullYear()
+    // All titles compact list for the AI (breadth signal + duplicate avoidance)
+    const allTitles = watchedContent.map((item) => item.title);
+
+    // Weighted random sample for signature titles:
+    // shuffle and take the first SIGNATURE_LIMIT items so each generation
+    // surfaces a different slice of the watch history (variety between runs)
+    const shuffled = [...watchedContent].sort(() => Math.random() - 0.5);
+    const sampleSet = shuffled.slice(0, SIGNATURE_LIMIT);
+
+    // Fetch TMDB details only for the sample
+    const signatureWithDetails = await Promise.all(
+      sampleSet.map(async (item) => {
+        try {
+          const results = await search(item.title);
+          const match = results[0];
+          if (!match) return null;
+          return {
+            title: item.title,
+            rating: match.vote_average ?? 0,
+            overview: match.overview ?? "",
+            year: match.release_date
+              ? new Date(match.release_date).getFullYear()
               : null,
-            genres: mediaMatch?.genres || [],
-            rating: mediaMatch?.vote_average,
-            vote_average: mediaMatch?.vote_average,
-            overview: mediaMatch?.overview,
-            poster_path: mediaMatch?.poster_path,
-            backdrop_path: mediaMatch?.backdrop_path,
-          },
-        };
+            genres: (match as any).genres ?? [],
+            poster_path: match.poster_path,
+            backdrop_path: match.backdrop_path,
+          };
+        } catch {
+          return null;
+        }
       })
     );
 
-    // Calculate viewing patterns from the cleaned data
-    const genreCounts = recentContent.reduce((acc: any, item) => {
-      item.media.genres?.forEach((genre: string) => {
-        acc[genre] = (acc[genre] || 0) + 1;
+    const validSignature = signatureWithDetails.filter(
+      (s): s is NonNullable<typeof s> => s !== null && s.overview.length > 10
+    );
+
+    // Build supporting stats from the signature set (good enough approximation)
+    const genreCounts = validSignature.reduce((acc: Record<string, number>, item) => {
+      item.genres.forEach((g: any) => {
+        const name = typeof g === "string" ? g : g.name;
+        if (name) acc[name] = (acc[name] || 0) + 1;
       });
       return acc;
     }, {});
 
     const favoriteGenres = Object.entries(genreCounts)
-      .sort(([, a]: any, [, b]: any) => b - a)
+      .sort(([, a], [, b]) => b - a)
       .slice(0, 10)
       .map(([genre]) => genre);
 
-    const decadePreferences = recentContent.reduce((acc: any, item) => {
-      const decade = Math.floor(item.media.year / 10) * 10;
-      acc[decade] = (acc[decade] || 0) + 1;
-      return acc;
-    }, {});
+    const decadePreferences = validSignature.reduce(
+      (acc: Record<string, number>, item) => {
+        if (item.year) {
+          const decade = String(Math.floor(item.year / 10) * 10);
+          acc[decade] = (acc[decade] || 0) + 1;
+        }
+        return acc;
+      },
+      {}
+    );
 
-    const ratingDistribution = recentContent.reduce((acc: any, item) => {
-      if (item.media.vote_average) {
-        const ratingKey =
-          item.media.vote_average >= 8
-            ? "high"
-            : item.media.vote_average >= 6
-              ? "medium"
-              : "low";
-        acc[ratingKey] = (acc[ratingKey] || 0) + 1;
-      }
-      return acc;
-    }, {});
+    const ratingDistribution = validSignature.reduce(
+      (acc: Record<string, number>, item) => {
+        if (item.rating) {
+          const key =
+            item.rating >= 8 ? "high" : item.rating >= 6 ? "medium" : "low";
+          acc[key] = (acc[key] || 0) + 1;
+        }
+        return acc;
+      },
+      {}
+    );
 
-    const watchedTitles = recentContent.map((item) => ({
-      title: item.title.toLowerCase(),
-      overview: item.media.overview || "",
-    }));
+    const tieredHistory: TieredHistory = {
+      allTitles,
+      signatureTitles: validSignature.map((s) => ({
+        title: s.title,
+        rating: s.rating,
+        overview: s.overview,
+      })),
+    };
 
     return {
+      tieredHistory,
       favoriteGenres,
       decadePreferences,
       ratingDistribution,
-      watchedTitles,
-      recentContent,
     };
   };
 
@@ -249,25 +286,18 @@ const TraktRecommendations = () => {
       throw new Error("Failed to fetch watchlist");
     }
 
-    const {
-      favoriteGenres,
-      decadePreferences,
-      ratingDistribution,
-      watchedTitles,
-    } = await analyzeViewingPatterns(watchedContent);
+    const { tieredHistory, decadePreferences, ratingDistribution } =
+      await analyzeViewingPatterns(watchedContent);
 
     const prompt = generateWatchlistPrompt(
+      tieredHistory,
       ratingDistribution,
       decadePreferences,
-      favoriteGenres,
-      watchedTitles as any,
       watchlistItems,
       mediaType,
       numRecommendations,
       animeOnly
     );
-
-    // console.log("Watchlist Prompt:", prompt);
 
     return prompt;
   };
@@ -332,28 +362,15 @@ const TraktRecommendations = () => {
         messages: [
           {
             role: "system",
-            content: `You are an expert cinematic taste analyst specializing in understanding viewers' OVERALL EMOTIONAL and ATMOSPHERIC preferences.
+            content: `You are an expert cinematic taste analyst. Your job is to understand a viewer's emotional and atmospheric preferences from their watch history and find new content that will genuinely resonate with them.
 
-CORE PRINCIPLES:
-1. Analyze AGGREGATE PATTERNS from the user's entire viewing history
-2. NEVER mention specific titles from their watch history
-3. Focus on MOOD, ATMOSPHERE, and EMOTIONAL RESONANCE
-4. Provide VARIED recommendations that all fit their taste profile
-5. Explain matches using emotional and atmospheric qualities
-
-FORBIDDEN PHRASES:
-- "Similar to [specific title]"
-- "Found in shows like X and Y"
-- "Fans of [title] will enjoy"
-- Any reference to specific watched content
-
-REQUIRED APPROACH:
-- Analyze their GLOBAL taste profile (emotional tones, pacing, atmosphere, themes)
-- Match based on OVERALL PREFERENCES, not individual titles
-- Explain using MOOD and ATMOSPHERIC compatibility
-- Ensure VARIETY in recommendations
-
-Your responses MUST be valid JSON only.`,
+CRITICAL RULES:
+- Analyze the AGGREGATE pattern across the full history, not individual titles
+- Weight SIGNATURE TITLES (those with overviews provided) more heavily — they best represent the user's taste
+- Recommendations must NOT appear in the user's complete watch history
+- Explanations must reference MOOD, ATMOSPHERE, PACING, and THEMES — not genres
+- Provide VARIETY: diverse picks that all fit the taste profile
+- Your responses MUST be valid JSON only`,
           },
           {
             role: "user",
@@ -361,8 +378,8 @@ Your responses MUST be valid JSON only.`,
           },
         ],
         model: "llama-3.3-70b-versatile",
-        temperature: 0.8, // Higher for more variety between generations
-        top_p: 0.95, // Wider sampling for diverse recommendations
+        temperature: 0.6,
+        top_p: 0.9,
         max_tokens: 4096,
         response_format: { type: "json_object" },
       });
@@ -456,24 +473,16 @@ Your responses MUST be valid JSON only.`,
     );
   };
 
-  // Update generatePrompt to include new filters with randomization
+  // Generate prompt — analyzeViewingPatterns already shuffles internally
   const generatePrompt = async (type: MediaType, watchedContent: any[]) => {
-    // Shuffle watched content for variety between generations
-    const shuffled = [...watchedContent].sort(() => Math.random() - 0.5);
-
-    const {
-      favoriteGenres,
-      decadePreferences,
-      ratingDistribution,
-      watchedTitles,
-    } = await analyzeViewingPatterns(shuffled);
+    const { tieredHistory, favoriteGenres, decadePreferences, ratingDistribution } =
+      await analyzeViewingPatterns(watchedContent);
 
     const prompt = generateTraktRecommendationsPrompt(
-      watchedTitles as any,
+      tieredHistory,
       favoriteGenres,
       decadePreferences,
       ratingDistribution,
-      seen,
       type,
       numRecommendations,
       animeOnly,
