@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
     try {
         const { code } = await request.json();
-        
+
         if (!code) {
             return NextResponse.json({ error: 'No code provided' }, { status: 400 });
         }
@@ -16,14 +16,14 @@ export async function POST(request: Request) {
             body: JSON.stringify({
                 code,
                 client_id: process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID,
-                client_secret: process.env.NEXT_PUBLIC_TRAKT_SECRET,
+                client_secret: process.env.TRAKT_SECRET,
                 redirect_uri: process.env.NEXT_PUBLIC_TRAKT_REDIRECT_URI,
                 grant_type: 'authorization_code'
             })
         });
 
         const data = await response.json();
-        
+
         if (!response.ok) {
             console.error('Trakt token exchange error:', data);
             return NextResponse.json(data, { status: response.status });
