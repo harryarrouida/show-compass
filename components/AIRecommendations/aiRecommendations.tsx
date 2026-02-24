@@ -143,22 +143,6 @@ export default function AIRecommendations({
           onSave={saveToHistory}
         />
       )}
-
-      {/* Toast-style alert */}
-      {alert && (
-        <div
-          className="
-            fixed bottom-6 right-4 sm:right-6 z-50
-            flex items-center gap-2 px-4 py-2.5 rounded-xl
-            bg-emerald-500/10 border border-emerald-500/20
-            text-sm text-emerald-400
-            shadow-lg backdrop-blur-sm
-          "
-        >
-          <IoCheckmarkCircleOutline className="w-4 h-4 flex-shrink-0" />
-          {alert}
-        </div>
-      )}
     </div>
   );
 }
