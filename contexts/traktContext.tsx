@@ -1,7 +1,7 @@
 /** @jsxImportSource react */
 'use client';
 
-import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import { createContext, useContext, ReactNode, useState, useEffect, useRef } from 'react';
 import { traktUser, traktToken, moviesWatched, showsWatched, traktHistory, traktWatched } from '@/services/trakt/traktServices';
 import axios from 'axios';
 
@@ -41,6 +41,7 @@ export function TraktProvider({ children }: { children: ReactNode }) {
   const [watchedShowsCache, setWatchedShowsCache] = useState<any[]>([]);
   const [watchedMoviesDetails, setWatchedMoviesDetails] = useState<any[]>([]);
   const [watchedShowsDetails, setWatchedShowsDetails] = useState<any[]>([]);
+  const isHandlingToken = useRef(false);
 
   const logout = () => {
     try {
@@ -87,6 +88,10 @@ export function TraktProvider({ children }: { children: ReactNode }) {
       throw new Error('No authorization code provided');
     }
 
+    // Prevent React Strict Mode from double-calling this with the same single-use code
+    if (isHandlingToken.current) return;
+    isHandlingToken.current = true;
+
     try {
       const response = await fetch('/api/trakt/token', {
         method: 'POST',
@@ -99,7 +104,8 @@ export function TraktProvider({ children }: { children: ReactNode }) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to authenticate');
+        const errorDetail = data.error_description || data.error || 'Failed to authenticate';
+        throw new Error(errorDetail);
       }
 
       if (!data.access_token) {
@@ -109,6 +115,9 @@ export function TraktProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('traktToken', data.access_token);
       setAccessToken(data.access_token);
       setIsAuthenticated(true);
+
+      // Clean up URL immediately before subsequent requests that might fail
+      window.history.replaceState({}, document.title, window.location.pathname);
 
       try {
         const userResponse = await traktUser(data.access_token);
@@ -121,13 +130,12 @@ export function TraktProvider({ children }: { children: ReactNode }) {
         logout();
         throw new Error('Failed to fetch user data after authentication');
       }
-
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
     } catch (error) {
       console.error('Authentication failed:', error);
       logout();
       throw error;
+    } finally {
+      isHandlingToken.current = false;
     }
   }
 
@@ -232,19 +240,6 @@ export function TraktProvider({ children }: { children: ReactNode }) {
       throw error;
     }
   }
-
-  const invalidateCache = () => {
-    try {
-      localStorage.removeItem('watchedMoviesCache');
-      localStorage.removeItem('watchedShowsCache');
-      localStorage.removeItem('watchedMoviesCacheTimestamp');
-      localStorage.removeItem('watchedShowsCacheTimestamp');
-      setWatchedMoviesCache([]);
-      setWatchedShowsCache([]);
-    } catch (error) {
-      console.error('Error invalidating cache:', error);
-    }
-  };
 
   useEffect(() => {
     try {

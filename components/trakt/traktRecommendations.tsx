@@ -39,6 +39,7 @@ const TraktRecommendations = () => {
   );
   const [generateDisabled, setGenerateDisabled] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
+  const [pastRecommendations, setPastRecommendations] = useState<string[]>([]);
 
   // UI state management
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
@@ -98,6 +99,8 @@ const TraktRecommendations = () => {
   };
 
   useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') return;
+
     const encryptedTimeout = Cookies.get("recommendationTimeout");
     if (encryptedTimeout) {
       try {
@@ -141,6 +144,7 @@ const TraktRecommendations = () => {
   useEffect(() => {
     setRecommendations([]);
     setRecommendationsDetails([]);
+    setPastRecommendations([]);
     setSelectedReason(null);
     setError(null);
   }, [mediaType, numRecommendations]);
@@ -296,7 +300,12 @@ const TraktRecommendations = () => {
       watchlistItems,
       mediaType,
       numRecommendations,
-      animeOnly
+      animeOnly,
+      lengthPreference || undefined,
+      Object.keys(episodeCount).length > 0 ? episodeCount : undefined,
+      showStatus !== "both" ? showStatus : undefined,
+      minimumRating > 0 ? minimumRating : undefined,
+      pastRecommendations
     );
 
     return prompt;
@@ -312,7 +321,7 @@ const TraktRecommendations = () => {
       return;
     }
 
-    if (generationsLeft <= 0) {
+    if (process.env.NODE_ENV === 'production' && generationsLeft <= 0) {
       setError("You have no generations left for today");
       return;
     }
@@ -339,8 +348,13 @@ const TraktRecommendations = () => {
         throw new Error(`No watched ${mediaType} found in your history`);
       }
 
+      const apiKey = process.env.NEXT_PUBLIC_GROQ_API_KEY || process.env.GROQ_API_KEY;
+      if (!apiKey) {
+        throw new Error("Missing Groq API Key configuration");
+      }
+
       const groq = new Groq({
-        apiKey: process.env.NEXT_PUBLIC_GROQ_API_KEY,
+        apiKey: apiKey,
         dangerouslyAllowBrowser: true,
       });
 
@@ -421,26 +435,34 @@ CRITICAL RULES:
         }
         setRecommendationsDetails(validRecommendations);
 
-        // Only set timeout and use generation if recommendations were successful
-        setGenerateDisabled(true);
-        const timeoutEnd = Date.now() + 3 * 60 * 1000;
-        const encryptedTimeout = encryptValue(timeoutEnd.toString());
-        Cookies.set("recommendationTimeout", encryptedTimeout, {
-          expires: 1 / 480,
-        }); // expires in 3 minutes
-        setTimeRemaining(180); // 3 minutes in seconds
+        // Add newly generated titles to the "past recommendations" list to prevent repeats
+        setPastRecommendations((prev) => [
+          ...prev,
+          ...validRecommendations.map((r) => r.title),
+        ]);
 
-        const timer = setInterval(() => {
-          setTimeRemaining((prev) => {
-            if (prev <= 1) {
-              clearInterval(timer);
-              setGenerateDisabled(false);
-              Cookies.remove("recommendationTimeout");
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
+        if (process.env.NODE_ENV === 'production') {
+          // Only set timeout in production
+          setGenerateDisabled(true);
+          const timeoutEnd = Date.now() + 3 * 60 * 1000;
+          const encryptedTimeout = encryptValue(timeoutEnd.toString());
+          Cookies.set("recommendationTimeout", encryptedTimeout, {
+            expires: 1 / 480,
+          }); // expires in 3 minutes
+          setTimeRemaining(180); // 3 minutes in seconds
+
+          const timer = setInterval(() => {
+            setTimeRemaining((prev) => {
+              if (prev <= 1) {
+                clearInterval(timer);
+                setGenerateDisabled(false);
+                Cookies.remove("recommendationTimeout");
+                return 0;
+              }
+              return prev - 1;
+            });
+          }, 1000);
+        }
 
         markGenerationUsed();
       } catch (error: any) {
@@ -489,7 +511,8 @@ CRITICAL RULES:
       lengthPreference || undefined,
       Object.keys(episodeCount).length > 0 ? episodeCount : undefined,
       showStatus !== "both" ? showStatus : undefined,
-      minimumRating > 0 ? minimumRating : undefined
+      minimumRating > 0 ? minimumRating : undefined,
+      pastRecommendations
     );
 
     return prompt;
@@ -509,8 +532,8 @@ CRITICAL RULES:
                 AI-Powered Recommendations
               </h2>
               <p className="text-zinc-400 text-xs sm:text-sm mt-0.5 sm:mt-1">
-                Discover your next favorite based on your unique taste (
-                {generationsLeft} generations left)
+                Discover your next favorite based on your unique taste
+                {process.env.NODE_ENV === 'production' && <>( {generationsLeft} generations left)</>}
               </p>
             </div>
           </div>
@@ -590,7 +613,7 @@ CRITICAL RULES:
               {/* Generate Button - Full width on mobile */}
               <button
                 onClick={handleRecommendations}
-                disabled={loading || generateDisabled || generationsLeft <= 0}
+                disabled={loading || generateDisabled || (process.env.NODE_ENV === 'production' && generationsLeft <= 0)}
                 className="w-full sm:w-auto group flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 
                           bg-gradient-to-r from-blue-600 to-blue-500 
                           rounded-xl text-sm text-white font-medium transition-all duration-300

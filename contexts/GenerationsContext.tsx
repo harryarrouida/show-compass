@@ -60,6 +60,8 @@ export function GenerationsProvider({ children }: { children: ReactNode }) {
   }, [generationsLeft]);
 
   const useGeneration = () => {
+    if (process.env.NODE_ENV !== 'production') return true;
+
     if (generationsLeft > 0) {
       setGenerationsLeft(prev => prev - 1);
       return true;

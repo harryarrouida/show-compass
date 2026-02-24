@@ -7,6 +7,10 @@ import {
   type HistoryChain,
 } from "@/constants/aiPrompts";
 
+if(!process.env.GROQ_API_KEY) {
+  throw new Error("Missing GROQ_API_KEY environment variable");
+}
+
 const groq = new Groq({
   apiKey: process.env.GROQ_API_KEY,
 });

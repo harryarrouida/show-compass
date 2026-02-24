@@ -28,15 +28,15 @@ export const generateDefaultPrompt = (
   const year = mediaDetails.release_date
     ? new Date(mediaDetails.release_date).getFullYear()
     : mediaDetails.first_air_date
-    ? new Date(mediaDetails.first_air_date).getFullYear()
-    : "Unknown";
+      ? new Date(mediaDetails.first_air_date).getFullYear()
+      : "Unknown";
 
   // Runtime context
   const runtimeStr = mediaDetails.runtime
     ? `Runtime: ${Math.floor(mediaDetails.runtime / 60)}h ${mediaDetails.runtime % 60}m`
     : mediaDetails.episode_run_time?.[0]
-    ? `Episode runtime: ~${mediaDetails.episode_run_time[0]} min`
-    : "";
+      ? `Episode runtime: ~${mediaDetails.episode_run_time[0]} min`
+      : "";
 
   const scaleStr = mediaDetails.number_of_seasons
     ? `Seasons: ${mediaDetails.number_of_seasons} | Episodes: ${mediaDetails.number_of_episodes}`
@@ -47,8 +47,8 @@ export const generateDefaultPrompt = (
     historyChains.length > 0
       ? `\n\nUSER'S TASTE CHAINS (what they chose to save and from what context):
 ${historyChains
-  .map((c, i) => `${i + 1}. While browsing "${c.from}" → saved "${c.saved}"`)
-  .join("\n")}
+        .map((c, i) => `${i + 1}. While browsing "${c.from}" → saved "${c.saved}"`)
+        .join("\n")}
 
 These chains reveal the user's ACTUAL taste: what they find interesting enough to keep. Analyze the pattern:
 - What MOODS do they consistently gravitate toward?
@@ -131,21 +131,21 @@ export const generateCustomPrompt = (
   const year = details.release_date
     ? new Date(details.release_date).getFullYear()
     : details.first_air_date
-    ? new Date(details.first_air_date).getFullYear()
-    : null;
+      ? new Date(details.first_air_date).getFullYear()
+      : null;
 
   const runtimeStr = details.runtime
     ? `Runtime: ${Math.floor(details.runtime / 60)}h ${details.runtime % 60}m`
     : details.episode_run_time?.[0]
-    ? `Episode runtime: ~${details.episode_run_time[0]} min`
-    : "";
+      ? `Episode runtime: ~${details.episode_run_time[0]} min`
+      : "";
 
   const historySection =
     historyChains.length > 0
       ? `\n\nUSER'S TASTE CHAINS:
 ${historyChains
-  .map((c, i) => `${i + 1}. Browsing "${c.from}" → saved "${c.saved}"`)
-  .join("\n")}
+        .map((c, i) => `${i + 1}. Browsing "${c.from}" → saved "${c.saved}"`)
+        .join("\n")}
 
 Use this to understand their baseline preferences — what they already enjoy.
 Respect their taste unless they explicitly ask to explore something different.`
@@ -224,7 +224,8 @@ export const generateTraktRecommendationsPrompt = (
   lengthPreference?: "short" | "medium" | "long",
   episodeCount?: { min?: number; max?: number },
   status?: "ongoing" | "completed" | "both",
-  minimumRating?: number
+  minimumRating?: number,
+  pastRecommendations: string[] = []
 ) => {
   const timestamp = Date.now();
 
@@ -239,9 +240,13 @@ export const generateTraktRecommendationsPrompt = (
     )
     .join("\n\n");
 
-  return `Generate ${numRecommendations} highly personalized ${type}${animeOnly ? " anime" : ""} recommendations based on this user's COMPLETE viewing history.
+  return `Generate ${numRecommendations} highly personalized ${type}${animeOnly ? " anime" : ""} recommendations based on a holistic analysis of this user's COMPLETE viewing history.
 
 GENERATION SEED: ${timestamp}
+
+━━━ PREVIOUSLY RECOMMENDED (DO NOT RECOMMEND THESE) ━━━
+${pastRecommendations.length > 0 ? pastRecommendations.join(", ") : "None yet."}
+CRITICAL: You MUST NOT recommend any of the titles listed above. The user has already seen them in previous generations.
 
 ━━━ COMPLETE WATCH HISTORY (${history.allTitles.length} titles) ━━━
 These are ALL the ${type} this user has watched. Use this for:
@@ -266,35 +271,27 @@ ${status && status !== "both" ? `- Show status: ${status}` : ""}
 ${minimumRating && minimumRating > 0 ? `- Minimum rating: ${minimumRating}/10` : ""}
 
 ━━━ YOUR TASK ━━━
-Deeply analyze the AGGREGATE EMOTIONAL AND ATMOSPHERIC PROFILE of this user.
+Deeply analyze the AGGREGATE EMOTIONAL AND ATMOSPHERIC PROFILE of this user to create a unified "Taste Profile".
 
-From the signature titles (overviews + ratings), determine:
-1. DOMINANT MOODS they gravitate toward (melancholic, tense, hopeful, dark, whimsical...)
-2. PACING PREFERENCE (slow-burn character studies vs plot-driven momentum)
-3. ATMOSPHERIC TENDENCIES (intimate, epic, gritty, dreamlike, cozy, unsettling)
-4. THEMATIC INTERESTS (identity, loss, moral ambiguity, redemption, human connection...)
-5. CHARACTER DYNAMICS (ensemble, lone protagonist, relationship-focused)
-6. QUALITY THRESHOLD (what rating level do they consistently enjoy)
+From the signature titles (overviews + ratings), synthesize:
+1. DOMINANT MOODS they gravitate toward (e.g., melancholic, tense, hopeful, dark, whimsical)
+2. PACING PREFERENCE (e.g., slow-burn character studies vs plot-driven momentum)
+3. ATMOSPHERIC TENDENCIES (e.g., intimate, epic, gritty, dreamlike, cozy, unsettling)
+4. THEMATIC INTERESTS (e.g., identity, loss, moral ambiguity, redemption, human connection)
 
-From the full history (all titles), understand:
-- The VARIETY in their taste — are they eclectic or focused?
-- Any NICHE interests (specific cultures, time periods, styles)
-- What they've ALREADY SEEN so you don't recommend duplicates
-
-Find ${numRecommendations} ${type}s that match their TASTE PROFILE. Aim for variety — different shows that all fit.
+Find ${numRecommendations} ${type}s that match their TASTE PROFILE. Aim for variety — different shows that all fit the vibe.
 
 EXPLANATION FORMAT for each recommendation:
-- How it matches their EMOTIONAL TONE preferences
-- How it fits their ATMOSPHERIC tendencies
-- Why the PACING works for them
-- What THEMATIC elements will resonate
+- Synthesize why the recommendation fits their overarching Taste Profile (mood, atmosphere, pacing, themes).
+- Explain the VIBE of the recommendation.
 
-STRICT RULES:
-- DO NOT recommend anything from the complete history list above
-- NO generic reasoning ("if you like X you'll like Y")
-- NO genre labels as the primary reason
-- Explanations must be specific to mood, atmosphere, and themes
-- Provide VARIETY — not all the same type of show
+STRICT RULES (FAILURE TO FOLLOW WILL BREAK THE SYSTEM):
+1. NO DUPLICATES: Do not recommend anything from the "COMPLETE WATCH HISTORY" or "PREVIOUSLY RECOMMENDED" sections.
+2. NO TITLE DROPPING: You are STRICTLY FORBIDDEN from naming or referencing any title the user has watched in your explanation. 
+   - BAD: "Because you liked The Last of Us, you will enjoy this survival story."
+   - GOOD: "This matches your proven preference for gritty, high-stakes survival narratives with deep character focus."
+3. NO GENRE LABELS: Do not use genres (e.g., "Because you like Sci-Fi") as the primary reason. Focus on mood and atmosphere.
+4. Provide VARIETY — do not recommend 5 identical shows.
 
 Return ONLY valid JSON:
 {
@@ -317,7 +314,8 @@ export const generateWatchlistPrompt = (
   lengthPreference?: "short" | "medium" | "long",
   episodeCount?: { min?: number; max?: number },
   status?: "ongoing" | "completed" | "both",
-  minimumRating?: number
+  minimumRating?: number,
+  pastRecommendations: string[] = []
 ) => {
   const timestamp = Date.now();
 
@@ -334,6 +332,10 @@ export const generateWatchlistPrompt = (
 
 GENERATION SEED: ${timestamp}
 
+━━━ PREVIOUSLY RECOMMENDED (DO NOT RECOMMEND THESE) ━━━
+${pastRecommendations.length > 0 ? pastRecommendations.join(", ") : "None yet."}
+CRITICAL: You MUST NOT recommend any of the titles listed above. The user has already seen them in previous generations.
+
 ━━━ USER'S TASTE PROFILE ━━━
 Signature titles (what they have actually watched and valued most):
 ${signatureStr}
@@ -349,18 +351,20 @@ ${minimumRating && minimumRating > 0 ? `Minimum rating: ${minimumRating}/10` : "
 ${watchlistStr}
 
 ━━━ YOUR TASK ━━━
-Based on the user's signature titles, determine their emotional and atmospheric preferences.
-Then select the ${numRecommendations} watchlist items that BEST MATCH those preferences.
+Based on the user's signature titles, synthesize a unified "Taste Profile" comprising their emotional and atmospheric preferences.
+Then select the ${numRecommendations} watchlist items that BEST MATCH that holistic profile.
 
 For each selection explain:
-- Why this matches their EMOTIONAL TONE
-- How the ATMOSPHERE aligns with their preferences
-- What THEMATIC elements make it a good fit
+- Why this matches their overarching Taste Profile (EMOTIONAL TONE, ATMOSPHERE, THEMES)
+- Avoid treating the recommendation as a 1-to-1 comparison with a past watched show.
 
-RULES:
-- Only pick from the watchlist above
-- Prioritize mood/atmosphere alignment over genre
-- Provide VARIETY in your selections
+STRICT RULES (FAILURE TO FOLLOW WILL BREAK THE SYSTEM):
+1. NO DUPLICATES: Only pick from the watchlist above, and DO NOT pick anything from the "PREVIOUSLY RECOMMENDED" list.
+2. NO TITLE DROPPING: You are STRICTLY FORBIDDEN from naming or referencing any title the user has watched in your explanation.
+   - BAD: "Because you liked The Last of Us, you will enjoy this survival story."
+   - GOOD: "This matches your proven preference for gritty, high-stakes survival narratives with deep character focus."
+3. NO GENRE LABELS: Prioritize mood/atmosphere alignment over genre.
+4. Provide VARIETY in your selections.
 
 Return ONLY valid JSON:
 {
