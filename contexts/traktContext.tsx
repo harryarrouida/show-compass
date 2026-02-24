@@ -70,7 +70,7 @@ export function TraktProvider({ children }: { children: ReactNode }) {
         console.warn('User is already authenticated');
         return;
       }
-      
+
       const authResponse = await axios.get('/api/trakt/authorize');
       if (!authResponse?.data?.url) {
         throw new Error('Invalid authorization response');
@@ -145,7 +145,7 @@ export function TraktProvider({ children }: { children: ReactNode }) {
         try {
           const parsedMovies = JSON.parse(cachedMovies);
           const timestamp = parseInt(cacheTimestamp);
-          
+
           if (isNaN(timestamp)) {
             throw new Error('Invalid cache timestamp');
           }
@@ -167,14 +167,14 @@ export function TraktProvider({ children }: { children: ReactNode }) {
       }
 
       setWatchedMoviesCache(moviesWatchedData);
-      
+
       try {
         localStorage.setItem('watchedMoviesCache', JSON.stringify(moviesWatchedData));
         localStorage.setItem('watchedMoviesCacheTimestamp', Date.now().toString());
       } catch (storageError) {
         console.error('Failed to cache movies data:', storageError);
       }
-      
+
       return moviesWatchedData;
     } catch (error) {
       console.error('Error fetching watched movies:', error);
@@ -218,14 +218,14 @@ export function TraktProvider({ children }: { children: ReactNode }) {
       }
 
       setWatchedShowsCache(showsWatchedData);
-      
+
       try {
         localStorage.setItem('watchedShowsCache', JSON.stringify(showsWatchedData));
         localStorage.setItem('watchedShowsCacheTimestamp', Date.now().toString());
       } catch (storageError) {
         console.error('Failed to cache shows data:', storageError);
       }
-      
+
       return showsWatchedData;
     } catch (error) {
       console.error('Error fetching watched shows:', error);
