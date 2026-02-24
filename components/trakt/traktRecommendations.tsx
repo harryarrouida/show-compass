@@ -523,15 +523,15 @@ CRITICAL RULES:
       <Card className="p-4 sm:p-8">
         <div className="flex flex-col gap-4 sm:gap-6">
           {/* Header Section */}
-          <div className="flex items-center gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-zinc-800/50">
-            <div className="p-2 sm:p-3 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-xl border border-blue-500/10">
-              <RiRobot2Line className="w-4 sm:w-5 h-4 sm:h-5 text-blue-400" />
+          <div className="flex items-center gap-3 sm:gap-4 pb-4 sm:pb-6 border-b border-border-primary">
+            <div className="p-2 sm:p-3 bg-background-tertiary rounded-xl border border-border-primary">
+              <RiRobot2Line className="w-4 sm:w-5 h-4 sm:h-5 text-interactive-accent" />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white">
+              <h2 className="text-xl sm:text-2xl font-bold text-text-primary">
                 AI-Powered Recommendations
               </h2>
-              <p className="text-zinc-400 text-xs sm:text-sm mt-0.5 sm:mt-1">
+              <p className="text-text-tertiary text-xs sm:text-sm mt-0.5 sm:mt-1">
                 Discover your next favorite based on your unique taste
                 {process.env.NODE_ENV === 'production' && <>( {generationsLeft} generations left)</>}
               </p>
@@ -615,8 +615,9 @@ CRITICAL RULES:
                 onClick={handleRecommendations}
                 disabled={loading || generateDisabled || (process.env.NODE_ENV === 'production' && generationsLeft <= 0)}
                 className="w-full sm:w-auto group flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-2.5 
-                          bg-gradient-to-r from-blue-600 to-blue-500 
+                          bg-interactive-button-primary hover:bg-interactive-button-primaryHover
                           rounded-xl text-sm text-white font-medium transition-all duration-300
+                          shadow-lg shadow-interactive-button-primary/20
                           disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (

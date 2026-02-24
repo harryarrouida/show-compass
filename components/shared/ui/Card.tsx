@@ -11,12 +11,12 @@ export default function Card({
     hover = false,
     onClick
 }: CardProps) {
-    const baseClasses = 'bg-zinc-800/30 border border-zinc-700/50 rounded-xl';
-    const hoverClasses = hover ? 'hover:bg-zinc-800/40 hover:border-zinc-600/50 transition-all duration-300' : '';
+    const baseClasses = 'bg-background-secondary border border-border-primary rounded-xl';
+    const hoverClasses = hover ? 'hover:bg-background-tertiary hover:border-border-hover transition-all duration-300' : '';
     const clickClasses = onClick ? 'cursor-pointer' : '';
-    
+
     return (
-        <div 
+        <div
             className={`${baseClasses} ${hoverClasses} ${clickClasses} ${className}`}
             onClick={onClick}
         >

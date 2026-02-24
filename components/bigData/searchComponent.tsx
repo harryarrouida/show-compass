@@ -57,8 +57,8 @@ export default function SearchComponent() {
     return (
         <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12 pt-16">
             <div className="text-center mb-20">
-                <h1 className="w-full text-4xl md:text-6xl lg:text-7xl font-bold mb-8 text-white tracking-tight">Discover Your Next Favorite Story</h1>
-                <p className="text-zinc-300 text-base md:text-lg max-w-3xl mx-auto mb-14 leading-relaxed">
+                <h1 className="w-full text-4xl md:text-6xl lg:text-7xl font-bold mb-8 text-text-primary tracking-tight">Discover Your Next Favorite Story</h1>
+                <p className="text-text-secondary text-base md:text-lg max-w-3xl mx-auto mb-14 leading-relaxed">
                     Discover personalized entertainment recommendations that match your interests. From critically acclaimed masterpieces to hidden gems, find your next great watch.
                 </p>
 
@@ -70,12 +70,12 @@ export default function SearchComponent() {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Search for a show..."
-                                className="w-full px-8 py-5 rounded-full bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-zinc-700 transition-colors"
+                                className="w-full px-8 py-5 rounded-full bg-background-secondary border border-border-primary text-text-primary placeholder-text-tertiary focus:outline-none focus:border-interactive-input-focusBorder transition-colors"
                             />
                             {query && (
                                 <button
                                     onClick={() => setQuery('')}
-                                    className="absolute right-6 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                                    className="absolute right-6 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors"
                                     aria-label="Clear search"
                                 >
                                     <IoClose size={20} />
@@ -83,7 +83,7 @@ export default function SearchComponent() {
                             )}
                         </div>
                     </div>
-                    
+
                     {/* Results Section */}
                     {results.length > 0 && (
                         <div className="mt-20">

@@ -30,12 +30,12 @@ export function Toast({ message, type, duration = 5000, onClose }: ToastProps) {
 
     return (
         <div className={`fixed bottom-4 right-4 z-50 animate-slide-up`}>
-            <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border backdrop-blur-sm ${backgrounds[type]}`}>
+            <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${backgrounds[type]} shadow-lg`}>
                 {icons[type]}
-                <p className="text-sm text-zinc-200">{message}</p>
+                <p className="text-sm text-text-primary">{message}</p>
                 <button
                     onClick={onClose}
-                    className="ml-2 text-zinc-400 hover:text-zinc-300 transition-colors"
+                    className="ml-2 text-text-secondary hover:text-text-primary transition-colors"
                 >
                     <IoClose className="w-4 h-4" />
                 </button>

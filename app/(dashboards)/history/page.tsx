@@ -55,9 +55,8 @@ export default function HistoryPage() {
 
   return (
     <div
-      className={`min-h-screen max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 transition-opacity duration-500 ease-in-out ${
-        isVisible ? "opacity-100" : "opacity-0"
-      }`}
+      className={`min-h-screen max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 transition-opacity duration-500 ease-in-out ${isVisible ? "opacity-100" : "opacity-0"
+        }`}
     >
       <div className="flex justify-between items-center mb-6 sm:mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-white">History</h1>

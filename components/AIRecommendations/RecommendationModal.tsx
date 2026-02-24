@@ -18,8 +18,8 @@ export function RecommendationModal({
   const backdropSrc = selectedRec.media?.backdrop_path
     ? `${TMDB_BASE}${selectedRec.media.backdrop_path}`
     : selectedRec.media?.poster_path
-    ? `${TMDB_BASE}${selectedRec.media.poster_path}`
-    : "";
+      ? `${TMDB_BASE}${selectedRec.media.poster_path}`
+      : "";
 
   const posterSrc = selectedRec.media?.poster_path
     ? `${TMDB_BASE}${selectedRec.media.poster_path}`
@@ -33,7 +33,7 @@ export function RecommendationModal({
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/90"
         onClick={onClose}
       />
 
@@ -41,7 +41,7 @@ export function RecommendationModal({
       <div
         className="
           relative w-full md:w-[720px] lg:w-[800px]
-          bg-zinc-900 border border-zinc-800/60
+          bg-background-secondary border border-border-primary
           rounded-t-2xl md:rounded-2xl
           max-h-[88vh] md:max-h-[85vh]
           overflow-y-auto
@@ -78,9 +78,9 @@ export function RecommendationModal({
           className="
             absolute top-3 right-3 z-20
             p-2 rounded-full
-            bg-zinc-900/80 backdrop-blur-sm
-            text-zinc-400 hover:text-white
-            border border-zinc-700/50
+            bg-background-tertiary
+            text-text-secondary hover:text-text-primary
+            border border-border-primary
             transition-colors
           "
           aria-label="Close"
@@ -140,22 +140,22 @@ export function RecommendationModal({
             {/* Text details */}
             <div className="flex-1 min-w-0 space-y-4 mt-2 md:mt-4">
               {/* Title */}
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white leading-tight">
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-text-primary leading-tight">
                 {selectedRec.title}
               </h2>
 
               {/* Meta row */}
-              <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-400">
+              <div className="flex flex-wrap items-center gap-3 text-sm text-text-secondary">
                 {releaseYear && (
                   <div className="flex items-center gap-1.5">
-                    <IoCalendar className="w-3.5 h-3.5 text-zinc-500" />
+                    <IoCalendar className="w-3.5 h-3.5 text-text-tertiary" />
                     <span>{releaseYear}</span>
                   </div>
                 )}
                 {selectedRec.media?.vote_average && (
                   <div className="flex items-center gap-1.5">
                     <IoStar className="w-3.5 h-3.5 text-amber-400" />
-                    <span className="font-medium text-zinc-300">
+                    <span className="font-medium text-text-primary">
                       {selectedRec.media.vote_average.toFixed(1)}
                     </span>
                   </div>
@@ -167,7 +167,7 @@ export function RecommendationModal({
                 <p className="text-xs font-semibold text-indigo-400 uppercase tracking-widest mb-2">
                   Why you'll like it
                 </p>
-                <p className="text-sm sm:text-base text-zinc-300 leading-relaxed">
+                <p className="text-sm sm:text-base text-text-primary leading-relaxed">
                   {selectedRec.reason}
                 </p>
               </div>

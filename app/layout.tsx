@@ -38,7 +38,7 @@ export default function RootLayout({
   const isSomethingHappening = false;
 
   const mainContent = isSomethingHappening ? (
-    <div className="min-h-screen flex items-center justify-center bg-[#111111]">
+    <div className="min-h-screen flex items-center justify-center bg-background-primary">
       <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-6">
         <h1 className="text-3xl sm:text-4xl font-bold text-white">
           We&apos;re Currently Experiencing Some Issues
@@ -80,7 +80,7 @@ export default function RootLayout({
         <link rel="icon" href="/icon.JPG" />
         <link rel="apple-touch-icon" href="/icon.JPG" />
       </head>
-      <body className="bg-[#111111] min-h-screen flex flex-col antialiased font-sans relative [&::-webkit-scrollbar]:hidden">
+      <body className="bg-background-primary min-h-screen flex flex-col antialiased font-sans relative [&::-webkit-scrollbar]:hidden">
         <ToastProvider>
           <TraktProvider>
             <HistoryProvider>

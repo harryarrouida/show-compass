@@ -11,10 +11,10 @@ interface WatchHistoryOverviewProps {
     watchedShowsDetails: any[];
 }
 
-const WatchHistoryOverview = ({ 
-    watchedMovies, 
-    watchedShows, 
-    watchedMoviesDetails, 
+const WatchHistoryOverview = ({
+    watchedMovies,
+    watchedShows,
+    watchedMoviesDetails,
     watchedShowsDetails,
 }: WatchHistoryOverviewProps) => {
     // Calculate movie watch time using actual runtime
@@ -61,7 +61,6 @@ const WatchHistoryOverview = ({
                                  bg-red-400/10 hover:bg-red-400/15
                                  text-zinc-300
                                  border border-red-400/10 hover:border-red-400/20
-                                 backdrop-blur-sm
                                  transition-all duration-300"
                     >
                         <IoLogOut className="w-4 sm:w-5 h-4 sm:h-5" />
