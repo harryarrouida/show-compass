@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Dialog from "@/components/shared/ui/Dialog";
 import {
   IoTrashOutline,
   IoStarOutline,
@@ -55,30 +56,22 @@ export default function HistoryPage() {
 
   return (
     <div
-      className={`min-h-screen max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12 transition-opacity duration-500 ease-in-out ${isVisible ? "opacity-100" : "opacity-0"
+      className={`page-shell min-h-screen max-w-6xl transition-opacity duration-500 ease-in-out ${isVisible ? "opacity-100" : "opacity-0"
         }`}
     >
       <div className="flex justify-between items-center mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white">History</h1>
-        <button
-          onClick={clearHistory}
-          className="flex items-center justify-center px-4 py-2 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-zinc-800/50 rounded-full transition-all sm:hidden"
-        >
-          <IoTrashOutline className="w-4 h-4 mr-2" />
-          Clear All
-        </button>
+        <h1 className="text-3xl sm:text-4xl font-bold text-text-primary">Saved recommendations</h1>
       </div>
 
       {historyContext.length === 0 ? (
         <Card className="p-6 sm:p-8 text-center bg-zinc-900/80 backdrop-blur">
           <p className="text-zinc-300 text-base sm:text-lg">
-            No history found. Start exploring recommendations to build your
-            history!
+            No saved recommendations yet. Save a title to find it here later.
           </p>
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div className="poster-grid">
             {isLoading ? (
               Array.from({ length: 10 }).map((_, index) => (
                 <CardSkeleton key={index} index={index} />
@@ -87,40 +80,32 @@ export default function HistoryPage() {
               displayHistory.map((item) => (
                 <div
                   key={item.id}
-                  onClick={() => setSelectedItem(item as HistoryItem)}
-                  className="mx-auto group relative w-[100px] md:w-[150px] lg:w-[180px] cursor-pointer"
+                  className="relative min-w-0"
                 >
-                  <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
-                    <OptimizedImage
-                      src={`${item.data.poster_path}`}
-                      alt={item.data.title || ""}
-                      className="object-cover"
-                      sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 20vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0" />
-                  </div>
-
-                  <div className="mt-2 space-y-0.5 sm:space-y-1 flex justify-between items-center">
-                    <h3 className="text-xs sm:text-sm font-medium text-zinc-300 line-clamp-1">
-                      {item.data.title}
-                    </h3>
-                    {item.data.vote_average && (
-                      <span className="flex items-center">
-                        <IoStar
-                          className="text-amber-400 mx-0.5 sm:mx-1"
-                          size={10}
-                        />
+                  <button type="button" className="poster-control group" aria-haspopup="dialog" onClick={() => setSelectedItem(item as HistoryItem)}>
+                    <span className="poster-frame">
+                      <OptimizedImage
+                        src={item.data.poster_path || ""}
+                        alt=""
+                        className="object-cover"
+                        sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 20vw"
+                      />
+                    </span>
+                    <span className="poster-title">{item.data.title}</span>
+                    {item.data.vote_average > 0 && (
+                      <span className="poster-rating">
+                        <IoStar aria-hidden="true" className="size-3 text-amber-400" />
+                        <span className="sr-only">Rating</span>
                         {item.data.vote_average.toFixed(1)}
                       </span>
                     )}
-                  </div>
+                  </button>
 
                   <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteFromHistory(item.id);
-                    }}
-                    className="hidden sm:block md:block absolute z-10 top-1 sm:top-2 right-1 sm:right-2 p-1.5 sm:p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors duration-300 opacity-0 group-hover:opacity-100"
+                    type="button"
+                    onClick={() => deleteFromHistory(item.id)}
+                    aria-label={`Remove ${item.data.title} from history`}
+                    className="icon-action absolute right-1 top-1 text-red-300"
                   >
                     <IoTrashOutline className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
                   </button>
@@ -132,13 +117,13 @@ export default function HistoryPage() {
           <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-6 mt-6 sm:mt-8">
             <button
               onClick={toggleShowAll}
-              className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-medium text-zinc-300 hover:text-white hover:bg-zinc-800/50 rounded-full transition-all"
+              className="secondary-action"
             >
               {showAll ? "Show Less" : "Show All"}
             </button>
             <button
               onClick={clearHistory}
-              className="hidden sm:flex w-full sm:w-auto items-center justify-center px-4 sm:px-6 py-2 sm:py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-zinc-800/50 rounded-full transition-all"
+              className="secondary-action text-red-300"
             >
               <IoTrashOutline className="w-4 h-4 mr-2" />
               Clear History
@@ -148,13 +133,7 @@ export default function HistoryPage() {
       )}
 
       {selectedItem && (
-        <div className="fixed -top-10 min-h-screen inset-0 z-50 flex items-end md:items-center justify-center overflow-hidden">
-          <div
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setSelectedItem(null)}
-          />
-
-          <div className="relative w-full md:w-[800px] bg-zinc-900 rounded-t-2xl md:rounded-2xl max-h-[85vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none']">
+        <Dialog title={selectedItem.data.title} onClose={() => setSelectedItem(null)}>
             <div className="relative h-[200px] sm:h-[300px]">
               <OptimizedImage
                 src={`${selectedItem.data.backdrop_path}`}
@@ -169,7 +148,8 @@ export default function HistoryPage() {
             <div className="absolute top-0 right-0 z-10 p-4">
               <button
                 onClick={() => setSelectedItem(null)}
-                className="p-2 text-white hover:text-zinc-300 rounded-full bg-zinc-800/50"
+                className="icon-action"
+                aria-label="Close saved recommendation"
               >
                 <IoClose className="w-6 h-6" />
               </button>
@@ -264,8 +244,7 @@ export default function HistoryPage() {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
+        </Dialog>
       )}
     </div>
   );

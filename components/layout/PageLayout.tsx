@@ -25,11 +25,11 @@ export default function PageLayout({
 }: PageLayoutProps) {
     return (
         <ErrorBoundary>
-            <main className={`min-h-screen py-12 px-4 sm:px-6 lg:px-8 mx-auto ${maxWidthClasses[maxWidth]} ${className}`}>
-                <div className="space-y-16">
+            <div className={`page-shell min-h-screen ${maxWidthClasses[maxWidth]} ${className}`}>
+                <div className="space-y-10 sm:space-y-14">
                     {children}
                 </div>
-            </main>
+            </div>
         </ErrorBoundary>
     );
 }

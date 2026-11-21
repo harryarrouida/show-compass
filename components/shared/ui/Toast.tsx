@@ -29,12 +29,13 @@ export function Toast({ message, type, duration = 5000, onClose }: ToastProps) {
     };
 
     return (
-        <div className={`fixed bottom-4 right-4 z-50 animate-slide-up`}>
+        <div className={`fixed bottom-4 right-4 left-4 sm:left-auto z-50 animate-slide-up`}>
             <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${backgrounds[type]} shadow-lg`}>
                 {icons[type]}
-                <p className="text-sm text-text-primary">{message}</p>
+                <p role={type === "error" ? "alert" : "status"} className="text-sm text-text-primary">{message}</p>
                 <button
                     onClick={onClose}
+                    aria-label="Dismiss notification"
                     className="ml-2 text-text-secondary hover:text-text-primary transition-colors"
                 >
                     <IoClose className="w-4 h-4" />

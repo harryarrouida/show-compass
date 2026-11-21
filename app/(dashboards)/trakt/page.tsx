@@ -131,11 +131,12 @@ const Trakt = () => {
   }
 
   if (isLoading) {
-    return <Loading text="Loading Data..." />;
+    return <Loading text="Loading your Trakt history…" />;
   }
 
   return (
     <PageLayout>
+      <h1 className="text-3xl font-bold text-text-primary sm:text-4xl">Trakt dashboard</h1>
       <WatchHistoryOverview
         watchedMovies={watchedMovies}
         watchedShows={watchedShows}
