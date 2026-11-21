@@ -737,7 +737,7 @@ CRITICAL RULES:
 
       {loading && (
         <div className="mt-4 sm:mt-8">
-          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+          <div className="poster-grid">
             {Array.from({ length: numRecommendations }).map((_, index) => (
               <CardSkeleton key={index} index={index} />
             ))}
@@ -748,7 +748,7 @@ CRITICAL RULES:
       {/* Recommendations Grid */}
       {recommendations.length > 0 && (
         <div className="mt-4 sm:mt-8">
-          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+          <div className="poster-grid">
             {recommendationsDetails.map((rec, index) => (
               <RecommendationCard
                 key={index}

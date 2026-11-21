@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { MappedMovie, MappedShow } from '@/types/types';
 import { searchMovies } from '@/services/content/movieServices';
 import { searchShows } from '@/services/content/showServices';
@@ -17,9 +16,12 @@ export default function SearchComponent() {
     const [suggestions] = useState(['Arcane', 'Attack on Titan', 'Frieren']);
 
     useEffect(() => {
+        let active = true;
         const handleSearch = async () => {
             if (query.length < 2) {
                 setResults([]);
+                setIsLoading(false);
+                setError(null);
                 return;
             }
 
@@ -38,12 +40,15 @@ export default function SearchComponent() {
                     .sort((a, b) => (b.popularity || 0 && b.vote_count || 0) - (a.popularity || 0 && a.vote_count || 0))
                     .slice(0, 5); // Limit to top 5 results
 
-                setResults(combinedResults);
+                if (active) setResults(combinedResults);
             } catch (err) {
-                setError('Something went wrong. Please try again.');
+                if (active) {
+                    setResults([]);
+                    setError('Something went wrong. Please try again.');
+                }
                 console.error('Search error:', err);
             } finally {
-                setIsLoading(false);
+                if (active) setIsLoading(false);
             }
         };
 
@@ -51,31 +56,35 @@ export default function SearchComponent() {
             handleSearch();
         }, 300);
 
-        return () => clearTimeout(debounce);
+        return () => {
+            active = false;
+            clearTimeout(debounce);
+        };
     }, [query]);
 
     return (
-        <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-12 pt-16">
-            <div className="text-center mb-20">
-                <h1 className="w-full text-4xl md:text-6xl lg:text-7xl font-bold mb-8 text-text-primary tracking-tight">Discover Your Next Favorite Story</h1>
-                <p className="text-text-secondary text-base md:text-lg max-w-3xl mx-auto mb-14 leading-relaxed">
-                    Discover personalized entertainment recommendations that match your interests. From critically acclaimed masterpieces to hidden gems, find your next great watch.
+        <div className="rounded-2xl border border-border-primary bg-background-secondary px-4 py-8 sm:px-8 sm:py-12">
+            <div className="text-center">
+                <h1 className="mb-3 text-3xl font-bold tracking-tight text-text-primary sm:text-5xl">Find your next watch</h1>
+                <p className="mx-auto mb-6 max-w-xl text-base leading-relaxed text-text-secondary">
+                    Search for a movie or show to get recommendations based on what you like.
                 </p>
 
                 <div className="mx-auto">
                     <div className="max-w-3xl mx-auto">
                         <div className="relative">
                             <input
-                                type="text"
+                                type="search"
+                                aria-label="Search movies and TV shows"
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Search for a show..."
-                                className="w-full px-8 py-5 rounded-full bg-background-secondary border border-border-primary text-text-primary placeholder-text-tertiary focus:outline-none focus:border-interactive-input-focusBorder transition-colors"
+                                placeholder="Search movies and TV shows"
+                                className="w-full px-4 pr-14 py-3 rounded-xl bg-background-primary [&::-webkit-search-cancel-button]:hidden border border-border-primary text-text-primary placeholder-text-tertiary focus:border-accent-primary transition-colors"
                             />
                             {query && (
                                 <button
                                     onClick={() => setQuery('')}
-                                    className="absolute right-6 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary transition-colors"
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 icon-action"
                                     aria-label="Clear search"
                                 >
                                     <IoClose size={20} />
@@ -85,11 +94,11 @@ export default function SearchComponent() {
                     </div>
 
                     {/* Results Section */}
-                    {results.length > 0 && (
-                        <div className="mt-20">
-                            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                    {results.length > 0 && !isLoading && (
+                        <div className="mt-8">
+                            <div className="poster-grid text-left">
                                 {results.map((item) => (
-                                    <MediaCard key={item.id} item={item} activeTab="" />
+                                    <MediaCard key={`${item.type}-${item.id}`} item={item} activeTab="" />
                                 ))}
                             </div>
                         </div>
@@ -97,8 +106,8 @@ export default function SearchComponent() {
 
                     {/* Loading State */}
                     {isLoading && (
-                        <div className="mt-10">
-                            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+                        <div className="mt-8" aria-busy="true" aria-label="Searching">
+                            <div className="poster-grid text-left">
                                 {[...Array(5)].map((_, index) => (
                                     <CardSkeleton key={index} index={index} />
                                 ))}
@@ -108,13 +117,13 @@ export default function SearchComponent() {
 
                     {/* Error and Empty States */}
                     {error && (
-                        <div className="text-red-400 text-base text-center mt-10">
+                        <div role="alert" className="text-red-400 text-base text-center mt-10">
                             {error}
                         </div>
                     )}
 
                     {query.length >= 2 && !isLoading && results.length === 0 && !error && (
-                        <div className="text-zinc-500 text-base text-center mt-10">
+                        <div role="status" className="text-text-secondary text-base text-center mt-6">
                             No results found for "{query}"
                         </div>
                     )}
@@ -126,7 +135,7 @@ export default function SearchComponent() {
                                 <span key={suggestion}>
                                     <button
                                         onClick={() => setQuery(suggestion)}
-                                        className="text-blue-400 underline-offset-2 hover:underline rounded px-2 transition-colors"
+                                        className="text-accent-hover underline-offset-4 hover:underline rounded px-2 py-2 transition-colors"
                                     >
                                         {suggestion}
                                     </button>

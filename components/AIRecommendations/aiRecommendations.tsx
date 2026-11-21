@@ -114,13 +114,13 @@ export default function AIRecommendations({
       {/* Grid */}
       <div className="relative">
         {isAiLoading ? (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4 pt-6">
+          <div className="poster-grid pt-6">
             {Array.from({ length: 10 }).map((_, i) => (
               <CardSkeleton key={i} index={i} />
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 sm:gap-4 pt-6">
+          <div className="poster-grid pt-6">
             {Array.isArray(aiRecommendations) &&
               aiRecommendations.map((rec, index) => (
                 <RecommendationCard

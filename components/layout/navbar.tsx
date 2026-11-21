@@ -1,101 +1,42 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useState } from 'react';
-import { RiBookmarkLine, RiLoginCircleLine, RiMenuLine, RiCloseLine } from "react-icons/ri";
-import { SiTrakt } from 'react-icons/si';
-import { useTraktContext } from '@/contexts/traktContext';
-import { usePathname } from 'next/navigation';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { RiBookmarkLine, RiCompass3Line, RiLoginCircleLine } from "react-icons/ri";
+import { SiTrakt } from "react-icons/si";
+import { useTraktContext } from "@/contexts/traktContext";
 
 export default function Navbar() {
-    const { isAuthenticated, login } = useTraktContext();
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const pathname = usePathname();
+  const { isAuthenticated, login } = useTraktContext();
+  const pathname = usePathname();
+  const linkClass = "inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm font-semibold text-text-secondary hover:bg-background-tertiary hover:text-text-primary aria-[current=page]:bg-background-tertiary aria-[current=page]:text-accent-hover sm:px-3";
 
-    return (
-        <nav className="sticky top-0 z-50 bg-background-secondary border-b border-border-primary">
-            <div className="max-w-7xl mx-auto px-4">
-                <div className="flex items-center h-16 justify-between">
-                    {/* Logo */}
-                    <Link href="/" className="text-xl font-bold text-white">
-                        Show Compass
-                    </Link>
+  return (
+    <nav aria-label="Main navigation" className="sticky top-0 z-40 border-b border-border-primary bg-background-primary/95 backdrop-blur">
+      <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-x-2 px-4 sm:px-6 lg:px-8">
+        <Link href="/" aria-current={pathname === "/" ? "page" : undefined} className="inline-flex min-h-11 items-center gap-2 rounded-lg text-base font-bold text-text-primary">
+          <RiCompass3Line aria-hidden="true" className="size-5 text-accent-primary" />
+          Show Compass
+        </Link>
 
-                    {/* Desktop Navigation */}
-                    <div className="hidden sm:flex items-center gap-4">
-                        <Link
-                            href="/history"
-                            className={`flex items-center gap-2 px-3 py-2 transition-colors hover:text-blue-400 ${pathname === '/history' ? 'text-blue-400 underline-offset-2 underline' : 'text-text-secondary'}`}
-                        >
-                            <RiBookmarkLine />
-                            <span>Saved</span>
-                        </Link>
-
-                        {isAuthenticated ? (
-                            <Link 
-                                href="/trakt"
-                                className={`flex items-center gap-2 px-3 py-2 transition-colors hover:text-blue-400 ${pathname === '/trakt' ? 'text-blue-400 underline-offset-2 underline' : 'text-text-secondary'}`}
-                            >
-                                <SiTrakt />
-                                <span>Trakt</span>
-                            </Link>
-                        ) : (
-                            <button 
-                                onClick={login}
-                                className="flex items-center gap-2 px-3 py-2 text-text-secondary"
-                            >
-                                <RiLoginCircleLine />
-                                <span>Login</span>
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Mobile Menu Button */}
-                    <button 
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="sm:hidden p-2 text-text-secondary"
-                        aria-label="Toggle menu"
-                    >
-                        {isMenuOpen ? <RiCloseLine /> : <RiMenuLine />}
-                    </button>
-                </div>
-
-                {/* Mobile Navigation */}
-                {isMenuOpen && (
-                    <div className="sm:hidden py-2 border-t">
-                        <Link
-                            href="/history"
-                            className={`flex items-center gap-2 px-3 py-2 ${pathname === '/history' ? 'text-blue-500' : 'text-text-secondary'}`}
-                            onClick={() => setIsMenuOpen(false)}
-                        >
-                            <RiBookmarkLine />
-                            <span>Saved</span>
-                        </Link>
-
-                        {isAuthenticated ? (
-                            <Link
-                                href="/trakt"
-                                className={`flex items-center gap-2 px-3 py-2 ${pathname === '/trakt' ? 'text-blue-500' : 'text-text-secondary'}`}
-                                onClick={() => setIsMenuOpen(false)}
-                            >
-                                <SiTrakt />
-                                <span>Trakt</span>
-                            </Link>
-                        ) : (
-                            <button 
-                                onClick={() => {
-                                    login();
-                                    setIsMenuOpen(false);
-                                }}
-                                className="flex items-center gap-2 px-3 py-2 w-full text-text-secondary"
-                            >
-                                <RiLoginCircleLine />
-                                <span>Login</span>
-                            </button>
-                        )}
-                    </div>
-                )}
-            </div>
-        </nav>
-    );
+        <div className="flex items-center gap-1">
+          <Link href="/history" aria-current={pathname === "/history" ? "page" : undefined} className={linkClass}>
+            <RiBookmarkLine aria-hidden="true" />
+            Saved
+          </Link>
+          {isAuthenticated ? (
+            <Link href="/trakt" aria-current={pathname === "/trakt" ? "page" : undefined} className={linkClass}>
+              <SiTrakt aria-hidden="true" />
+              Trakt
+            </Link>
+          ) : (
+            <button type="button" onClick={login} className={linkClass}>
+              <RiLoginCircleLine aria-hidden="true" />
+              Connect Trakt
+            </button>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
 }

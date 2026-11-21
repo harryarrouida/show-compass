@@ -85,8 +85,8 @@ export default function DataGrid({
   };
 
   return (
-    <div className="mx-auto max-w-8xl lg:max-w-7xl px-2 sm:px-6 lg:px-12">
-      <div className="mx-auto flex flex-col sm:flex-row justify-between items-center mb-16 gap-6 sm:gap-0">
+    <div className="w-full">
+      <div className="mx-auto flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <div
           className={
             isWithSearch
@@ -96,6 +96,7 @@ export default function DataGrid({
         >
           <button
             onClick={() => setActiveTab("shows")}
+            aria-pressed={activeTab === "shows"}
             disabled={isLoading}
             className={`pb-4 px-3 text-base font-medium relative ${
               activeTab === "shows"
@@ -107,6 +108,7 @@ export default function DataGrid({
           </button>
           <button
             onClick={() => setActiveTab("movies")}
+            aria-pressed={activeTab === "movies"}
             disabled={isLoading}
             className={`pb-4 px-3 text-base font-medium relative ${
               activeTab === "movies"
@@ -126,7 +128,7 @@ export default function DataGrid({
               type="text"
               placeholder="Search..."
               disabled={isLoading}
-              className={`w-full sm:w-64 px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-100 placeholder-zinc-500 focus:outline-none ${
+              className={`w-full sm:w-64 px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-100 placeholder-text-secondary ${
                 isLoading ? "opacity-50 cursor-not-allowed" : ""
               }`}
             />
@@ -145,7 +147,7 @@ export default function DataGrid({
         )}
       </div>
 
-      <div className="w-full grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-4 sm:gap-8">
+      <div className="w-full poster-grid">
         {(isWithSearch ? filteredData : data)
           .slice(0, isWithSearch ? displayCount : undefined)
           .map((item, index) => (
@@ -160,7 +162,7 @@ export default function DataGrid({
       </div>
 
       {/* {isLoading && (
-        <div className="w-full grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
+        <div className="w-full poster-grid">
           {[...Array(10)].map((_, index) => (
             <CardSkeleton key={index} index={index} />
           ))}
@@ -173,7 +175,7 @@ export default function DataGrid({
         <div className="mt-20 mb-16 flex justify-center">
           <button
             onClick={handleLoadMore}
-            className="px-8 py-3 bg-zinc-800 text-zinc-300 text-sm rounded-full"
+            className="secondary-action"
           >
             Load More
           </button>

@@ -1,4 +1,3 @@
-import React from "react";
 import Link from "next/link";
 import { MappedMovie, MappedShow } from "@/types/types";
 import { IoBookmarkOutline, IoStar } from "react-icons/io5";
@@ -17,71 +16,42 @@ export default function MediaCard({
   activeTab,
   showSaveToHistory = false,
   onSave,
-  isModal = false,
 }: MediaCardProps) {
-  const isMovie = activeTab === "movies";
-  const title = isMovie
-    ? (item as MappedMovie).title
-    : (item as MappedShow).title;
-  const releaseDate = isMovie
-    ? (item as MappedMovie).release_date
-    : (item as MappedShow).release_date;
-  const mediaType = isMovie ? "movie" : "show";
-  // const posterUrl = item.poster_path
-  //   ? `${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${item.poster_path}`
-  //   : "";
-  const rating = item.vote_average.toFixed(1);
-  // const year = releaseDate ? new Date(releaseDate).getFullYear() : "";
+  const mediaType = activeTab === "movies" || (!activeTab && item.type === "movie") ? "movie" : "show";
 
   return (
-    <div
-      className="relative w-[100px] md:w-[150px] lg:w-[180px] mb-10 cursor-pointer group"
-      key={item.id}
-    >
+    <div className="relative min-w-0">
       <Link
-        key={item.id}
         href={`/recommendation/${item.id}/${mediaType}`}
-        className="mx-auto w-full md:w-full lg:w-full group flex flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 rounded-lg"
+        className="poster-control group"
       >
-        <div className="group relative">
-          <div className="relative aspect-[2/3] rounded-lg overflow-hidden">
-            <OptimizedImage
-              src={`${process.env.NEXT_PUBLIC_TMDB_IMAGE_URL}${item.poster_path}`}
-              alt={title}
-              className="object-cover"
-              priority={item.id < 2 ? true : false}
-              quality={75}
-              loading="lazy"
-              id={item.id}
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-            />
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10" />
-          </div>
-
-          <div className="mt-2 space-y-0.5 sm:space-y-1 flex justify-between items-center">
-            <h3 className="text-xs sm:text-sm md:text-base lg:text-md font-medium text-zinc-300 line-clamp-1">
-              {title}
-            </h3>
-            {rating && (
-              <span className="flex items-center text-xs sm:text-sm md:text-base">
-                <IoStar className="text-amber-400 mx-0.5 sm:mx-1 w-3 h-3 sm:w-4 sm:h-4" />
-                {rating}
-              </span>
-            )}
-          </div>
-        </div>
+        <span className="poster-frame">
+          <OptimizedImage
+            src={item.poster_path || ""}
+            alt=""
+            className="object-cover transition-transform group-hover:scale-105"
+            quality={75}
+            sizes="(max-width: 380px) 50vw, (max-width: 768px) 33vw, 20vw"
+          />
+        </span>
+        <span className="poster-title">{item.title}</span>
+        {item.vote_average > 0 && (
+          <span className="poster-rating">
+            <IoStar aria-hidden="true" className="size-3 text-amber-400" />
+            <span className="sr-only">Rating</span>
+            {item.vote_average.toFixed(1)}
+          </span>
+        )}
       </Link>
 
       {showSaveToHistory && onSave && (
         <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onSave();
-          }}
-          className="absolute top-2 right-4 p-2 bg-zinc-800/50 hover:bg-zinc-700/70 rounded-full transition-colors duration-300"
+          type="button"
+          onClick={onSave}
+          aria-label={`Save ${item.title} to history`}
+          className="icon-action absolute right-2 top-2"
         >
-          <IoBookmarkOutline className="w-5 h-5 text-zinc-300" />
+          <IoBookmarkOutline aria-hidden="true" className="size-5" />
         </button>
       )}
     </div>
