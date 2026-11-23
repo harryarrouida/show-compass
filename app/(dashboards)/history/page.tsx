@@ -66,9 +66,10 @@ export default function HistoryPage() {
 
       {historyContext.length === 0 ? (
         <Card className="p-8 sm:p-12 text-center">
-          <p className="text-zinc-300 text-base sm:text-lg">
-            No saved recommendations yet. Save a title to find it here later.
-          </p>
+          <IoBookmarkOutline aria-hidden="true" className="mx-auto mb-4 size-9 text-accent-primary" />
+          <h2 className="section-heading">Nothing saved yet</h2>
+          <p className="mt-2 text-text-secondary">Explore a title and save recommendations to revisit them here.</p>
+          <a href="/" className="secondary-action mt-6">Explore titles</a>
         </Card>
       ) : (
         <>
@@ -110,12 +111,11 @@ export default function HistoryPage() {
           </div>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-6 mt-6 sm:mt-8">
-            <button
-              onClick={toggleShowAll}
+            {historyContext.length > 10 && <button onClick={toggleShowAll}
               className="secondary-action"
             >
-              {showAll ? "Show Less" : "Show All"}
-            </button>
+              {showAll ? "Show fewer" : `Show all ${historyContext.length}`}
+            </button>}
             <button
               onClick={() => { if (window.confirm("Remove all saved recommendations? This cannot be undone.")) clearHistory(); }}
               className="secondary-action text-red-300"
