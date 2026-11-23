@@ -3,7 +3,7 @@ import { RiRobot2Line } from "react-icons/ri";
 import { IoChevronForwardOutline, IoFilterOutline } from "react-icons/io5";
 import { IoChevronDownOutline, IoChevronUpOutline } from "react-icons/io5";
 import { useTraktContext } from "@/contexts/traktContext";
-import Groq from "groq-sdk";
+import { generateTraktAIRecommendations } from "@/app/actions/traktRecommendations";
 import { search } from "@/services/content/sharedServices";
 import { useHistory } from "@/contexts/historyContext";
 import {
@@ -348,16 +348,6 @@ const TraktRecommendations = () => {
         throw new Error(`No watched ${mediaType} found in your history`);
       }
 
-      const apiKey = process.env.NEXT_PUBLIC_GROQ_API_KEY || process.env.GROQ_API_KEY;
-      if (!apiKey) {
-        throw new Error("Missing Groq API Key configuration");
-      }
-
-      const groq = new Groq({
-        apiKey: apiKey,
-        dangerouslyAllowBrowser: true,
-      });
-
       const prompt = fromWatchlist
         ? await generatePromptFromWatchlist(
           mediaType,
@@ -372,36 +362,10 @@ const TraktRecommendations = () => {
 
       // console.log("Generated Prompt:", prompt);
 
-      const completion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: `You are an expert cinematic taste analyst. Your job is to understand a viewer's emotional and atmospheric preferences from their watch history and find new content that will genuinely resonate with them.
-
-CRITICAL RULES:
-- Analyze the AGGREGATE pattern across the full history, not individual titles
-- Weight SIGNATURE TITLES (those with overviews provided) more heavily — they best represent the user's taste
-- Recommendations must NOT appear in the user's complete watch history
-- Explanations must reference MOOD, ATMOSPHERE, PACING, and THEMES — not genres
-- Provide VARIETY: diverse picks that all fit the taste profile
-- Your responses MUST be valid JSON only`,
-          },
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
-        model: "llama-3.3-70b-versatile",
-        temperature: 0.6,
-        top_p: 0.9,
-        max_tokens: 4096,
-        response_format: { type: "json_object" },
-      });
-
-      const response = completion.choices[0]?.message?.content || "";
+      const generatedRecommendations = await generateTraktAIRecommendations(prompt);
 
       try {
-        const parsed = cleanAndParseResponse(response);
+        const parsed = { recommendations: generatedRecommendations };
         setRecommendations(parsed.recommendations);
         const recommendationsDetails = await Promise.all(
           parsed.recommendations.map(async (rec: any) => {
