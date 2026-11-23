@@ -212,7 +212,7 @@ export default function MediaDetails({
         */}
         <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] gap-8 lg:gap-10">
           {/* ── Left Sidebar ── */}
-          <div className="space-y-5 order-2 lg:order-1 lg:pt-7">
+          <div className="space-y-5 order-1 lg:pt-7">
             {/* Mobile poster (only visible on small screens) */}
             <div className="sm:hidden w-[140px] mx-auto mt-2 rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10">
               <div className="aspect-[2/3]">
@@ -342,7 +342,7 @@ export default function MediaDetails({
 
           {/* ── Right Content ── */}
           <div
-            className="space-y-10 order-1 lg:order-2
+            className="space-y-10 order-2
                         lg:pt-6"
           >
             {/* Overview */}
