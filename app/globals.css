@@ -25,6 +25,26 @@
     @apply mx-auto w-full px-4 py-8 sm:px-6 sm:py-12 lg:px-8;
   }
 
+  .surface-panel {
+    @apply rounded-2xl border border-border-primary bg-background-secondary;
+  }
+
+  .field-control {
+    @apply rounded-xl border border-border-primary bg-background-primary text-text-primary placeholder-text-tertiary transition-colors focus:border-accent-primary focus:outline-none;
+  }
+
+  .chip-action {
+    @apply inline-flex min-h-9 items-center rounded-full border border-border-primary bg-background-tertiary px-3 text-xs font-medium text-text-secondary transition-colors hover:border-border-hover hover:text-text-primary;
+  }
+
+  .empty-state {
+    @apply rounded-xl border border-border-primary bg-background-primary/60 px-5 py-10 text-center text-sm leading-relaxed text-text-secondary;
+  }
+
+  .section-heading {
+    @apply text-xl font-bold tracking-tight text-text-primary sm:text-2xl;
+  }
+
   .poster-grid {
     @apply grid grid-cols-2 gap-x-4 gap-y-6 md:grid-cols-4 lg:grid-cols-5 sm:gap-x-6 sm:gap-y-8;
   }
@@ -36,11 +56,11 @@
   }
 
   .poster-control {
-    @apply block w-full min-w-0 rounded-xl text-left;
+    @apply block w-full min-w-0 rounded-xl text-left focus-visible:outline-offset-4;
   }
 
   .poster-frame {
-    @apply relative block aspect-[2/3] overflow-hidden rounded-xl border border-border-primary bg-background-tertiary;
+    @apply relative block aspect-[2/3] overflow-hidden rounded-xl border border-border-primary bg-background-tertiary transition-colors group-hover:border-border-hover group-focus-visible:border-accent-primary;
   }
 
   .poster-title {
