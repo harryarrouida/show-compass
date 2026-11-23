@@ -1,312 +1,159 @@
 "use client";
+
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useParams } from "next/navigation";
 import { getShowDetails } from "@/services/content/showServices";
 import { getMovieDetails } from "@/services/content/movieServices";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import {
-  ShowDetails,
-  MovieDetails,
-  MappedMovie,
-  MappedShow,
-} from "@/types/types";
-import MediaDetails from "@/components/AIRecommendations/mediaDetails";
-import { AIRecommendation } from "@/types/types";
-import { search } from "@/services/content/sharedServices";
-import { useHistory } from "@/contexts/historyContext";
-import Loading from "@/components/shared/loaders/loading";
-import { IoClose } from "react-icons/io5";
-import {
-  RiRobot2Line,
-  RiQuestionLine,
-  RiHistoryLine,
-} from "react-icons/ri";
-import { BsChatDots } from "react-icons/bs";
 import { getAIRecommendations } from "@/app/actions/recommendations";
+import { useHistory } from "@/contexts/historyContext";
+import { useTraktContext } from "@/contexts/traktContext";
+import { useRecommendationFeedback } from "@/contexts/recommendationFeedbackContext";
+import type { RecommendationRequest, MediaKind } from "@/lib/recommendation-engine";
+import type { AIRecommendation, MappedMovie, MappedShow, MovieDetails, ShowDetails } from "@/types/types";
+import MediaDetails from "@/components/AIRecommendations/mediaDetails";
+import Loading from "@/components/shared/loaders/loading";
 
 export default function RecommendationPage() {
-  const [details, setDetails] = useState<ShowDetails | MovieDetails | null>(
-    null
-  );
-  const [aiRecommendations, setAiRecommendations] = useState<
-    AIRecommendation[] | string
-  >([]);
+  const { id, type } = useParams();
+  const mediaId = Number(id);
+  const mediaType = type === "movie" || type === "show" ? type : null;
+  const [details, setDetails] = useState<ShowDetails | MovieDetails | null>(null);
+  const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isAiLoading, setIsAiLoading] = useState(false);
-  const { id, type } = useParams();
-  const [showAllSeasons, setShowAllSeasons] = useState(false);
   const [alert, setAlert] = useState<string | null>(null);
+  const [showAllSeasons, setShowAllSeasons] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [prompt, setPrompt] = useState("");
-  const { history, saveToHistory: saveToHistoryContext } = useHistory();
-  const [showIntroModal, setShowIntroModal] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
+  const { history, saveToHistory } = useHistory();
+  const { watchedMoviesCache, watchedShowsCache } = useTraktContext();
+  const { feedback, ready } = useRecommendationFeedback();
+
+  // Keep freshness of preference signals without regenerating on each saved item.
+  const tasteRef = useRef({ history, feedback, watchedMoviesCache, watchedShowsCache });
+  tasteRef.current = { history, feedback, watchedMoviesCache, watchedShowsCache };
+
   useEffect(() => {
-    const hasVisited = localStorage.getItem("hasVisitedRecommendations");
-    if (!hasVisited && initialLoadComplete) {
-      setShowIntroModal(true);
-      const timer = setTimeout(() => {
-        setShowIntroModal(false);
-        localStorage.setItem("hasVisitedRecommendations", "true");
-      }, 60000);
-      return () => clearTimeout(timer);
-    }
+    const updateMobile = () => setIsMobile(window.innerWidth < 768);
+    updateMobile();
+    window.addEventListener("resize", updateMobile);
+    return () => window.removeEventListener("resize", updateMobile);
+  }, []);
 
-    if (hasVisited) {
-      setShowIntroModal(false);
-    }
-
-    const width = window.innerWidth;
-    if (width < 768) {
-      setIsMobile(true);
-    }
-  }, [initialLoadComplete]);
-
-  const closeIntroModal = () => {
-    setShowIntroModal(false);
-    localStorage.setItem("hasVisitedRecommendations", "true");
+  const makeRequest = (selectedType: MediaKind, selectedId: number, customPrompt = ""): RecommendationRequest => {
+    const taste = tasteRef.current;
+    const watched = selectedType === "movie" ? taste.watchedMoviesCache : taste.watchedShowsCache;
+    return {
+      mode: "similar",
+      type: selectedType,
+      sourceId: selectedId,
+      prompt: customPrompt,
+      saved: taste.history.map(item => ({
+        id: item.data.id,
+        title: item.data.title,
+        type: item.mediaType,
+      })),
+      watched: watched.map((item: { tmdbId: number; title: string }) => ({
+        id: item.tmdbId,
+        title: item.title,
+        type: selectedType,
+      })),
+      feedback: taste.feedback,
+    };
   };
 
   useEffect(() => {
-    const fetchDetails = async () => {
-      setIsLoading(true);
+    if (!ready) return;
+    if (!mediaType || !Number.isSafeInteger(mediaId) || mediaId <= 0) {
+      setAlert("Invalid movie or show link");
+      setIsLoading(false);
+      return;
+    }
+
+    let active = true;
+    setDetails(null);
+    setRecommendations([]);
+    setAlert(null);
+    setIsLoading(true);
+
+    const load = async () => {
       try {
-        let mediaDetails;
-        if (type === "movie") {
-          mediaDetails = await getMovieDetails(Number(id));
-        } else if (type === "show") {
-          mediaDetails = await getShowDetails(Number(id));
-        }
-
-        if (mediaDetails) {
-          setDetails(mediaDetails);
-          setIsLoading(false);
-          setIsAiLoading(true);
-
-          try {
-            // Pass full history so server action can extract taste chains
-            const recommendations = await getAIRecommendations(
-              mediaDetails as any,
-              type as string,
-              history.map((item) => ({
-                title: item.data.title,
-                reason: item.reason,
-                from: item.from,
-              }))
-            );
-
-            const recommendationsWithMedia = await Promise.all(
-              recommendations.map(async (rec: AIRecommendation) => {
-                try {
-                  const searchResults = await search(rec.title);
-                  if (searchResults && searchResults.length > 0) {
-                    return {
-                      ...rec,
-                      media: {
-                        ...searchResults[0],
-                        type: type,
-                      },
-                    };
-                  }
-                  return rec;
-                } catch (error) {
-                  console.error(
-                    `Error fetching details for ${rec.title}:`,
-                    error
-                  );
-                  return rec;
-                }
-              })
-            );
-
-            const sortedRecommendations = recommendationsWithMedia
-              .filter((rec) => rec.media)
-              .sort((a, b) => {
-                if (!a.media?.popularity) return 1;
-                if (!b.media?.popularity) return -1;
-                return b.media.popularity - a.media.popularity;
-              });
-
-            setAiRecommendations(sortedRecommendations);
-          } catch (error) {
-            console.error("Failed to parse AI response:", error);
-            setAiRecommendations([]);
-            setAlert(error instanceof Error ? error.message : "Could not generate recommendations");
-          }
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        setAiRecommendations([]);
-      } finally {
+        const media = mediaType === "movie" ? await getMovieDetails(mediaId) : await getShowDetails(mediaId);
+        if (!media) throw new Error("This title could not be found");
+        if (!active) return;
+        setDetails(media);
         setIsLoading(false);
-        setIsAiLoading(false);
-        setInitialLoadComplete(true);
+        setIsAiLoading(true);
+
+        const picks = await getAIRecommendations(makeRequest(mediaType, mediaId));
+        if (active) setRecommendations(picks);
+      } catch (error) {
+        console.error("Recommendation loading failed:", error);
+        if (active) setAlert(error instanceof Error ? error.message : "Unable to load recommendations");
+      } finally {
+        if (active) {
+          setIsLoading(false);
+          setIsAiLoading(false);
+        }
       }
     };
+    void load();
+    return () => { active = false; };
+  }, [mediaId, mediaType, ready]);
 
-    if (id && type) {
-      fetchDetails();
-    }
-  }, [id, type, history]); // Add history to dependency array
-
-  const saveToHistory = (recommendation: AIRecommendation) => {
-    if (!recommendation.media) return;
-
-    saveToHistoryContext(
-      recommendation.media as unknown as MappedMovie | MappedShow,
-      type as "movie" | "show",
-      recommendation.reason,
-      details as ShowDetails | MovieDetails
-    );
-  };
-
-  const toggleChat = () => {
-    setShowChat(!showChat);
-    return !showChat;
-  };
-
-  const handleSubmitPrompt = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const submitPrompt = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!mediaType || !details || !prompt.trim() || isAiLoading) return;
     setIsAiLoading(true);
     setAlert(null);
     try {
-      // Pass full history for taste chain extraction
-      const recommendations = await getAIRecommendations(
-        details as any,
-        type as string,
-        history.map((item) => ({
-          title: item.data.title,
-          reason: item.reason,
-          from: item.from,
-        })),
-        prompt
-      );
-
-      const recommendationsWithMedia = await Promise.all(
-        recommendations.map(async (rec: AIRecommendation) => {
-          try {
-            const searchResults = await search(rec.title);
-            if (searchResults && searchResults.length > 0) {
-              return {
-                ...rec,
-                media: {
-                  ...searchResults[0],
-                  type: type,
-                },
-              };
-            }
-            return rec;
-          } catch (error) {
-            console.error(`Error fetching details for ${rec.title}:`, error);
-            return rec;
-          }
-        })
-      );
-
-      const sortedRecommendations = recommendationsWithMedia
-        .filter((rec) => rec.media)
-        .sort((a, b) => {
-          if (!a.media?.popularity) return 1;
-          if (!b.media?.popularity) return -1;
-          return b.media.popularity - a.media.popularity;
-        });
-
-      setAiRecommendations(sortedRecommendations);
+      const picks = await getAIRecommendations(makeRequest(mediaType, details.id, prompt.trim()));
+      setRecommendations(picks);
       setPrompt("");
     } catch (error) {
-      console.error("AI Error:", error);
-      setAiRecommendations([]);
-      setAlert(error instanceof Error ? error.message : "Could not generate recommendations");
+      console.error("Recommendation refinement failed:", error);
+      setAlert(error instanceof Error ? error.message : "Unable to refine recommendations");
     } finally {
       setIsAiLoading(false);
     }
   };
 
-  if (!id || !type) {
-    return <div>no id or type</div>;
+  const saveRecommendation = (recommendation: AIRecommendation) => {
+    if (!recommendation.media || !details) return;
+    saveToHistory(
+      recommendation.media as MappedMovie | MappedShow,
+      recommendation.media.type,
+      recommendation.reason,
+      details
+    );
+  };
+
+  if (isLoading) return <Loading text="Loading recommendations..." />;
+  if (!details) {
+    return <div role="alert" className="page-shell max-w-4xl text-center text-text-secondary">
+      {alert || "This title isn't available."}
+    </div>;
   }
 
   return (
     <div className="min-h-[70vh] w-full">
-      {isLoading ? (
-        <Loading text="Loading Recommendations..." />
-      ) : (
-        <>
-          {details && (
-            <>
-              <MediaDetails
-                details={details}
-                showAllSeasons={showAllSeasons}
-                setShowAllSeasons={setShowAllSeasons}
-                aiRecommendations={aiRecommendations as AIRecommendation[]}
-                isAiLoading={isAiLoading}
-                saveToHistory={saveToHistory}
-                alert={alert}
-                toggleChat={toggleChat}
-                showChat={showChat}
-                setPrompt={setPrompt}
-                prompt={prompt}
-                handleSubmitPrompt={handleSubmitPrompt}
-                isMobile={isMobile}
-              />
-
-              {showIntroModal && (
-                <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-                  <div className="bg-zinc-900 rounded-xl p-6 max-w-md w-full relative border border-violet-500/20 mx-4 sm:mx-0">
-                    <button
-                      onClick={closeIntroModal}
-                      className="absolute top-3 right-3 p-1.5 text-zinc-400 hover:text-white rounded-lg bg-zinc-800/50 hover:bg-zinc-800 transition-colors"
-                    >
-                      <IoClose size={20} />
-                    </button>
-
-                    <h2 className="text-xl sm:text-2xl font-bold text-white mb-6 flex items-center gap-2">
-                      <RiRobot2Line className="text-violet-400" />
-                      <span className="text-sm sm:text-base text-zinc-300 uppercase">
-                        Welcome to AI Recommendations!
-                      </span>
-                    </h2>
-
-                    <div className="space-y-5">
-                      <div className="flex items-start sm:items-center gap-3 text-zinc-300">
-                        <RiQuestionLine className="text-violet-400 text-xl flex-shrink-0 mt-1 sm:mt-0" />
-                        <p className="text-sm sm:text-base">
-                          Get personalized recommendations based on your
-                          selected movie or show
-                        </p>
-                      </div>
-
-                      <div className="flex items-start sm:items-center gap-3 text-zinc-300">
-                        <BsChatDots className="text-violet-400 text-xl flex-shrink-0 mt-1 sm:mt-0" />
-                        <p className="text-sm sm:text-base">
-                          Ask specific questions to refine recommendations to
-                          your taste
-                        </p>
-                      </div>
-
-                      <div className="flex items-start sm:items-center gap-3 text-zinc-300">
-                        <RiHistoryLine className="text-violet-400 text-xl flex-shrink-0 mt-1 sm:mt-0" />
-                        <p className="text-sm sm:text-base">
-                          Save recommendations to your history for later (click
-                          on a recommendation to open modal)
-                        </p>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={closeIntroModal}
-                      className="mt-8 w-full bg-violet-600 hover:bg-violet-700 text-white font-medium py-3 px-4 rounded-xl transition-colors text-sm sm:text-base"
-                    >
-                      Get Started
-                    </button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </>
-      )}
+      <MediaDetails
+        details={details}
+        showAllSeasons={showAllSeasons}
+        setShowAllSeasons={setShowAllSeasons}
+        aiRecommendations={recommendations}
+        isAiLoading={isAiLoading}
+        saveToHistory={saveRecommendation}
+        alert={alert}
+        toggleChat={() => { setShowChat(value => !value); return !showChat; }}
+        showChat={showChat}
+        setPrompt={setPrompt}
+        prompt={prompt}
+        handleSubmitPrompt={submitPrompt}
+        isMobile={isMobile}
+      />
     </div>
   );
 }
