@@ -14,7 +14,8 @@ export default function SearchComponent() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<(MappedMovie | MappedShow)[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);\n  const [retry, setRetry] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
   const normalizedQuery = query.trim();
   const hasQuery = normalizedQuery.length >= 2;
 
