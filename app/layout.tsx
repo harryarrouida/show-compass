@@ -21,13 +21,13 @@ export const metadata: Metadata = {
   title: "Showcompass",
   description: "Your AI Guide to the Best Shows",
   manifest: "/manifest.json",
-  themeColor: "#ffffff",
+  themeColor: "#111111",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "showcompass"
   },
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+  viewport: "width=device-width, initial-scale=1",
 };
 
 export default function RootLayout({
@@ -61,7 +61,7 @@ export default function RootLayout({
       </div>
     </div>
   ) : (
-    <main id="main-content" tabIndex={-1} className="flex-grow mb-16 relative">
+    <main id="main-content" tabIndex={-1} className="flex-grow relative">
       <Suspense fallback={<Loading text="Loading..." />}>
         {children}
       </Suspense>
