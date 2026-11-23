@@ -37,7 +37,7 @@ export default function HistoryPage() {
   } = useHistory();
   const [showFullReason, setShowFullReason] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  
 
 
   useEffect(() => {
@@ -48,7 +48,8 @@ export default function HistoryPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const displayHistory = showAll ? historyContext : historyContext.slice(0, 10).sort((a, b) => b.timestamp - a.timestamp);
+  const sortedHistory = [...historyContext].sort((a, b) => b.timestamp - a.timestamp);
+  const displayHistory = showAll ? sortedHistory : sortedHistory.slice(0, 10);
 
   const toggleShowAll = () => {
     setShowAll(!showAll);
@@ -56,15 +57,15 @@ export default function HistoryPage() {
 
   return (
     <div
-      className={`page-shell min-h-screen max-w-6xl transition-opacity duration-500 ease-in-out ${isVisible ? "opacity-100" : "opacity-0"
+      className={`page-shell min-h-[70vh] max-w-7xl transition-opacity duration-500 ease-in-out ${isVisible ? "opacity-100" : "opacity-0"
         }`}
     >
-      <div className="flex justify-between items-center mb-6 sm:mb-8">
-        <h1 className="text-3xl sm:text-4xl font-bold text-text-primary">Saved recommendations</h1>
+      <div className="flex flex-wrap justify-between items-center gap-3 mb-6 sm:mb-8">
+        <div><h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-text-primary">Saved recommendations</h1><p className="mt-2 text-sm text-text-secondary">Keep track of recommendations worth revisiting.</p></div>{historyContext.length > 0 && <span className="chip-action">{historyContext.length} saved</span>}
       </div>
 
       {historyContext.length === 0 ? (
-        <Card className="p-6 sm:p-8 text-center bg-zinc-900/80 backdrop-blur">
+        <Card className="p-8 sm:p-12 text-center">
           <p className="text-zinc-300 text-base sm:text-lg">
             No saved recommendations yet. Save a title to find it here later.
           </p>
@@ -72,17 +73,12 @@ export default function HistoryPage() {
       ) : (
         <>
           <div className="poster-grid">
-            {isLoading ? (
-              Array.from({ length: 10 }).map((_, index) => (
-                <CardSkeleton key={index} index={index} />
-              ))
-            ) : (
-              displayHistory.map((item) => (
+            {displayHistory.map((item) => (
                 <div
                   key={item.id}
                   className="relative min-w-0"
                 >
-                  <button type="button" className="poster-control group" aria-haspopup="dialog" onClick={() => setSelectedItem(item as HistoryItem)}>
+                  <button type="button" className="poster-control group" aria-haspopup="dialog" onClick={() => setSelectedItem(item as HistoryItem); setShowFullReason(false)}>
                     <span className="poster-frame">
                       <OptimizedImage
                         src={item.data.poster_path || ""}
@@ -103,15 +99,14 @@ export default function HistoryPage() {
 
                   <button
                     type="button"
-                    onClick={() => deleteFromHistory(item.id)}
+                    onClick={() => { if (window.confirm(`Remove ${item.data.title} from saved recommendations?`)) deleteFromHistory(item.id); }}
                     aria-label={`Remove ${item.data.title} from history`}
                     className="icon-action absolute right-1 top-1 text-red-300"
                   >
                     <IoTrashOutline className="w-3 h-3 sm:w-4 sm:h-4 text-red-400" />
                   </button>
                 </div>
-              ))
-            )}
+              ))}
           </div>
 
           <div className="flex flex-col sm:flex-row justify-center items-center gap-3 sm:gap-6 mt-6 sm:mt-8">
@@ -122,7 +117,7 @@ export default function HistoryPage() {
               {showAll ? "Show Less" : "Show All"}
             </button>
             <button
-              onClick={clearHistory}
+              onClick={() => { if (window.confirm("Remove all saved recommendations? This cannot be undone.")) clearHistory(); }}
               className="secondary-action text-red-300"
             >
               <IoTrashOutline className="w-4 h-4 mr-2" />
