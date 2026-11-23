@@ -14,7 +14,7 @@ const maxWidthClasses = {
     md: 'max-w-4xl',
     lg: 'max-w-6xl',
     xl: 'max-w-7xl',
-    '2xl': 'max-w-8xl',
+    '2xl': 'max-w-7xl',
     'full': 'max-w-full'
 };
 
@@ -25,8 +25,8 @@ export default function PageLayout({
 }: PageLayoutProps) {
     return (
         <ErrorBoundary>
-            <div className={`page-shell min-h-screen ${maxWidthClasses[maxWidth]} ${className}`}>
-                <div className="space-y-10 sm:space-y-14">
+            <div className={`page-shell min-h-[70vh] ${maxWidthClasses[maxWidth]} ${className}`}>
+                <div className="space-y-10 sm:space-y-12">
                     {children}
                 </div>
             </div>
