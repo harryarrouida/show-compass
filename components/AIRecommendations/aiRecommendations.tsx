@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 import { RecommendationModal } from "@/components/AIRecommendations/RecommendationModal";
 import { RecommendationCard } from "@/components/AIRecommendations/RecommendationCard";
 import CardSkeleton from "../shared/loaders/CardSkeleton";
+import { useRecommendationFeedback } from "@/contexts/recommendationFeedbackContext";
 
 interface AIRecommendationsProps {
   isAiLoading: boolean;
@@ -32,6 +33,7 @@ export default function AIRecommendations({
   handleSubmitPrompt,
 }: AIRecommendationsProps) {
   const pathname = usePathname();
+  const { feedback, mark } = useRecommendationFeedback();
   const [isDefaultRecs, setIsDefaultRecs] = useState(true);
   const [selectedRec, setSelectedRec] = useState<AIRecommendation | null>(null);
 
@@ -122,7 +124,7 @@ export default function AIRecommendations({
         ) : (
           <div className="poster-grid pt-6">
             {Array.isArray(aiRecommendations) &&
-              aiRecommendations.map((rec, index) => (
+              aiRecommendations.filter(rec => !feedback.some(item => item.id === rec.media?.id && item.type === rec.media?.type && item.sentiment === "not_interested")).map((rec, index) => (
                 <RecommendationCard
                   key={index}
                   index={index}
@@ -142,12 +144,15 @@ export default function AIRecommendations({
         </div>
       )}
 
+      <p className="text-xs text-text-tertiary">Open a recommendation to mark Interested or Not interested. Your preferences stay on this device.</p>
+
       {/* Modal */}
       {selectedRec && (
         <RecommendationModal
           recommendation={selectedRec}
           onClose={() => setSelectedRec(null)}
           onSave={saveToHistory}
+          onFeedback={(sentiment) => { if (selectedRec.media) mark(selectedRec.media.id, selectedRec.media.type, sentiment); setSelectedRec(null); }}
         />
       )}
     </div>
