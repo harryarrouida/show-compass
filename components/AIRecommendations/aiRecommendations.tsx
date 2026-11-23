@@ -114,7 +114,7 @@ export default function AIRecommendations({
       {/* Grid */}
       <div className="relative">
         {isAiLoading ? (
-          <div className="poster-grid pt-6">
+          <div className="poster-grid pt-3">
             {Array.from({ length: 10 }).map((_, i) => (
               <CardSkeleton key={i} index={i} />
             ))}
@@ -134,6 +134,13 @@ export default function AIRecommendations({
           </div>
         )}
       </div>
+
+      {!isAiLoading && !alert && Array.isArray(aiRecommendations) && aiRecommendations.length === 0 && (
+        <div role="status" className="empty-state">
+          <h3 className="font-semibold text-text-primary">No recommendations to display</h3>
+          <p className="mt-2">Try another title or refine your preferences.</p>
+        </div>
+      )}
 
       {/* Modal */}
       {selectedRec && (

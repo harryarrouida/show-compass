@@ -7,20 +7,20 @@ export default function Footer() {
 
   return (
     <footer className="mt-auto border-t border-border-primary bg-background-secondary">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-7">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-5">
           {/* About */}
           <div className="text-center md:text-left">
             <h3 className="text-text-primary font-semibold">Show Compass</h3>
             <p className="text-sm text-text-secondary mt-2 max-w-sm">
-              Your AI-powered entertainment companion for personalized recommendations.
+              Find movies and shows that match your taste.
             </p>
           </div>
 
           {/* Links */}
           <div className="flex items-center gap-6">
             <a
-              href="https://github.com/harryarrouida"
+              href="https://github.com/harryarrouida/show-compass"
               target="_blank"
               rel="noopener noreferrer"
               className="text-text-secondary hover:text-text-primary transition-colors"
@@ -58,7 +58,7 @@ export default function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="mt-6 pt-6 border-t border-border-primary">
+        <div className="mt-6 pt-5 border-t border-border-primary">
           <p className="text-center text-sm text-text-tertiary">
             © {currentYear} Show Compass. All rights reserved.
           </p>

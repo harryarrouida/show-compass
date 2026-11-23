@@ -228,7 +228,7 @@ export default function RecommendationPage() {
   }
 
   return (
-    <div className="p-4 sm:p-8 max-w-7xl mx-auto min-h-screen mt-4 sm:mt-10">
+    <div className="min-h-[70vh] w-full">
       {isLoading ? (
         <Loading text="Loading Recommendations..." />
       ) : (

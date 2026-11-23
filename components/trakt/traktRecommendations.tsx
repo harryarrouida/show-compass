@@ -483,7 +483,7 @@ const TraktRecommendations = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-4 sm:mt-8">
+    <div className="w-full">
       <Card className="p-4 sm:p-8">
         <div className="flex flex-col gap-4 sm:gap-6">
           {/* Header Section */}
@@ -492,10 +492,10 @@ const TraktRecommendations = () => {
               <RiRobot2Line className="w-4 sm:w-5 h-4 sm:h-5 text-interactive-accent" />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-text-primary">
+              <h2 className="section-heading">
                 AI-Powered Recommendations
               </h2>
-              <p className="text-text-tertiary text-xs sm:text-sm mt-0.5 sm:mt-1">
+              <p className="text-text-secondary text-xs sm:text-sm mt-0.5 sm:mt-1">
                 Discover your next favorite based on your unique taste
                 {process.env.NODE_ENV === 'production' && <>( {generationsLeft} generations left)</>}
               </p>
@@ -504,14 +504,14 @@ const TraktRecommendations = () => {
 
           {/* Controls Section */}
           <div className="space-y-4 sm:space-y-6">
-            <p className="text-zinc-300 text-xs sm:text-sm leading-relaxed">
+            <p className="text-text-secondary text-xs sm:text-sm leading-relaxed">
               Let our AI analyze your watch history to discover personalized
               recommendations based on themes, narrative styles, and artistic
               approaches.
             </p>
 
             {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-300 text-sm">
+              <div role="alert" className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-300 text-sm">
                 {error}
               </div>
             )}
@@ -525,8 +525,8 @@ const TraktRecommendations = () => {
                   <select
                     value={mediaType}
                     onChange={(e) => setMediaType(e.target.value as MediaType)}
-                    className="w-full sm:w-auto bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-zinc-200 
-                              focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20
+                    aria-label="Type of recommendation" className="w-full sm:w-auto bg-background-tertiary border border-border-primary rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-text-primary 
+                              focus:outline-none focus:border-accent-primary 
                               appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
                               bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all"
                   >
@@ -539,8 +539,8 @@ const TraktRecommendations = () => {
                     onChange={(e) =>
                       setNumRecommendations(Number(e.target.value) as 5 | 10)
                     }
-                    className="w-full sm:w-auto bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-zinc-200 
-                              focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20
+                    className="w-full sm:w-auto bg-background-tertiary border border-border-primary rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-sm text-text-primary 
+                              focus:outline-none focus:border-accent-primary 
                               appearance-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIiIGhlaWdodD0iOCIgdmlld0JveD0iMCAwIDEyIDgiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxwYXRoIGQ9Ik02IDcuNEwwIDEuNEwxLjQgMEw2IDQuNkwxMC42IDBMMTIgMS40TDYgNy40WiIgZmlsbD0iIzcxNzE3MSIvPgo8L3N2Zz4K')]
                               bg-[length:12px_8px] bg-[right_16px_center] bg-no-repeat pr-12 transition-all"
                   >
@@ -552,21 +552,21 @@ const TraktRecommendations = () => {
                 {/* Filter Buttons */}
                 <div className="flex gap-2 sm:gap-3">
                   <button
-                    onClick={() => setFromWatchlist(!fromWatchlist)}
+                    onClick={() => setFromWatchlist(!fromWatchlist)}\n                    aria-pressed={fromWatchlist}
                     className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
                               ${fromWatchlist
-                        ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
-                        : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
+                        ? "bg-accent-primary/10 text-accent-hover border border-border-hover"
+                        : "bg-background-tertiary text-text-secondary border border-border-primary"
                       }`}
                   >
                     {fromWatchlist ? "From Watchlist" : "General"}
                   </button>
                   <button
-                    onClick={() => setAnimeOnly(!animeOnly)}
+                    onClick={() => setAnimeOnly(!animeOnly)}\n                    aria-pressed={animeOnly}
                     className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
                               ${animeOnly
-                        ? "bg-blue-500/10 text-blue-300 border border-blue-500/20"
-                        : "bg-zinc-800/30 text-zinc-300 border border-zinc-700/50"
+                        ? "bg-accent-primary/10 text-accent-hover border border-border-hover"
+                        : "bg-background-tertiary text-text-secondary border border-border-primary"
                       }`}
                   >
                     {animeOnly ? "Anime Only" : `All ${mediaType}`}
@@ -612,7 +612,7 @@ const TraktRecommendations = () => {
           {/* <div className="mt-4 border-t border-zinc-800/50 pt-4">
             <button
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className="w-full flex items-center justify-between text-zinc-300 text-sm hover:text-white transition-colors px-2"
+              className="w-full flex items-center justify-between text-text-secondary text-sm hover:text-white transition-colors px-2"
             >
               <div className="flex items-center gap-2">
                 <IoFilterOutline className="w-4 h-4" />
@@ -628,11 +628,11 @@ const TraktRecommendations = () => {
             {showAdvancedFilters && (
               <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="block text-zinc-400 text-sm">Length</label>
+                  <label className="block text-text-secondary text-sm">Length</label>
                   <select
                     value={lengthPreference}
                     onChange={(e) => setLengthPreference(e.target.value as LengthPreference | "")}
-                    className="w-full bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
+                    className="w-full bg-background-tertiary border border-border-primary rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
                   >
                     <option value="">Any Length</option>
                     <option value="short">Short</option>
@@ -642,7 +642,7 @@ const TraktRecommendations = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-zinc-400 text-sm">Episode Range</label>
+                  <label className="block text-text-secondary text-sm">Episode Range</label>
                   <div className="flex gap-2">
                     <input
                       type="number"
@@ -652,7 +652,7 @@ const TraktRecommendations = () => {
                         ...prev,
                         min: parseInt(e.target.value) || undefined,
                       }))}
-                      className="w-1/2 bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
+                      className="w-1/2 bg-background-tertiary border border-border-primary rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
                     />
                     <input
                       type="number"
@@ -662,17 +662,17 @@ const TraktRecommendations = () => {
                         ...prev,
                         max: parseInt(e.target.value) || undefined,
                       }))}
-                      className="w-1/2 bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
+                      className="w-1/2 bg-background-tertiary border border-border-primary rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-zinc-400 text-sm">Status</label>
+                  <label className="block text-text-secondary text-sm">Status</label>
                   <select
                     value={showStatus}
                     onChange={(e) => setShowStatus(e.target.value as ShowStatus)}
-                    className="w-full bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
+                    className="w-full bg-background-tertiary border border-border-primary rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
                   >
                     <option value="both">Any Status</option>
                     <option value="ongoing">Ongoing</option>
@@ -681,7 +681,7 @@ const TraktRecommendations = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-zinc-400 text-sm">Minimum Rating</label>
+                  <label className="block text-text-secondary text-sm">Minimum Rating</label>
                   <input
                     type="number"
                     min="5"
@@ -689,7 +689,7 @@ const TraktRecommendations = () => {
                     step="0.5"
                     value={minimumRating}
                     onChange={(e) => setMinimumRating(parseFloat(e.target.value))}
-                    className="w-full bg-zinc-800/30 border border-zinc-700/50 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50"
+                    className="w-full bg-background-tertiary border border-border-primary rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-accent-primary"
                     placeholder="Any rating"
                   />
                 </div>

@@ -1,110 +1,61 @@
-import { IoTv, IoFilm, IoTime, IoLogOut } from "react-icons/io5";
+import { IoTvOutline, IoFilmOutline, IoTimeOutline, IoLogOutOutline } from "react-icons/io5";
 import { SiTrakt } from "react-icons/si";
 import { useTraktContext } from "@/contexts/traktContext";
-import { useRouter } from 'next/navigation';
-import Card from "@/components/shared/ui/Card";
+import { useRouter } from "next/navigation";
 
 interface WatchHistoryOverviewProps {
-    watchedMovies: any[];
-    watchedShows: any[];
-    watchedMoviesDetails: any[];
-    watchedShowsDetails: any[];
+  watchedMovies: any[];
+  watchedShows: any[];
+  watchedMoviesDetails: any[];
+  watchedShowsDetails: any[];
 }
 
-const WatchHistoryOverview = ({
-    watchedMovies,
-    watchedShows,
-    watchedMoviesDetails,
-    watchedShowsDetails,
-}: WatchHistoryOverviewProps) => {
-    // Calculate movie watch time using actual runtime
-    const movieMinutes = watchedMoviesDetails.reduce((acc, movie) => acc + (movie.runtime || 0), 0);
-    const movieDays = Math.floor(movieMinutes / (24 * 60));
-    const movieHours = Math.floor((movieMinutes % (24 * 60)) / 60);
+function formatDuration(minutes: number) {
+  const hours = Math.floor(Math.max(0, minutes) / 60);
+  const days = Math.floor(hours / 24);
+  return days > 0 ? `${days}d ${hours % 24}h` : `${hours}h`;
+}
 
-    // Calculate show watch time using episode runtime and season count
-    const showMinutes = watchedShowsDetails.reduce((acc, show) => {
-        const episodeRuntime = show.episode_run_time?.[0] || 0;
-        const seasonsCount = show.number_of_seasons || 0;
-        const episodesPerSeason = show.number_of_episodes ? Math.ceil(show.number_of_episodes / seasonsCount) : 0;
-        return acc + (episodeRuntime * episodesPerSeason * seasonsCount);
-    }, 0);
-    const showDays = Math.floor(showMinutes / (24 * 60));
-    const showHours = Math.floor((showMinutes % (24 * 60)) / 60);
+export default function WatchHistoryOverview({
+  watchedMovies, watchedShows, watchedMoviesDetails, watchedShowsDetails,
+}: WatchHistoryOverviewProps) {
+  const { user, logout } = useTraktContext();
+  const router = useRouter();
+  const movieMinutes = watchedMoviesDetails.reduce((acc, movie) => acc + (movie?.runtime || 0), 0);
+  const showMinutes = watchedShowsDetails.reduce((acc, show) => {
+    const runtime = show?.episode_run_time?.[0] || 0;
+    const episodes = show?.number_of_episodes || 0;
+    return acc + runtime * episodes;
+  }, 0);
+  const metrics = [
+    { label: "TV shows", value: watchedShows.length, note: "titles watched", Icon: IoTvOutline },
+    { label: "Movies", value: watchedMovies.length, note: "titles watched", Icon: IoFilmOutline },
+    { label: "Estimated watch time", value: formatDuration(movieMinutes + showMinutes), note: "based on title runtimes", Icon: IoTimeOutline },
+  ];
 
-    // Calculate total time
-    const totalMinutes = movieMinutes + showMinutes;
-    const totalDays = Math.floor(totalMinutes / (24 * 60));
-    const totalHours = Math.floor((totalMinutes % (24 * 60)) / 60);
-
-    const { user, logout } = useTraktContext();
-    const router = useRouter();
-
-    const handleLogout = () => {
-        logout();
-        router.push('/');
-    };
-
-    return (
-        <div className="w-full max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 mt-4 sm:mt-8">
-            <div className="w-full bg-background-secondary border border-border-primary rounded-2xl p-4 sm:p-8">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-0 mb-6 sm:mb-8">
-                    <div className="flex items-center space-x-3 px-4 sm:px-5 py-2 sm:py-2.5 bg-zinc-800/30 rounded-full border border-zinc-700/50 w-full sm:w-auto">
-                        <SiTrakt className="w-4 sm:w-5 h-4 sm:h-5 text-blue-400" />
-                        <span className="text-base sm:text-lg font-medium text-zinc-200">
-                            {user?.username || ''}
-                        </span>
-                    </div>
-                    <button
-                        onClick={handleLogout}
-                        className="flex items-center space-x-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-full w-full sm:w-auto justify-center
-                                 bg-red-400/10 hover:bg-red-400/15
-                                 text-zinc-300
-                                 border border-red-400/10 hover:border-red-400/20
-                                 transition-all duration-300"
-                    >
-                        <IoLogOut className="w-4 sm:w-5 h-4 sm:h-5" />
-                        <span>Logout</span>
-                    </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                    <Card hover className="p-4 sm:p-6">
-                        <div className="flex items-center space-x-3 text-zinc-400 mb-3 sm:mb-4">
-                            <IoTv className="w-4 sm:w-5 h-4 sm:h-5 text-emerald-500" />
-                            <span className="text-sm font-medium">Series Watch Time</span>
-                        </div>
-                        <p className="text-3xl sm:text-4xl font-light text-zinc-200">
-                            {`${showDays}d ${showHours}h`}
-                        </p>
-                        <p className="text-xs sm:text-sm text-zinc-500 mt-2">{`${watchedShows.length} shows watched`}</p>
-                    </Card>
-
-                    <Card hover className="p-4 sm:p-6">
-                        <div className="flex items-center space-x-3 text-zinc-400 mb-3 sm:mb-4">
-                            <IoFilm className="w-4 sm:w-5 h-4 sm:h-5 text-violet-500" />
-                            <span className="text-sm font-medium">Movies Watch Time</span>
-                        </div>
-                        <p className="text-3xl sm:text-4xl font-light text-zinc-200">
-                            {`${movieDays}d ${movieHours}h`}
-                        </p>
-                        <p className="text-xs sm:text-sm text-zinc-500 mt-2">{`${watchedMovies.length} movies watched`}</p>
-                    </Card>
-
-                    <Card hover className="p-4 sm:p-6">
-                        <div className="flex items-center space-x-3 text-zinc-400 mb-3 sm:mb-4">
-                            <IoTime className="w-4 sm:w-5 h-4 sm:h-5 text-sky-500" />
-                            <span className="text-sm font-medium">Total Time Watched</span>
-                        </div>
-                        <p className="text-3xl sm:text-4xl font-light text-zinc-200">
-                            {`${totalDays}d ${totalHours}h`}
-                        </p>
-                        <p className="text-xs sm:text-sm text-zinc-500 mt-2">Combined watch time</p>
-                    </Card>
-                </div>
-            </div>
+  return (
+    <section className="surface-panel p-5 sm:p-8" aria-labelledby="trakt-overview-heading">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-border-primary pb-6">
+        <div>
+          <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-accent-hover">
+            <SiTrakt aria-hidden="true" /> Connected account
+          </div>
+          <h2 id="trakt-overview-heading" className="section-heading">{user?.username || "Trakt overview"}</h2>
+          <p className="mt-1 text-sm text-text-secondary">Your viewing activity at a glance.</p>
         </div>
-    );
-};
-
-export default WatchHistoryOverview;
+        <button type="button" onClick={() => { logout(); router.push("/"); }} className="secondary-action">
+          <IoLogOutOutline aria-hidden="true" /> Disconnect
+        </button>
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {metrics.map(({ label, value, note, Icon }) => (
+          <div key={label} className="rounded-xl border border-border-primary bg-background-primary p-5">
+            <div className="mb-4 flex items-center gap-2 text-sm font-medium text-text-secondary"><Icon aria-hidden="true" className="size-4 text-accent-primary" />{label}</div>
+            <p className="text-3xl font-bold tracking-tight text-text-primary">{value}</p>
+            <p className="mt-2 text-xs text-text-tertiary">{note}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
