@@ -24,4 +24,4 @@ A movie and TV show recommendation platform with AI-powered suggestions and Trak
 Required environment variables:
 - NEXT_PUBLIC_TMDB_API_KEY
 - NEXT_PUBLIC_TRAKT_CLIENT_ID
-- NEXT_PUBLIC_GROQ_API_KEY
+- GROQ_API_KEY (server-only; never prefix with NEXT_PUBLIC_)\n- GROQ_MODEL (optional; defaults to openai/gpt-oss-120b)
