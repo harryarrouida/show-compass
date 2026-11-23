@@ -49,7 +49,7 @@ export default function TraktRecommendations() {
     setResults([]);
     setPastIds([]);
     setError(null);
-  }, [type, fromWatchlist]);
+  }, [type, fromWatchlist, animeOnly]);
 
   const remainingSeconds = Math.max(0, Math.ceil((cooldownUntil - now) / 1000));
   const outOfGenerations = process.env.NODE_ENV === "production" && generationsLeft <= 0;
