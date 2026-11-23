@@ -57,7 +57,7 @@ type Candidate = {
 };
 
 const toTMDBType = (type: MediaKind) => type === "movie" ? "movie" : "tv";
-const positiveId = (value: unknown) => typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+const positiveId = (value: unknown): value is number => typeof value === "number" && Number.isSafeInteger(value) && value > 0;
 const textValue = (value: unknown, max = 120) => typeof value === "string" ? value.trim().slice(0, max) : "";
 const normalized = (value: string) => value.normalize("NFKD").toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
 
