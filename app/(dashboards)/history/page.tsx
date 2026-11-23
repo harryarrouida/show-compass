@@ -130,7 +130,7 @@ export default function HistoryPage() {
 
       {selectedItem && (
         <Dialog title={selectedItem.data.title} onClose={() => setSelectedItem(null)}>
-            <div className="relative h-[200px] sm:h-[300px]">
+            <div className="relative h-[190px] sm:h-[260px] overflow-hidden">
               <OptimizedImage
                 src={`${selectedItem.data.backdrop_path}`}
                 alt={selectedItem.data.title}
@@ -138,7 +138,7 @@ export default function HistoryPage() {
                 priority
                 sizes="(max-width: 640px) 45vw, (max-width: 1024px) 33vw, 20vw"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-zinc-900/70 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background-secondary via-background-secondary/70 to-transparent" />
             </div>
 
             <div className="absolute top-0 right-0 z-10 p-4">
@@ -179,7 +179,7 @@ export default function HistoryPage() {
                 </div>
 
                 <div className="flex-1 min-w-0 space-y-4 mt-4 md:mt-0">
-                  <h2 className="text-xl md:text-3xl font-semibold text-white text-center md:text-left">
+                  <h2 className="text-xl md:text-3xl font-bold tracking-tight text-text-primary text-center md:text-left">
                     {selectedItem.data.title}
                   </h2>
 
@@ -209,14 +209,14 @@ export default function HistoryPage() {
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-center md:justify-start gap-2 mt-2 px-4 py-3 bg-zinc-800/50 rounded-lg border border-zinc-700/50 backdrop-blur">
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mt-2 px-4 py-3 bg-background-tertiary rounded-xl border border-border-primary">
                     <div className="flex items-center gap-2">
                       <RiRobot2Line className="w-5 h-5 text-zinc-400" />
                       <span className="text-zinc-400 text-sm">
                         Recommended from:
                       </span>
                     </div>
-                    <span className="text-blue-200 text-sm font-medium">
+                    <span className="text-accent-hover text-sm font-medium">
                       {typeof selectedItem.from === "string"
                         ? selectedItem.from
                         : selectedItem.from.title}
@@ -225,7 +225,7 @@ export default function HistoryPage() {
                 </div>
               </div>
 
-              <div className="p-4 bg-zinc-900 border-t border-zinc-800 md:hidden mt-10">
+              <div className="p-4 border-t border-border-primary md:hidden mt-6">
                 <button
                   onClick={() => {
                     deleteFromHistory(selectedItem.id);
