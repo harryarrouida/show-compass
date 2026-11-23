@@ -147,10 +147,17 @@ async function gatherCandidates(input: RecommendationRequest, positiveAnchors: n
     }
   }
 
-  tasks.push(
-    { endpoint: `/trending/${toTMDBType(input.type)}/week`, weight: 10 },
-    { endpoint: `/discover/${toTMDBType(input.type)}`, params: { sort_by: "vote_average.desc", "vote_count.gte": "150" }, weight: 8 },
-  );
+  if (input.animeOnly) {
+    tasks.push(
+      { endpoint: `/discover/${toTMDBType(input.type)}`, params: { with_genres: "16", with_original_language: "ja", sort_by: "popularity.desc", page: "1" }, weight: 26 },
+      { endpoint: `/discover/${toTMDBType(input.type)}`, params: { with_genres: "16", with_original_language: "ja", sort_by: "vote_average.desc", "vote_count.gte": "40", page: "2" }, weight: 22 },
+    );
+  } else {
+    tasks.push(
+      { endpoint: `/trending/${toTMDBType(input.type)}/week`, weight: 10 },
+      { endpoint: `/discover/${toTMDBType(input.type)}`, params: { sort_by: "vote_average.desc", "vote_count.gte": "150" }, weight: 8 },
+    );
+  }
 
   const results = await Promise.all(tasks.map(async task => ({
     titles: await optionalList(task.endpoint, { include_adult: "false", ...task.params }),
