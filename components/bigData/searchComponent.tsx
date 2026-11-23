@@ -14,7 +14,7 @@ export default function SearchComponent() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<(MappedMovie | MappedShow)[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);\n  const [retry, setRetry] = useState(0);
   const normalizedQuery = query.trim();
   const hasQuery = normalizedQuery.length >= 2;
 
@@ -60,7 +60,7 @@ export default function SearchComponent() {
       active = false;
       clearTimeout(timer);
     };
-  }, [normalizedQuery, hasQuery]);
+  }, [normalizedQuery, hasQuery, retry]);
 
   return (
     <section className="surface-panel relative overflow-hidden px-5 py-10 sm:px-10 sm:py-14" aria-labelledby="discover-heading">
@@ -111,7 +111,7 @@ export default function SearchComponent() {
           ) : error ? (
             <div role="alert" className="empty-state border-red-500/30">
               <p className="text-red-300">{error}</p>
-              <button type="button" className="secondary-action mt-3" onClick={() => setQuery(query.trim() + " ")}>Try again</button>
+              <button type="button" className="secondary-action mt-3" onClick={() => setRetry(value => value + 1)}>Try again</button>
             </div>
           ) : results.length > 0 ? (
             <>
