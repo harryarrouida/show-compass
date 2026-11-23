@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import Image from "next/image";
 import Dialog from "@/components/shared/ui/Dialog";
 import {
@@ -69,7 +70,7 @@ export default function HistoryPage() {
           <IoBookmarkOutline aria-hidden="true" className="mx-auto mb-4 size-9 text-accent-primary" />
           <h2 className="section-heading">Nothing saved yet</h2>
           <p className="mt-2 text-text-secondary">Explore a title and save recommendations to revisit them here.</p>
-          <a href="/" className="secondary-action mt-6">Explore titles</a>
+          <Link href="/" className="secondary-action mt-6">Explore titles</Link>
         </Card>
       ) : (
         <>
