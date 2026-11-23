@@ -78,7 +78,7 @@ export default function HistoryPage() {
                   key={item.id}
                   className="relative min-w-0"
                 >
-                  <button type="button" className="poster-control group" aria-haspopup="dialog" onClick={() => setSelectedItem(item as HistoryItem); setShowFullReason(false)}>
+                  <button type="button" className="poster-control group" aria-haspopup="dialog" onClick={() => { setSelectedItem(item as HistoryItem); setShowFullReason(false); }}>
                     <span className="poster-frame">
                       <OptimizedImage
                         src={item.data.poster_path || ""}
