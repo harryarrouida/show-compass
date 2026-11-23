@@ -113,3 +113,26 @@ export const getUserWatchlist = async (token: string, type: string) => {
   });
   return mappedWatchlist;
 };
+
+// Trakt personal ratings (1–10). These are distinct from public TMDB ratings.
+export const getUserRatings = async (token: string, type: "movies" | "shows") => {
+  if (!token) return [] as Array<{ id: number; rating: number }>;
+  const { data } = await axios.get(`${baseUrl}/users/me/ratings/${type}`, {
+    params: { limit: 1000, page: 1 },
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "trakt-api-key": process.env.NEXT_PUBLIC_TRAKT_CLIENT_ID,
+      "trakt-api-version": "2",
+    },
+  });
+  if (!Array.isArray(data)) return [] as Array<{ id: number; rating: number }>;
+  return data
+    .map((entry: any) => ({
+      id: entry[type === "movies" ? "movie" : "show"]?.ids?.tmdb,
+      rating: Number(entry.rating),
+    }))
+    .filter((entry: { id: number; rating: number }) =>
+      Number.isSafeInteger(entry.id) && entry.id > 0 &&
+      entry.rating >= 1 && entry.rating <= 10
+    );
+};
