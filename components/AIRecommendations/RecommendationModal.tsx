@@ -42,7 +42,7 @@ export function RecommendationModal({
             <div className="absolute inset-0 bg-gradient-to-r from-zinc-900/60 via-transparent to-transparent md:hidden" />
           </>
         ) : (
-          <div className="w-full h-full bg-zinc-800" />
+          <div className="w-full h-full bg-background-tertiary" />
         )}
       </div>
 
@@ -92,9 +92,9 @@ export function RecommendationModal({
               className="
                 hidden md:flex items-center justify-center gap-2
                 w-full px-4 py-2.5 rounded-xl
-                bg-indigo-600/15 hover:bg-indigo-500/25
-                border border-indigo-500/20 hover:border-indigo-400/30
-                text-indigo-300 hover:text-indigo-200
+                bg-accent-primary/15 hover:bg-accent-primary/25
+                border border-border-hover hover:border-accent-primary/40
+                text-accent-hover hover:text-text-primary
                 text-sm font-medium
                 transition-all duration-200
               "
@@ -131,7 +131,7 @@ export function RecommendationModal({
 
             {/* AI Reason */}
             <div>
-              <p className="text-xs font-semibold text-indigo-400 uppercase tracking-widest mb-2">
+              <p className="text-xs font-semibold text-accent-primary uppercase tracking-widest mb-2">
                 Why you'll like it
               </p>
               <p className="text-sm sm:text-base text-text-primary leading-relaxed">
@@ -142,7 +142,7 @@ export function RecommendationModal({
         </div>
 
         {/* Save — mobile */}
-        <div className="md:hidden mt-6 border-t border-zinc-800/50 pt-5">
+        <div className="md:hidden mt-6 border-t border-border-primary pt-5">
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -152,9 +152,9 @@ export function RecommendationModal({
             className="
               w-full flex items-center justify-center gap-2
               px-5 py-3 rounded-xl
-              bg-indigo-600/20 hover:bg-indigo-500/30
-              border border-indigo-500/20
-              text-indigo-300 hover:text-indigo-200
+              bg-accent-primary/20 hover:bg-accent-primary/30
+              border border-border-hover
+              text-accent-hover hover:text-text-primary
               text-sm font-medium
               transition-all duration-200
             "
