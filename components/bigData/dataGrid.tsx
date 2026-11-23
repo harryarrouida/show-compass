@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { IoClose, IoSearchOutline, IoTvOutline, IoFilmOutline } from "react-icons/io5";
 import { MappedShow, MappedMovie } from "@/types/types";
 import MediaCard from "@/components/bigData/mediaCard";
-import { IoClose } from "react-icons/io5";
 import CardSkeleton from "../shared/loaders/CardSkeleton";
 
 interface DataGridProps {
@@ -24,163 +24,132 @@ export default function DataGrid({
   activeTab,
   setActiveTab,
   shows,
-  setShows,
   movies,
-  setMovies,
   page,
   setPage,
   isLoading,
-  setIsLoading,
   isWithSearch = false,
 }: DataGridProps) {
   const data = activeTab === "movies" ? movies : shows;
-  const [filteredData, setFilteredData] =
-    useState<(MappedShow | MappedMovie)[]>(data);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [displayCount, setDisplayCount] = useState<number>(10);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [displayCount, setDisplayCount] = useState(10);
+  const [requestedPage, setRequestedPage] = useState<number | null>(null);
 
   useEffect(() => {
-    setItemsPerPage(window.innerWidth > 768 ? 10 : 9);
-
-    const handleResize = () => {
-      setItemsPerPage(window.innerWidth > 768 ? 10 : 9);
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    setPage(1);
     setDisplayCount(10);
-  }, [activeTab, setPage]);
+    setSearchTerm("");
+    setRequestedPage(null);
+  }, [activeTab]);
 
   useEffect(() => {
-    setFilteredData(data);
-  }, [data, activeTab]);
+    if (!isLoading && requestedPage === page) setRequestedPage(null);
+  }, [isLoading, page, requestedPage]);
 
-  const handleLoadMore = () => {
-    if (!isLoading) {
-      if (isWithSearch) {
-        setDisplayCount((prevCount) => prevCount + itemsPerPage);
-      } else {
-        setPage((prev) => prev + 1);
-      }
+  const filtered = useMemo(() => {
+    const term = searchTerm.trim().toLocaleLowerCase();
+    return term ? data.filter(item => item.title.toLocaleLowerCase().includes(term)) : data;
+  }, [data, searchTerm]);
+
+  const visible = isWithSearch ? filtered.slice(0, displayCount) : filtered;
+  // Trakt has a finite local collection; trending fetches new pages from TMDB.
+  // A response smaller than one typical TMDB page indicates the end of trending data.
+  const canLoadMore = isWithSearch
+    ? visible.length < filtered.length
+    : data.length >= page * 20;
+  const loadingMore = isLoading || requestedPage !== null;
+
+  const changeTab = (tab: "shows" | "movies") => {
+    if (tab === activeTab) return;
+    setPage(1);
+    setActiveTab(tab);
+  };
+
+  const loadMore = () => {
+    if (loadingMore || !canLoadMore) return;
+    if (isWithSearch) setDisplayCount(count => count + 10);
+    else {
+      setRequestedPage(page + 1);
+      setPage(previous => previous + 1);
     }
   };
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-    const searchTerm = e.target.value.toLowerCase();
-    const filteredData = data.filter((item) =>
-      item.title.toLowerCase().includes(searchTerm)
-    );
-    setFilteredData(filteredData as (MappedShow | MappedMovie)[]);
-  };
-
-  const handleClearSearch = () => {
-    setSearchTerm("");
-    setFilteredData(data);
-  };
-
   return (
-    <div className="w-full">
-      <div className="mx-auto flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-        <div
-          className={
-            isWithSearch
-              ? "inline-flex space-x-12 border-b border-zinc-800/50"
-              : "mx-auto space-x-12 border-b border-zinc-800/50"
-          }
-        >
-          <button
-            onClick={() => setActiveTab("shows")}
-            aria-pressed={activeTab === "shows"}
-            disabled={isLoading}
-            className={`pb-4 px-3 text-base font-medium relative ${
-              activeTab === "shows"
-                ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-zinc-500"
-                : "text-zinc-500 hover:text-zinc-400"
-            } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-          >
-            Shows
-          </button>
-          <button
-            onClick={() => setActiveTab("movies")}
-            aria-pressed={activeTab === "movies"}
-            disabled={isLoading}
-            className={`pb-4 px-3 text-base font-medium relative ${
-              activeTab === "movies"
-                ? "text-white after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-zinc-500"
-                : "text-zinc-500 hover:text-zinc-400"
-            } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
-          >
-            Movies
-          </button>
+    <section className="w-full space-y-6" aria-label={isWithSearch ? "Your Trakt library" : "Trending titles"}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-accent-hover">
+            {isWithSearch ? "Your collection" : "Discover"}
+          </p>
+          <h2 className="section-heading">{isWithSearch ? "Your watch history" : "Trending now"}</h2>
+          <p className="mt-1 text-sm text-text-secondary">
+            {isWithSearch ? "Browse the movies and shows you've watched." : "Explore popular titles and discover your next favorite."}
+          </p>
         </div>
-
-        {isWithSearch && (
-          <div className="relative w-full sm:w-auto">
-            <input
-              value={searchTerm}
-              onChange={handleSearch}
-              type="text"
-              placeholder="Search..."
-              disabled={isLoading}
-              className={`w-full sm:w-64 px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-100 placeholder-text-secondary ${
-                isLoading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-            />
-            {searchTerm.length > 0 && (
-              <button
-                onClick={handleClearSearch}
-                disabled={isLoading}
-                className={`absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 ${
-                  isLoading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                <IoClose size={18} />
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      <div className="w-full poster-grid">
-        {(isWithSearch ? filteredData : data)
-          .slice(0, isWithSearch ? displayCount : undefined)
-          .map((item, index) => (
-            <div key={item.id + index} className="w-full aspect-[2/3]">
-              <MediaCard
-                item={item}
-                activeTab={activeTab}
-                key={item.id + index}
-              />
-            </div>
-          ))}
-      </div>
-
-      {/* {isLoading && (
-        <div className="w-full poster-grid">
-          {[...Array(10)].map((_, index) => (
-            <CardSkeleton key={index} index={index} />
+        <div className="flex items-center gap-1 self-start rounded-xl border border-border-primary bg-background-secondary p-1" role="group" aria-label="Content type">
+          {(["shows", "movies"] as const).map(tab => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => changeTab(tab)}
+              aria-pressed={activeTab === tab}
+              className={`inline-flex min-h-10 items-center gap-2 rounded-lg px-4 text-sm font-semibold transition-colors ${activeTab === tab ? "bg-accent-primary/15 text-accent-hover" : "text-text-secondary hover:bg-background-tertiary hover:text-text-primary"}`}
+            >
+              {tab === "shows" ? <IoTvOutline aria-hidden="true" /> : <IoFilmOutline aria-hidden="true" />}
+              {tab === "shows" ? "TV shows" : "Movies"}
+            </button>
           ))}
         </div>
-      )} */}
+      </div>
 
-      {(!isWithSearch && !isLoading) ||
-      (isWithSearch &&
-        (filteredData.length > displayCount || data.length > displayCount)) ? (
-        <div className="mt-20 mb-16 flex justify-center">
-          <button
-            onClick={handleLoadMore}
-            className="secondary-action"
-          >
-            Load More
+      {isWithSearch && (
+        <div className="relative max-w-sm">
+          <IoSearchOutline aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-text-tertiary" />
+          <input
+            value={searchTerm}
+            onChange={event => { setSearchTerm(event.target.value); setDisplayCount(10); }}
+            type="search"
+            aria-label={`Filter ${activeTab}`}
+            placeholder={`Filter ${activeTab}...`}
+            className="field-control w-full py-3 pl-11 pr-11"
+          />
+          {searchTerm && (
+            <button type="button" onClick={() => { setSearchTerm(""); setDisplayCount(10); }} aria-label="Clear filter"
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg p-2 text-text-secondary hover:text-text-primary">
+              <IoClose aria-hidden="true" />
+            </button>
+          )}
+        </div>
+      )}
+
+      {visible.length > 0 && (
+        <div className="poster-grid">
+          {visible.map(item => (
+            <MediaCard key={`${activeTab}-${item.id}`} item={item} activeTab={activeTab} />
+          ))}
+        </div>
+      )}
+
+      {isLoading && data.length === 0 && (
+        <div className="poster-grid" aria-label="Loading titles" aria-busy="true">
+          {Array.from({ length: 10 }, (_, index) => <CardSkeleton key={index} index={index} />)}
+        </div>
+      )}
+
+      {!isLoading && visible.length === 0 && (
+        <div className="empty-state" role="status">
+          <h3 className="font-semibold text-text-primary">{searchTerm ? "No matching titles" : "No titles to show"}</h3>
+          <p className="mt-2">{searchTerm ? "Try a different search term." : "Nothing is available in this section yet."}</p>
+          {searchTerm && <button className="secondary-action mt-4" onClick={() => setSearchTerm("")}>Clear filter</button>}
+        </div>
+      )}
+
+      {canLoadMore && (
+        <div className="flex justify-center pt-4">
+          <button type="button" onClick={loadMore} disabled={loadingMore} className="secondary-action min-w-40" aria-busy={loadingMore}>
+            {loadingMore ? "Loading..." : "Load more"}
           </button>
         </div>
-      ) : null}
-    </div>
+      )}
+    </section>
   );
 }
