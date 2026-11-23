@@ -132,6 +132,7 @@ export default function RecommendationPage() {
           } catch (error) {
             console.error("Failed to parse AI response:", error);
             setAiRecommendations([]);
+            setAlert(error instanceof Error ? error.message : "Could not generate recommendations");
           }
         }
       } catch (error) {
@@ -168,6 +169,7 @@ export default function RecommendationPage() {
   const handleSubmitPrompt = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsAiLoading(true);
+    setAlert(null);
     try {
       // Pass full history for taste chain extraction
       const recommendations = await getAIRecommendations(
@@ -215,6 +217,7 @@ export default function RecommendationPage() {
     } catch (error) {
       console.error("AI Error:", error);
       setAiRecommendations([]);
+      setAlert(error instanceof Error ? error.message : "Could not generate recommendations");
     } finally {
       setIsAiLoading(false);
     }
