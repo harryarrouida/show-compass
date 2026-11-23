@@ -9,6 +9,7 @@ import { ToastProvider } from '@/contexts/toastContext';
 import { Suspense } from 'react';
 import Loading from '@/components/shared/loaders/loading';
 import { GenerationsProvider } from "@/contexts/GenerationsContext";
+import { RecommendationFeedbackProvider } from "@/contexts/recommendationFeedbackContext";
 
 const quicksand = Quicksand({
   subsets: ['latin'],
@@ -85,12 +86,14 @@ export default function RootLayout({
           <TraktProvider>
             <HistoryProvider>
               <GenerationsProvider>
+                <RecommendationFeedbackProvider>
                 <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-background-secondary focus:p-3">
                   Skip to content
                 </a>
                 <Navbar />
                 {mainContent}
                 <Footer />
+              </RecommendationFeedbackProvider>
               </GenerationsProvider>
             </HistoryProvider>
           </TraktProvider>
