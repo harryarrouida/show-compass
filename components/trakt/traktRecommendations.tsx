@@ -21,7 +21,7 @@ const COOLDOWN_KEY = "showcompass:recommendations:cooldown";
 export default function TraktRecommendations() {
   const { accessToken, watchedMoviesCache, watchedShowsCache, getUserWatchedMovies, getUserWatchedShows } = useTraktContext();
   const { history, saveToHistory } = useHistory();
-  const { generationsLeft, useGeneration } = useGenerations();
+  const { generationsLeft, useGeneration: consumeGeneration } = useGenerations();
   const { feedback, ready, mark } = useRecommendationFeedback();
 
   const [type, setType] = useState<MediaKind>("show");
@@ -106,7 +106,7 @@ export default function TraktRecommendations() {
 
       setResults(picks);
       setPastIds(previous => [...new Set([...previous, ...picks.map(p => p.media?.id).filter((id): id is number => typeof id === "number")])].slice(-300));
-      useGeneration();
+      consumeGeneration();
 
       if (process.env.NODE_ENV === "production") {
         const until = Date.now() + 3 * 60 * 1000;
