@@ -43,19 +43,19 @@ export default function AIRecommendations({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
-          <span className="w-1 h-6 bg-indigo-500 rounded-full" />
+        <h2 className="section-heading flex items-center gap-3">
+          <span className="w-1 h-6 bg-accent-primary rounded-full" />
           <span className="flex items-center gap-2">
-            <RiRobot2Line className="w-5 h-5 text-indigo-400" />
+            <RiRobot2Line className="w-5 h-5 text-accent-primary" />
             AI Picks
           </span>
         </h2>
         {!isDefaultRecs && (
           <button
             onClick={toggleChat}
-            className="text-xs sm:text-sm text-zinc-400 hover:text-indigo-300 transition-colors font-medium
-                       px-3 py-1.5 rounded-lg border border-zinc-800/60 hover:border-indigo-500/30
-                       bg-zinc-900/50 hover:bg-indigo-500/10 transition-all duration-200"
+            className="text-xs sm:text-sm text-text-secondary hover:text-accent-hover transition-colors font-medium
+                       px-3 py-1.5 rounded-lg border border-border-primary hover:border-border-hover
+                       bg-background-secondary hover:bg-background-tertiary transition-all duration-200"
           >
             {showChat ? "Hide Prompt" : "Refine Results"}
           </button>
@@ -73,10 +73,10 @@ export default function AIRecommendations({
               placeholder="e.g. more psychological, less gore, shorter series..."
               className="
                 w-full px-4 py-3.5 rounded-xl
-                bg-zinc-900/80 text-zinc-200 text-sm
-                border border-zinc-700/50
-                outline-none focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20
-                placeholder:text-zinc-600 transition-all duration-200
+                bg-background-primary text-text-primary text-sm
+                border border-border-primary
+                outline-none focus:border-accent-primary
+                placeholder:text-text-tertiary transition-all duration-200
               "
               disabled={isAiLoading}
             />
