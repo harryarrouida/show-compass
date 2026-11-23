@@ -38,25 +38,25 @@ export class ErrorBoundary extends Component<Props, State> {
         if (this.state.hasError) {
             return this.props.fallback || (
                 <div className="min-h-[60vh] flex items-center justify-center">
-                    <div className="text-center space-y-6 p-8 bg-zinc-900/50 rounded-xl border border-zinc-800/50">
+                    <div className="surface-panel w-full max-w-lg text-center space-y-6 p-8">
                         <IoWarning className="w-12 h-12 text-red-400 mx-auto" />
                         <div className="space-y-2">
                             <h2 className="text-xl font-semibold text-red-400">Something went wrong</h2>
-                            <p className="text-sm text-zinc-400">
+                            <p className="text-sm text-text-secondary">
                                 {this.state.error?.message || 'An unexpected error occurred'}
                             </p>
                         </div>
                         <div className="space-y-4">
                             <button
                                 onClick={this.handleReset}
-                                className="flex items-center justify-center gap-2 px-6 py-3 bg-zinc-800 rounded-lg text-sm hover:bg-zinc-700 transition-colors w-full"
+                                className="secondary-action w-full"
                             >
                                 <IoRefresh className="w-4 h-4" />
                                 <span>Try again</span>
                             </button>
                             <button
                                 onClick={() => window.location.reload()}
-                                className="text-sm text-zinc-500 hover:text-zinc-400 transition-colors"
+                                className="text-sm text-text-tertiary hover:text-text-secondary transition-colors"
                             >
                                 Reload page
                             </button>
