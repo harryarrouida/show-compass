@@ -1,19 +1,13 @@
 "use server";
 
-import Groq from "groq-sdk";
+import { getGroqClient, GROQ_MODEL, parseRecommendations } from "@/lib/groq";
 import {
   generateDefaultPrompt,
   generateCustomPrompt,
   type HistoryChain,
 } from "@/constants/aiPrompts";
 
-if(!process.env.GROQ_API_KEY) {
-  throw new Error("Missing GROQ_API_KEY environment variable");
-}
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
 
 /**
  * Build taste chains from the user's saved history.
@@ -110,24 +104,17 @@ CRITICAL: Return ONLY the JSON. Any extra text causes system failure.`,
       },
     ];
 
-    const completion = await groq.chat.completions.create({
+    const completion = await getGroqClient().chat.completions.create({
       messages: messages as any,
-      model: "llama-3.3-70b-versatile",
+      model: GROQ_MODEL,
       temperature: 0.6,
       max_tokens: 2048,
       response_format: { type: "json_object" },
     });
 
-    const response = completion.choices[0]?.message?.content || "";
-    const parsed = JSON.parse(response.trim());
-
-    if (!parsed?.recommendations || !Array.isArray(parsed.recommendations)) {
-      throw new Error("Invalid response format");
-    }
-
-    return parsed.recommendations;
+    return parseRecommendations(completion.choices[0]?.message?.content);
   } catch (error) {
     console.error("AI Recommendation Error:", error);
-    return [];
+    throw new Error("Could not generate recommendations. Please try again later.");
   }
 }
