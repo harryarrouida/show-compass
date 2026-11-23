@@ -552,7 +552,8 @@ const TraktRecommendations = () => {
                 {/* Filter Buttons */}
                 <div className="flex gap-2 sm:gap-3">
                   <button
-                    onClick={() => setFromWatchlist(!fromWatchlist)}\n                    aria-pressed={fromWatchlist}
+                    onClick={() => setFromWatchlist(!fromWatchlist)}
+                    aria-pressed={fromWatchlist}
                     className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
                               ${fromWatchlist
                         ? "bg-accent-primary/10 text-accent-hover border border-border-hover"
@@ -562,7 +563,8 @@ const TraktRecommendations = () => {
                     {fromWatchlist ? "From Watchlist" : "General"}
                   </button>
                   <button
-                    onClick={() => setAnimeOnly(!animeOnly)}\n                    aria-pressed={animeOnly}
+                    onClick={() => setAnimeOnly(!animeOnly)}
+                    aria-pressed={animeOnly}
                     className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-sm transition-all
                               ${animeOnly
                         ? "bg-accent-primary/10 text-accent-hover border border-border-hover"
